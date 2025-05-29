@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Modal, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Image } from 'expo-image';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -71,11 +72,43 @@ export default function HomeScreen() {
     item: ScheduleItem;
   } | null>(null);
 
-  const screenWidth = Dimensions.get('window').width;
-  const columnWidth = (screenWidth - 32) / 7; // 32 for padding
-  const columnHeight = 400; // Fixed column height for percentage calculations
+  // State for screen dimensions that updates on rotation
+  const [screenDimensions, setScreenDimensions] = useState(() => {
+    const { width, height } = Dimensions.get('window');
+    return { width, height };
+  });
+
   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const weekdayAbbr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  // Calculate dynamic values based on current screen dimensions
+  const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
+  const isLandscape = screenDimensions.width > screenDimensions.height;
+  const columnHeight = isLandscape ? 300 : 400; // Adjust height based on orientation
+
+  useEffect(() => {
+    // Enable rotation
+    ScreenOrientation.unlockAsync();
+
+    // Listen for dimension changes (rotation)
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setScreenDimensions({ width: window.width, height: window.height });
+    });
+
+    // Listen for orientation changes for additional control if needed
+    const orientationSubscription = ScreenOrientation.addOrientationChangeListener(
+      (event) => {
+        // Force a re-render by updating dimensions
+        const { width, height } = Dimensions.get('window');
+        setScreenDimensions({ width, height });
+      }
+    );
+
+    return () => {
+      subscription?.remove();
+      ScreenOrientation.removeOrientationChangeListener(orientationSubscription);
+    };
+  }, []);
 
   const calculatePosition = (yPos: number): number => {
     return (yPos / 100) * columnHeight;
@@ -217,6 +250,10 @@ export default function HomeScreen() {
         <ThemedText style={styles.instruction}>
           Tap pending items (lighter blue) to confirm or reject them
         </ThemedText>
+        <ThemedText style={styles.dimensionInfo}>
+          Screen: {screenDimensions.width.toFixed(0)}x{screenDimensions.height.toFixed(0)}
+          {isLandscape ? ' (Landscape)' : ' (Portrait)'}
+        </ThemedText>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.gridContainer}>
@@ -322,8 +359,14 @@ const styles = StyleSheet.create({
   instruction: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     opacity: 0.7,
+  },
+  dimensionInfo: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 10,
+    opacity: 0.5,
   },
   gridContainer: {
     flexDirection: 'row',

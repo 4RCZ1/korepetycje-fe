@@ -325,7 +325,7 @@ export default function HomeScreen() {
 
         <View style={styles.legendContainer}>
           <ThemedText style={styles.legendTitle}>Schedule Details</ThemedText>
-          {Object.entries(scheduleData).map(([day, items]) => {
+          {Object.entries(scheduleData).map(([day, items]:[string, ScheduleItem[]]) => {
             const confirmed = items.filter(item => item.confirmed === true).length;
             const pending = items.filter(item => item.confirmed === undefined || item.confirmed === null).length;
             const rejected = items.filter(item => item.confirmed === false).length;

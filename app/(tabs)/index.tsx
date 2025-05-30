@@ -1,70 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Modal } from 'react-native';
-import { Image } from 'expo-image';
+import { View, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Modal, Alert, ActivityIndicator, RefreshControl, Text, Platform } from 'react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
-import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-
-interface ScheduleItem {
-  yPosStart: number; // 0-100 percentage from top
-  yPosEnd: number;   // 0-100 percentage from top
-  text: string;
-  confirmed?: boolean | null; // undefined/null = pending, true = confirmed, false = rejected
-}
-
-interface WeekSchedule {
-  Monday: ScheduleItem[];
-  Tuesday: ScheduleItem[];
-  Wednesday: ScheduleItem[];
-  Thursday: ScheduleItem[];
-  Friday: ScheduleItem[];
-  Saturday: ScheduleItem[];
-  Sunday: ScheduleItem[];
-}
-
-// Predefined JSON data with confirmation states
-const initialScheduleData: WeekSchedule = {
-  Monday: [
-    { yPosStart: 10, yPosEnd: 25, text: "Morning Meeting", confirmed: true },
-    { yPosStart: 30, yPosEnd: 55, text: "Project Work", confirmed: null },
-    { yPosStart: 60, yPosEnd: 75, text: "Lunch Break", confirmed: false }
-  ],
-  Tuesday: [
-    { yPosStart: 15, yPosEnd: 45, text: "Deep Work Session", confirmed: undefined },
-    { yPosStart: 50, yPosEnd: 65, text: "Quick Call", confirmed: true },
-    { yPosStart: 70, yPosEnd: 90, text: "Code Review", confirmed: null }
-  ],
-  Wednesday: [
-    { yPosStart: 5, yPosEnd: 20, text: "Team Standup", confirmed: true },
-    { yPosStart: 25, yPosEnd: 45, text: "Development", confirmed: undefined },
-    { yPosStart: 50, yPosEnd: 70, text: "Documentation", confirmed: false },
-    { yPosStart: 75, yPosEnd: 85, text: "Planning", confirmed: null }
-  ],
-  Thursday: [
-    { yPosStart: 20, yPosEnd: 50, text: "Client Meeting", confirmed: true },
-    { yPosStart: 55, yPosEnd: 80, text: "Implementation", confirmed: undefined }
-  ],
-  Friday: [
-    { yPosStart: 10, yPosEnd: 25, text: "Planning", confirmed: null },
-    { yPosStart: 30, yPosEnd: 50, text: "Development", confirmed: true },
-    { yPosStart: 55, yPosEnd: 75, text: "Testing", confirmed: undefined },
-    { yPosStart: 80, yPosEnd: 90, text: "Wrap-up", confirmed: false }
-  ],
-  Saturday: [
-    { yPosStart: 25, yPosEnd: 65, text: "Personal Project", confirmed: null },
-    { yPosStart: 70, yPosEnd: 85, text: "Learning", confirmed: true }
-  ],
-  Sunday: [
-    { yPosStart: 40, yPosEnd: 60, text: "Review & Prep", confirmed: undefined },
-    { yPosStart: 65, yPosEnd: 80, text: "Relaxation", confirmed: true }
-  ]
-};
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useScheduleApi } from '@/hooks/useScheduleApi';
+import { ScheduleItem, WeekSchedule } from '@/services/api';
 
 export default function HomeScreen() {
-  const [scheduleData, setScheduleData] = useState<WeekSchedule>(initialScheduleData);
+  const {
+    scheduleData,
+    loading,
+    error,
+    refetch,
+    confirmMeeting,
+    confirmingLessons,
+  } = useScheduleApi();
+
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
     day: keyof WeekSchedule;
@@ -78,6 +32,9 @@ export default function HomeScreen() {
     return { width, height };
   });
 
+  // State for pull-to-refresh
+  const [refreshing, setRefreshing] = useState(false);
+
   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const weekdayAbbr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -87,8 +44,19 @@ export default function HomeScreen() {
   const columnHeight = isLandscape ? 300 : 400; // Adjust height based on orientation
 
   useEffect(() => {
-    // Enable rotation
-    ScreenOrientation.unlockAsync();
+    // Only enable rotation on native platforms, not web
+    const setupOrientation = async () => {
+      if (Platform.OS !== 'web') {
+        try {
+          // Enable rotation
+          await ScreenOrientation.unlockAsync();
+        } catch (error) {
+          console.warn('Could not unlock screen orientation:', error);
+        }
+      }
+    };
+
+    setupOrientation();
 
     // Listen for dimension changes (rotation)
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
@@ -96,19 +64,44 @@ export default function HomeScreen() {
     });
 
     // Listen for orientation changes for additional control if needed
-    const orientationSubscription = ScreenOrientation.addOrientationChangeListener(
-      (event) => {
-        // Force a re-render by updating dimensions
-        const { width, height } = Dimensions.get('window');
-        setScreenDimensions({ width, height });
+    let orientationSubscription: any = null;
+
+    if (Platform.OS !== 'web') {
+      try {
+        orientationSubscription = ScreenOrientation.addOrientationChangeListener(
+          (event) => {
+            // Force a re-render by updating dimensions
+            const { width, height } = Dimensions.get('window');
+            setScreenDimensions({ width, height });
+          }
+        );
+      } catch (error) {
+        console.warn('Could not add orientation change listener:', error);
       }
-    );
+    }
 
     return () => {
       subscription?.remove();
-      ScreenOrientation.removeOrientationChangeListener(orientationSubscription);
+      if (orientationSubscription && Platform.OS !== 'web') {
+        try {
+          ScreenOrientation.removeOrientationChangeListener(orientationSubscription);
+        } catch (error) {
+          console.warn('Could not remove orientation change listener:', error);
+        }
+      }
     };
   }, []);
+;
+
+  // Pull to refresh handler
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const calculatePosition = (yPos: number): number => {
     return (yPos / 100) * columnHeight;
@@ -150,20 +143,37 @@ export default function HomeScreen() {
     }
   };
 
-  const handleConfirmation = (confirmed: boolean) => {
-    if (selectedItem) {
-      setScheduleData(prevData => {
-        const newData = { ...prevData };
-        newData[selectedItem.day] = [...newData[selectedItem.day]];
-        newData[selectedItem.day][selectedItem.itemIndex] = {
-          ...newData[selectedItem.day][selectedItem.itemIndex],
-          confirmed: confirmed
-        };
-        return newData;
-      });
+  const handleConfirmation = async (confirmed: boolean) => {
+    if (!selectedItem) return;
+
+    const { item } = selectedItem;
+
+    try {
+      const success = await confirmMeeting(item.lessonId, confirmed);
+
+      if (success) {
+        setModalVisible(false);
+        setSelectedItem(null);
+
+        // Show success message
+        Alert.alert(
+          'Success',
+          `Meeting has been ${confirmed ? 'confirmed' : 'rejected'}.`,
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      // Error is already handled in the hook and displayed in the UI
+      // We can show additional alert for better UX
+      Alert.alert(
+        'Error',
+        'Failed to update meeting status. Please try again.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Retry', onPress: () => handleConfirmation(confirmed) },
+        ]
+      );
     }
-    setModalVisible(false);
-    setSelectedItem(null);
   };
 
   const getConfirmationStatus = (confirmed?: boolean | null) => {
@@ -173,6 +183,8 @@ export default function HomeScreen() {
   };
 
   const renderColumn = (dayKey: keyof WeekSchedule, columnIndex: number) => {
+    if (!scheduleData) return null;
+
     const daySchedule = scheduleData[dayKey];
 
     return (
@@ -203,6 +215,7 @@ export default function HomeScreen() {
             const top = getTopPosition(item.yPosStart, item.yPosEnd);
             const height = calculateHeight(item.yPosStart, item.yPosEnd);
             const isPending = item.confirmed === undefined || item.confirmed === null;
+            const isConfirming = confirmingLessons.has(item.lessonId);
 
             const rectangleStyle = {
               top: top,
@@ -210,7 +223,7 @@ export default function HomeScreen() {
               height: height,
             };
 
-            const ItemComponent = isPending ? TouchableOpacity : View;
+            const ItemComponent = isPending && !isConfirming ? TouchableOpacity : View;
 
             return (
               <ItemComponent
@@ -218,20 +231,27 @@ export default function HomeScreen() {
                 style={[
                   styles.scheduleItem,
                   getItemStyle(item.confirmed),
-                  rectangleStyle
+                  rectangleStyle,
+                  isConfirming && styles.scheduleItemLoading,
                 ]}
-                onPress={isPending ? () => handleItemPress(dayKey, itemIndex, item) : undefined}
-                activeOpacity={isPending ? 0.7 : 1}
+                onPress={isPending && !isConfirming ? () => handleItemPress(dayKey, itemIndex, item) : undefined}
+                activeOpacity={isPending && !isConfirming ? 0.7 : 1}
               >
-                <ThemedText style={[styles.scheduleText, getTextStyle(item.confirmed)]} numberOfLines={2}>
-                  {item.text}
-                </ThemedText>
-                <ThemedText style={[styles.positionText, getTextStyle(item.confirmed)]}>
-                  {item.yPosStart}%-{item.yPosEnd}%
-                </ThemedText>
-                <ThemedText style={[styles.statusText, getTextStyle(item.confirmed)]}>
-                  {getConfirmationStatus(item.confirmed)}
-                </ThemedText>
+                {isConfirming ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <>
+                    <ThemedText style={[styles.scheduleText, getTextStyle(item.confirmed)]} numberOfLines={2}>
+                      {item.text}
+                    </ThemedText>
+                    <ThemedText style={[styles.positionText, getTextStyle(item.confirmed)]}>
+                      {item.yPosStart}%-{item.yPosEnd}%
+                    </ThemedText>
+                    <ThemedText style={[styles.statusText, getTextStyle(item.confirmed)]}>
+                      {getConfirmationStatus(item.confirmed)}
+                    </ThemedText>
+                  </>
+                )}
               </ItemComponent>
             );
           })}
@@ -243,105 +263,180 @@ export default function HomeScreen() {
     );
   };
 
+  // Loading state
+  if (loading && !scheduleData) {
+    return (
+      <ParallaxScrollView headerBackgroundColor={{light: '#A1CEDC', dark: '#1D3D47'}}>
+        <ThemedView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <ThemedText style={styles.loadingText}>Loading schedule...</ThemedText>
+          </View>
+        </ThemedView>
+      </ParallaxScrollView>
+    );
+  }
+
+  // Error state
+  if (error && !scheduleData) {
+    return (
+      <ParallaxScrollView headerBackgroundColor={{light: '#A1CEDC', dark: '#1D3D47'}}>
+        <ThemedView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <ThemedText style={styles.errorTitle}>Unable to load schedule</ThemedText>
+            <ThemedText style={styles.errorMessage}>{error}</ThemedText>
+            <TouchableOpacity style={styles.retryButton} onPress={refetch}>
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        </ThemedView>
+      </ParallaxScrollView>
+    );
+  }
+
   return (
-    <ParallaxScrollView headerBackgroundColor={{light: '#A1CEDC', dark: '#1D3D47'}}>
-      <ThemedView style={styles.container}>
-        <ThemedText style={styles.title}>Weekly Schedule</ThemedText>
-        <ThemedText style={styles.instruction}>
-          Tap pending items (lighter blue) to confirm or reject them
-        </ThemedText>
-        <ThemedText style={styles.dimensionInfo}>
-          Screen: {screenDimensions.width.toFixed(0)}x{screenDimensions.height.toFixed(0)}
-          {isLandscape ? ' (Landscape)' : ' (Portrait)'}
-        </ThemedText>
+    <ErrorBoundary>
+      <ParallaxScrollView headerBackgroundColor={{light: '#A1CEDC', dark: '#1D3D47'}}>
+        <ThemedView style={styles.container}>
+          <ThemedText style={styles.title}>Weekly Schedule</ThemedText>
+          <ThemedText style={styles.instruction}>
+            Tap pending items (lighter blue) to confirm or reject them
+          </ThemedText>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.gridContainer}>
-            {weekdays.map((day, index) =>
-              renderColumn(day as keyof WeekSchedule, index)
+          {/* Refresh button for manual refresh since ParallaxScrollView doesn't support RefreshControl */}
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={onRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <ActivityIndicator color="#007AFF" size="small" />
+            ) : (
+              <ThemedText style={styles.refreshButtonText}>🔄 Refresh</ThemedText>
             )}
-          </View>
-        </ScrollView>
+          </TouchableOpacity>
 
-        {/* Legend for confirmation states */}
-        <View style={styles.statusLegend}>
-          <ThemedText style={styles.legendTitle}>Status Legend:</ThemedText>
-          <View style={styles.statusRow}>
-            <View style={[styles.statusIndicator, styles.scheduleItemConfirmed]} />
-            <ThemedText style={styles.statusLabel}>Confirmed</ThemedText>
-          </View>
-          <View style={styles.statusRow}>
-            <View style={[styles.statusIndicator, styles.scheduleItemPending]} />
-            <ThemedText style={styles.statusLabel}>Pending (tap to confirm)</ThemedText>
-          </View>
-          <View style={styles.statusRow}>
-            <View style={[styles.statusIndicator, styles.scheduleItemRejected]} />
-            <ThemedText style={styles.statusLabel}>Rejected</ThemedText>
-          </View>
-        </View>
+          {/* Show error banner if there's an error but we have cached data */}
+          {error && scheduleData && (
+            <View style={styles.errorBanner}>
+              <ThemedText style={styles.errorBannerText}>{error}</ThemedText>
+              <TouchableOpacity onPress={() => {}}>
+                <ThemedText style={styles.dismissText}>✕</ThemedText>
+              </TouchableOpacity>
+            </View>
+          )}
 
-        {/* Confirmation Modal */}
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ThemedText style={styles.modalTitle}>Confirm Schedule Item</ThemedText>
-              <ThemedText style={styles.modalText}>
-                {selectedItem?.item.text}
-              </ThemedText>
-              <ThemedText style={styles.modalSubtext}>
-                {selectedItem?.item.yPosStart}% - {selectedItem?.item.yPosEnd}%
-              </ThemedText>
+          <ThemedText style={styles.dimensionInfo}>
+            Screen: {screenDimensions.width.toFixed(0)}x{screenDimensions.height.toFixed(0)}
+            {isLandscape ? ' (Landscape)' : ' (Portrait)'}
+          </ThemedText>
 
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.confirmButton]}
-                  onPress={() => handleConfirmation(true)}
-                >
-                  <ThemedText style={styles.buttonText}>Confirm</ThemedText>
-                </TouchableOpacity>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
+            <View style={styles.gridContainer}>
+              {weekdays.map((day, index) =>
+                renderColumn(day as keyof WeekSchedule, index)
+              )}
+            </View>
+          </ScrollView>
 
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.rejectButton]}
-                  onPress={() => handleConfirmation(false)}
-                >
-                  <ThemedText style={styles.buttonText}>Reject</ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
-                </TouchableOpacity>
-              </View>
+          {/* Legend for confirmation states */}
+          <View style={styles.statusLegend}>
+            <ThemedText style={styles.legendTitle}>Status Legend:</ThemedText>
+            <View style={styles.statusRow}>
+              <View style={[styles.statusIndicator, styles.scheduleItemConfirmed]} />
+              <ThemedText style={styles.statusLabel}>Confirmed</ThemedText>
+            </View>
+            <View style={styles.statusRow}>
+              <View style={[styles.statusIndicator, styles.scheduleItemPending]} />
+              <ThemedText style={styles.statusLabel}>Pending (tap to confirm)</ThemedText>
+            </View>
+            <View style={styles.statusRow}>
+              <View style={[styles.statusIndicator, styles.scheduleItemRejected]} />
+              <ThemedText style={styles.statusLabel}>Rejected</ThemedText>
             </View>
           </View>
-        </Modal>
 
-        <View style={styles.legendContainer}>
-          <ThemedText style={styles.legendTitle}>Schedule Details</ThemedText>
-          {Object.entries(scheduleData).map(([day, items]:[string, ScheduleItem[]]) => {
-            const confirmed = items.filter(item => item.confirmed === true).length;
-            const pending = items.filter(item => item.confirmed === undefined || item.confirmed === null).length;
-            const rejected = items.filter(item => item.confirmed === false).length;
-
-            return (
-              <View key={day} style={styles.legendDay}>
-                <ThemedText style={styles.legendDayName}>{day}:</ThemedText>
-                <ThemedText style={styles.legendItems}>
-                  {confirmed}✓ {pending}? {rejected}✗
+          {/* Confirmation Modal */}
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <ThemedText style={styles.modalTitle}>Confirm Schedule Item</ThemedText>
+                <ThemedText style={styles.modalText}>
+                  {selectedItem?.item.text}
                 </ThemedText>
+                <ThemedText style={styles.modalSubtext}>
+                  {selectedItem?.item.yPosStart}% - {selectedItem?.item.yPosEnd}%
+                </ThemedText>
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.confirmButton]}
+                    onPress={() => handleConfirmation(true)}
+                    disabled={selectedItem ? confirmingLessons.has(selectedItem.item.lessonId) : false}
+                  >
+                    {selectedItem && confirmingLessons.has(selectedItem.item.lessonId) ? (
+                      <ActivityIndicator color="white" size="small" />
+                    ) : (
+                      <ThemedText style={styles.buttonText}>Confirm</ThemedText>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.rejectButton]}
+                    onPress={() => handleConfirmation(false)}
+                    disabled={selectedItem ? confirmingLessons.has(selectedItem.item.lessonId) : false}
+                  >
+                    {selectedItem && confirmingLessons.has(selectedItem.item.lessonId) ? (
+                      <ActivityIndicator color="white" size="small" />
+                    ) : (
+                      <ThemedText style={styles.buttonText}>Reject</ThemedText>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
+                  </TouchableOpacity>
+                </View>
               </View>
-            );
-          })}
-        </View>
-      </ThemedView>
-    </ParallaxScrollView>
+            </View>
+          </Modal>
+
+          {scheduleData && (
+            <View style={styles.legendContainer}>
+              <ThemedText style={styles.legendTitle}>Schedule Details</ThemedText>
+              {Object.entries(scheduleData).map(([day, items]:[string, ScheduleItem[]]) => {
+                const confirmed = items.filter(item => item.confirmed === true).length;
+                const pending = items.filter(item => item.confirmed === undefined || item.confirmed === null).length;
+                const rejected = items.filter(item => item.confirmed === false).length;
+
+                return (
+                  <View key={day} style={styles.legendDay}>
+                    <ThemedText style={styles.legendDayName}>{day}:</ThemedText>
+                    <ThemedText style={styles.legendItems}>
+                      {confirmed}✓ {pending}? {rejected}✗
+                    </ThemedText>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </ThemedView>
+      </ParallaxScrollView>
+    </ErrorBoundary>
   );
 }
 
@@ -353,30 +448,43 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
     marginBottom: 8,
+    textAlign: 'center',
   },
   instruction: {
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
-    marginBottom: 10,
-    opacity: 0.7,
+    marginBottom: 8,
+    opacity: 0.8,
+  },
+  refreshButton: {
+    alignSelf: 'center',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginBottom: 12,
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  refreshButtonText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
   },
   dimensionInfo: {
     fontSize: 12,
     textAlign: 'center',
-    marginBottom: 10,
-    opacity: 0.5,
+    marginBottom: 16,
+    opacity: 0.6,
   },
   gridContainer: {
     flexDirection: 'row',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 8,
+    height: 450,
   },
   column: {
-    position: 'relative',
-    marginHorizontal: 1,
+    marginRight: 2,
   },
   dayHeader: {
     height: 30,
@@ -384,7 +492,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#e0e0e0',
     borderRadius: 4,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   dayText: {
     fontSize: 12,
@@ -428,6 +536,9 @@ const styles = StyleSheet.create({
   scheduleItemRejected: {
     backgroundColor: '#9E9E9E',
     borderColor: '#757575',
+  },
+  scheduleItemLoading: {
+    opacity: 0.7,
   },
   scheduleText: {
     color: 'white',
@@ -541,16 +652,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F44336',
   },
   cancelButton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#9E9E9E',
   },
   buttonText: {
     color: 'white',
-    fontWeight: 'bold',
     fontSize: 14,
+    fontWeight: 'bold',
   },
   cancelButtonText: {
-    color: '#333',
-    fontWeight: 'bold',
+    color: 'white',
     fontSize: 14,
   },
   legendContainer: {
@@ -562,7 +672,7 @@ const styles = StyleSheet.create({
   legendTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   legendDay: {
     flexDirection: 'row',
@@ -575,22 +685,65 @@ const styles = StyleSheet.create({
   },
   legendItems: {
     fontSize: 14,
-    opacity: 0.7,
   },
-  titleContainer: {
-    flexDirection: 'row',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    paddingVertical: 50,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  errorMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    opacity: 0.8,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  errorBanner: {
+    backgroundColor: '#ffebee',
+    borderColor: '#f44336',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  errorBannerText: {
+    color: '#d32f2f',
+    fontSize: 14,
+    flex: 1,
+  },
+  dismissText: {
+    color: '#d32f2f',
+    fontSize: 16,
+    fontWeight: 'bold',
+    paddingLeft: 10,
   },
 });

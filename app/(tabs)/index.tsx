@@ -1,13 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Modal, Alert, ActivityIndicator, RefreshControl, Text, Platform } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Text,
+  Platform
+} from 'react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { useScheduleApi } from '@/hooks/useScheduleApi';
-import { ScheduleItem, WeekSchedule } from '@/services/api';
+import {ThemedText} from '@/components/ThemedText';
+import {ThemedView} from '@/components/ThemedView';
+import {ErrorBoundary} from '@/components/ErrorBoundary';
+import {useScheduleApi} from '@/hooks/useScheduleApi';
+import {ScheduleItem, Schedule} from '@/services/api';
 
 export default function HomeScreen() {
   const {
@@ -21,15 +33,15 @@ export default function HomeScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
-    day: keyof WeekSchedule;
+    date: keyof Schedule;
     itemIndex: number;
     item: ScheduleItem;
   } | null>(null);
 
   // State for screen dimensions that updates on rotation
   const [screenDimensions, setScreenDimensions] = useState(() => {
-    const { width, height } = Dimensions.get('window');
-    return { width, height };
+    const {width, height} = Dimensions.get('window');
+    return {width, height};
   });
 
   // State for pull-to-refresh
@@ -59,8 +71,8 @@ export default function HomeScreen() {
     setupOrientation();
 
     // Listen for dimension changes (rotation)
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
-      setScreenDimensions({ width: window.width, height: window.height });
+    const subscription = Dimensions.addEventListener('change', ({window}) => {
+      setScreenDimensions({width: window.width, height: window.height});
     });
 
     // Listen for orientation changes for additional control if needed
@@ -71,8 +83,8 @@ export default function HomeScreen() {
         orientationSubscription = ScreenOrientation.addOrientationChangeListener(
           (event) => {
             // Force a re-render by updating dimensions
-            const { width, height } = Dimensions.get('window');
-            setScreenDimensions({ width, height });
+            const {width, height} = Dimensions.get('window');
+            setScreenDimensions({width, height});
           }
         );
       } catch (error) {
@@ -91,7 +103,6 @@ export default function HomeScreen() {
       }
     };
   }, []);
-;
 
   // Pull to refresh handler
   const onRefresh = async () => {
@@ -107,15 +118,19 @@ export default function HomeScreen() {
     return (yPos / 100) * columnHeight;
   };
 
-  const calculateHeight = (yPosStart: number, yPosEnd: number): number => {
-    const startPos = calculatePosition(yPosStart);
-    const endPos = calculatePosition(yPosEnd);
+  const calculateHeight = (startTime: number, endTime: number): number => {
+    const startPercent = (startTime / (24 * 60 * 60 * 1000)) * 100;
+    const endPercent = (endTime / (24 * 60 * 60 * 1000)) * 100;
+    const startPos = calculatePosition(startPercent);
+    const endPos = calculatePosition(endPercent);
     return Math.abs(endPos - startPos);
   };
 
-  const getTopPosition = (yPosStart: number, yPosEnd: number): number => {
-    const startPos = calculatePosition(yPosStart);
-    const endPos = calculatePosition(yPosEnd);
+  const getTopPosition = (startTime: number, endTime: number): number => {
+    const startPercent = (startTime / (24 * 60 * 60 * 1000)) * 100;
+    const endPercent = (endTime / (24 * 60 * 60 * 1000)) * 100;
+    const startPos = calculatePosition(startPercent);
+    const endPos = calculatePosition(endPercent);
     return Math.min(startPos, endPos);
   };
 
@@ -136,9 +151,9 @@ export default function HomeScreen() {
     return styles.scheduleText;
   };
 
-  const handleItemPress = (day: keyof WeekSchedule, itemIndex: number, item: ScheduleItem) => {
+  const handleItemPress = (date: string, itemIndex: number, item: ScheduleItem) => {
     if (item.confirmed === undefined || item.confirmed === null) {
-      setSelectedItem({ day, itemIndex, item });
+      setSelectedItem({date, itemIndex, item});
       setModalVisible(true);
     }
   };
@@ -146,7 +161,7 @@ export default function HomeScreen() {
   const handleConfirmation = async (confirmed: boolean) => {
     if (!selectedItem) return;
 
-    const { item } = selectedItem;
+    const {item} = selectedItem;
 
     try {
       const success = await confirmMeeting(item.lessonId, confirmed);
@@ -159,7 +174,7 @@ export default function HomeScreen() {
         Alert.alert(
           'Success',
           `Meeting has been ${confirmed ? 'confirmed' : 'rejected'}.`,
-          [{ text: 'OK' }]
+          [{text: 'OK'}]
         );
       }
     } catch (error) {
@@ -169,8 +184,8 @@ export default function HomeScreen() {
         'Error',
         'Failed to update meeting status. Please try again.',
         [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Retry', onPress: () => handleConfirmation(confirmed) },
+          {text: 'Cancel', style: 'cancel'},
+          {text: 'Retry', onPress: () => handleConfirmation(confirmed)},
         ]
       );
     }
@@ -182,20 +197,20 @@ export default function HomeScreen() {
     return "? Pending";
   };
 
-  const renderColumn = (dayKey: keyof WeekSchedule, columnIndex: number) => {
+  const renderColumn = (date: string, columnIndex: number) => {
     if (!scheduleData) return null;
 
-    const daySchedule = scheduleData[dayKey];
+    const daySchedule = scheduleData[date];
 
     return (
-      <View key={dayKey} style={[styles.column, { width: columnWidth }]}>
+      <View key={date} style={[styles.column, {width: columnWidth}]}>
         {/* Day header */}
         <View style={styles.dayHeader}>
           <ThemedText style={styles.dayText}>{weekdayAbbr[columnIndex]}</ThemedText>
         </View>
 
         {/* Schedule container with fixed height for percentage calculations */}
-        <View style={[styles.scheduleContainer, { height: columnHeight }]}>
+        <View style={[styles.scheduleContainer, {height: columnHeight}]}>
           {/* Background grid lines for visualization (optional) */}
           {[0, 25, 50, 75, 100].map(percentage => (
             <View
@@ -212,8 +227,8 @@ export default function HomeScreen() {
 
           {/* Schedule items */}
           {daySchedule.map((item, itemIndex) => {
-            const top = getTopPosition(item.yPosStart, item.yPosEnd);
-            const height = calculateHeight(item.yPosStart, item.yPosEnd);
+            const top = getTopPosition(item.startTime, item.endTime);
+            const height = calculateHeight(item.startTime, item.endTime);
             const isPending = item.confirmed === undefined || item.confirmed === null;
             const isConfirming = confirmingLessons.has(item.lessonId);
 
@@ -234,18 +249,18 @@ export default function HomeScreen() {
                   rectangleStyle,
                   isConfirming && styles.scheduleItemLoading,
                 ]}
-                onPress={isPending && !isConfirming ? () => handleItemPress(dayKey, itemIndex, item) : undefined}
+                onPress={isPending && !isConfirming ? () => handleItemPress(date, itemIndex, item) : undefined}
                 activeOpacity={isPending && !isConfirming ? 0.7 : 1}
               >
                 {isConfirming ? (
-                  <ActivityIndicator color="white" size="small" />
+                  <ActivityIndicator color="white" size="small"/>
                 ) : (
                   <>
                     <ThemedText style={[styles.scheduleText, getTextStyle(item.confirmed)]} numberOfLines={2}>
                       {item.text}
                     </ThemedText>
                     <ThemedText style={[styles.positionText, getTextStyle(item.confirmed)]}>
-                      {item.yPosStart}%-{item.yPosEnd}%
+                      {new Date(item.startTime).getHours()}:{new Date(item.startTime).getMinutes()}-{new Date(item.endTime).getHours()}:{new Date(item.endTime).getMinutes()}
                     </ThemedText>
                     <ThemedText style={[styles.statusText, getTextStyle(item.confirmed)]}>
                       {getConfirmationStatus(item.confirmed)}
@@ -258,7 +273,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Column border */}
-        <View style={styles.columnBorder} />
+        <View style={styles.columnBorder}/>
       </View>
     );
   };
@@ -269,7 +284,7 @@ export default function HomeScreen() {
       <ParallaxScrollView headerBackgroundColor={{light: '#A1CEDC', dark: '#1D3D47'}}>
         <ThemedView style={styles.container}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color="#007AFF"/>
             <ThemedText style={styles.loadingText}>Loading schedule...</ThemedText>
           </View>
         </ThemedView>
@@ -310,7 +325,7 @@ export default function HomeScreen() {
             disabled={refreshing}
           >
             {refreshing ? (
-              <ActivityIndicator color="#007AFF" size="small" />
+              <ActivityIndicator color="#007AFF" size="small"/>
             ) : (
               <ThemedText style={styles.refreshButtonText}>🔄 Refresh</ThemedText>
             )}
@@ -335,12 +350,12 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
             }
           >
             <View style={styles.gridContainer}>
               {weekdays.map((day, index) =>
-                renderColumn(day as keyof WeekSchedule, index)
+                renderColumn(day, index)
               )}
             </View>
           </ScrollView>
@@ -349,15 +364,15 @@ export default function HomeScreen() {
           <View style={styles.statusLegend}>
             <ThemedText style={styles.legendTitle}>Status Legend:</ThemedText>
             <View style={styles.statusRow}>
-              <View style={[styles.statusIndicator, styles.scheduleItemConfirmed]} />
+              <View style={[styles.statusIndicator, styles.scheduleItemConfirmed]}/>
               <ThemedText style={styles.statusLabel}>Confirmed</ThemedText>
             </View>
             <View style={styles.statusRow}>
-              <View style={[styles.statusIndicator, styles.scheduleItemPending]} />
+              <View style={[styles.statusIndicator, styles.scheduleItemPending]}/>
               <ThemedText style={styles.statusLabel}>Pending (tap to confirm)</ThemedText>
             </View>
             <View style={styles.statusRow}>
-              <View style={[styles.statusIndicator, styles.scheduleItemRejected]} />
+              <View style={[styles.statusIndicator, styles.scheduleItemRejected]}/>
               <ThemedText style={styles.statusLabel}>Rejected</ThemedText>
             </View>
           </View>
@@ -376,7 +391,7 @@ export default function HomeScreen() {
                   {selectedItem?.item.text}
                 </ThemedText>
                 <ThemedText style={styles.modalSubtext}>
-                  {selectedItem?.item.yPosStart}% - {selectedItem?.item.yPosEnd}%
+                  {selectedItem?.item.startTime}% - {selectedItem?.item.endTime}%
                 </ThemedText>
 
                 <View style={styles.modalButtons}>
@@ -386,7 +401,7 @@ export default function HomeScreen() {
                     disabled={selectedItem ? confirmingLessons.has(selectedItem.item.lessonId) : false}
                   >
                     {selectedItem && confirmingLessons.has(selectedItem.item.lessonId) ? (
-                      <ActivityIndicator color="white" size="small" />
+                      <ActivityIndicator color="white" size="small"/>
                     ) : (
                       <ThemedText style={styles.buttonText}>Confirm</ThemedText>
                     )}
@@ -398,7 +413,7 @@ export default function HomeScreen() {
                     disabled={selectedItem ? confirmingLessons.has(selectedItem.item.lessonId) : false}
                   >
                     {selectedItem && confirmingLessons.has(selectedItem.item.lessonId) ? (
-                      <ActivityIndicator color="white" size="small" />
+                      <ActivityIndicator color="white" size="small"/>
                     ) : (
                       <ThemedText style={styles.buttonText}>Reject</ThemedText>
                     )}
@@ -414,26 +429,6 @@ export default function HomeScreen() {
               </View>
             </View>
           </Modal>
-
-          {scheduleData && (
-            <View style={styles.legendContainer}>
-              <ThemedText style={styles.legendTitle}>Schedule Details</ThemedText>
-              {Object.entries(scheduleData).map(([day, items]:[string, ScheduleItem[]]) => {
-                const confirmed = items.filter(item => item.confirmed === true).length;
-                const pending = items.filter(item => item.confirmed === undefined || item.confirmed === null).length;
-                const rejected = items.filter(item => item.confirmed === false).length;
-
-                return (
-                  <View key={day} style={styles.legendDay}>
-                    <ThemedText style={styles.legendDayName}>{day}:</ThemedText>
-                    <ThemedText style={styles.legendItems}>
-                      {confirmed}✓ {pending}? {rejected}✗
-                    </ThemedText>
-                  </View>
-                );
-              })}
-            </View>
-          )}
         </ThemedView>
       </ParallaxScrollView>
     </ErrorBoundary>
@@ -443,7 +438,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingVertical: 16,
   },
   title: {
     fontSize: 24,

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { scheduleApi, WeekSchedule, ApiClientError, ScheduleItem } from '@/services/api';
+import { scheduleApi, Schedule, ApiClientError, ScheduleItem } from '@/services/api';
 
 export interface UseScheduleApiState {
-  scheduleData: WeekSchedule | null;
+  scheduleData: Schedule | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -11,7 +11,7 @@ export interface UseScheduleApiState {
 }
 
 export function useScheduleApi(): UseScheduleApiState {
-  const [scheduleData, setScheduleData] = useState<WeekSchedule | null>(null);
+  const [scheduleData, setScheduleData] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirmingLessons, setConfirmingLessons] = useState<Set<string>>(new Set());
@@ -71,11 +71,9 @@ export function useScheduleApi(): UseScheduleApiState {
         for (const [day, items] of Object.entries(newData)) {
           const itemIndex = items.findIndex(item => item.lessonId === lessonId);
           if (itemIndex !== -1) {
-            newData[day as keyof WeekSchedule] = [...items];
-            newData[day as keyof WeekSchedule][itemIndex] = {
+            newData[day as keyof Schedule] = [...items];
+            newData[day as keyof Schedule][itemIndex] = {
               ...items[itemIndex],
-              confirmed: result.confirmed,
-              updatedAt: result.updatedAt,
             };
             break;
           }

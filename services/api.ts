@@ -23,25 +23,16 @@ export interface ApiError {
   code?: string;
 }
 
-// Enhanced ScheduleItem to include lessonId for API operations
 export interface ScheduleItem {
-  lessonId: string;           // Added for API operations
-  yPosStart: number;
-  yPosEnd: number;
+  lessonId: string;
+  startTime: number;
+  endTime: number;
   text: string;
   confirmed?: boolean | null;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
-export interface WeekSchedule {
-  Monday: ScheduleItem[];
-  Tuesday: ScheduleItem[];
-  Wednesday: ScheduleItem[];
-  Thursday: ScheduleItem[];
-  Friday: ScheduleItem[];
-  Saturday: ScheduleItem[];
-  Sunday: ScheduleItem[];
+export interface Schedule {
+  [date: string]: ScheduleItem[];
 }
 
 export interface ConfirmMeetingRequest {
@@ -76,18 +67,21 @@ async function apiRequest<T>(
   console.log(`Making API request to: ${endpoint}`, options);
   const url = `${API_CONFIG.baseURL}${endpoint}`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
   const config: RequestInit = {
     ...options,
     headers: {
       ...API_CONFIG.headers,
       ...options.headers,
     },
-    // Add timeout using AbortController
-    signal: AbortSignal.timeout(API_CONFIG.timeout),
+    signal: controller.signal,
   };
 
   try {
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
 
     // Handle HTTP errors
     if (!response.ok) {
@@ -112,7 +106,8 @@ async function apiRequest<T>(
 
     return data;
   } catch (_error) {
-    // Handle different types of errors
+    clearTimeout(timeoutId);
+
     if (_error instanceof ApiClientError) {
       throw _error;
     }
@@ -137,9 +132,10 @@ async function apiRequest<T>(
 // API service functions
 export const scheduleApi = {
   // GET request to fetch schedule
-  async getSchedule(): Promise<WeekSchedule> {
+  async getSchedule(): Promise<Schedule> {
     try {
-      const response = await apiRequest<ApiResponse<WeekSchedule>>('/schedule');
+      const response = await apiRequest<ApiResponse<Schedule>>('/schedule');
+
       return response.data;
     } catch (error) {
       console.error('Failed to fetch schedule:', error);
@@ -168,7 +164,7 @@ export const scheduleApi = {
   },
 
   // Additional utility methods for retries and offline handling
-  async getScheduleWithRetry(maxRetries: number = 3): Promise<WeekSchedule> {
+  async getScheduleWithRetry(maxRetries: number = 3): Promise<Schedule> {
     let lastError: ApiClientError;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {

@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+import * as ScreenOrientation from "expo-screen-orientation";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -10,16 +11,15 @@ import {
   ActivityIndicator,
   RefreshControl,
   Text,
-  Platform
-} from 'react-native';
-import * as ScreenOrientation from 'expo-screen-orientation';
+  Platform,
+} from "react-native";
 
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import {ThemedText} from '@/components/ThemedText';
-import {ThemedView} from '@/components/ThemedView';
-import {ErrorBoundary} from '@/components/ErrorBoundary';
-import {useScheduleApi} from '@/hooks/useScheduleApi';
-import {LessonEntry, Schedule} from '@/services/api';
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { useScheduleApi } from "@/hooks/useScheduleApi";
+import { LessonEntry, Schedule } from "@/services/api";
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
@@ -42,14 +42,14 @@ export default function HomeScreen() {
 
   // State for screen dimensions that updates on rotation
   const [screenDimensions, setScreenDimensions] = useState(() => {
-    const {width, height} = Dimensions.get('window');
-    return {width, height};
+    const { width, height } = Dimensions.get("window");
+    return { width, height };
   });
 
   // State for pull-to-refresh
   const [refreshing, setRefreshing] = useState(false);
 
-  const weekdayAbbr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekdayAbbr = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   // Calculate dynamic values based on current screen dimensions
   const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
@@ -59,12 +59,12 @@ export default function HomeScreen() {
   useEffect(() => {
     // Only enable rotation on native platforms, not web
     const setupOrientation = async () => {
-      if (Platform.OS !== 'web') {
+      if (Platform.OS !== "web") {
         try {
           // Enable rotation
           await ScreenOrientation.unlockAsync();
         } catch (error) {
-          console.warn('Could not unlock screen orientation:', error);
+          console.warn("Could not unlock screen orientation:", error);
         }
       }
     };
@@ -72,34 +72,34 @@ export default function HomeScreen() {
     setupOrientation();
 
     // Listen for dimension changes (rotation)
-    const subscription = Dimensions.addEventListener('change', ({window}) => {
-      setScreenDimensions({width: window.width, height: window.height});
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
+      setScreenDimensions({ width: window.width, height: window.height });
     });
 
-    // Listen for orientation changes for additional control if needed
-    let orientationSubscription: any = null;
+    let orientationSubscription: ScreenOrientation.Subscription | null = null;
 
-    if (Platform.OS !== 'web') {
+    if (Platform.OS !== "web") {
       try {
-        orientationSubscription = ScreenOrientation.addOrientationChangeListener(
-          (event) => {
+        orientationSubscription =
+          ScreenOrientation.addOrientationChangeListener(() => {
             // Force a re-render by updating dimensions
-            const {width, height} = Dimensions.get('window');
-            setScreenDimensions({width, height});
-          }
-        );
+            const { width, height } = Dimensions.get("window");
+            setScreenDimensions({ width, height });
+          });
       } catch (error) {
-        console.warn('Could not add orientation change listener:', error);
+        console.warn("Could not add orientation change listener:", error);
       }
     }
 
     return () => {
       subscription?.remove();
-      if (orientationSubscription && Platform.OS !== 'web') {
+      if (orientationSubscription && Platform.OS !== "web") {
         try {
-          ScreenOrientation.removeOrientationChangeListener(orientationSubscription);
+          ScreenOrientation.removeOrientationChangeListener(
+            orientationSubscription,
+          );
         } catch (error) {
-          console.warn('Could not remove orientation change listener:', error);
+          console.warn("Could not remove orientation change listener:", error);
         }
       }
     };
@@ -119,19 +119,20 @@ export default function HomeScreen() {
     return (yPos / 100) * columnHeight;
   };
 
-
   const calculateHeight = (startTime: number, endTime: number): number => {
-    const startPercent = (startTime / (MS_IN_DAY)) * 100;
-    const endPercent = (endTime / (MS_IN_DAY)) * 100;
-    console.log(`Calculating height: startTime=${startTime}, endTime=${endTime}, startPercent=${startPercent}, endPercent=${endPercent}, columnHeight=${columnHeight}`);
+    const startPercent = (startTime / MS_IN_DAY) * 100;
+    const endPercent = (endTime / MS_IN_DAY) * 100;
+    console.log(
+      `Calculating height: startTime=${startTime}, endTime=${endTime}, startPercent=${startPercent}, endPercent=${endPercent}, columnHeight=${columnHeight}`,
+    );
     const startPos = calculatePosition(startPercent);
     const endPos = calculatePosition(endPercent);
     return Math.abs(endPos - startPos);
   };
 
   const getTopPosition = (startTime: number, endTime: number): number => {
-    const startPercent = (startTime / (MS_IN_DAY)) * 100;
-    const endPercent = (endTime / (MS_IN_DAY)) * 100;
+    const startPercent = (startTime / MS_IN_DAY) * 100;
+    const endPercent = (endTime / MS_IN_DAY) * 100;
     const startPos = calculatePosition(startPercent);
     const endPos = calculatePosition(endPercent);
     return Math.min(startPos, endPos);
@@ -154,9 +155,13 @@ export default function HomeScreen() {
     return styles.scheduleText;
   };
 
-  const handleItemPress = (date: string, itemIndex: number, item: LessonEntry) => {
+  const handleItemPress = (
+    date: string,
+    itemIndex: number,
+    item: LessonEntry,
+  ) => {
     if (item.fullyConfirmed === undefined || item.fullyConfirmed === null) {
-      setSelectedItem({date, itemIndex, item});
+      setSelectedItem({ date, itemIndex, item });
       setModalVisible(true);
     }
   };
@@ -164,7 +169,7 @@ export default function HomeScreen() {
   const handleConfirmation = async (confirmed: boolean) => {
     if (!selectedItem) return;
 
-    const {item} = selectedItem;
+    const { item } = selectedItem;
 
     try {
       const success = await confirmMeeting(item.lessonId, confirmed);
@@ -175,21 +180,21 @@ export default function HomeScreen() {
 
         // Show success message
         Alert.alert(
-          'Success',
-          `Meeting has been ${confirmed ? 'confirmed' : 'rejected'}.`,
-          [{text: 'OK'}]
+          "Success",
+          `Meeting has been ${confirmed ? "confirmed" : "rejected"}.`,
+          [{ text: "OK" }],
         );
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Error is already handled in the hook and displayed in the UI
-      // We can show additional alert for better UX
       Alert.alert(
-        'Error',
-        'Failed to update meeting status. Please try again.',
+        "Error",
+        "Failed to update meeting status. Please try again.",
         [
-          {text: 'Cancel', style: 'cancel'},
-          {text: 'Retry', onPress: () => handleConfirmation(confirmed)},
-        ]
+          { text: "Cancel", style: "cancel" },
+          { text: "Retry", onPress: () => handleConfirmation(confirmed) },
+        ],
       );
     }
   };
@@ -206,16 +211,18 @@ export default function HomeScreen() {
     const daySchedule = scheduleData[date];
 
     return (
-      <View key={date} style={[styles.column, {width: columnWidth}]}>
+      <View key={date} style={[styles.column, { width: columnWidth }]}>
         {/* Day header */}
         <View style={styles.dayHeader}>
-          <ThemedText style={styles.dayText}>{weekdayAbbr[columnIndex]}</ThemedText>
+          <ThemedText style={styles.dayText}>
+            {weekdayAbbr[columnIndex]}
+          </ThemedText>
         </View>
 
         {/* Schedule container with fixed height for percentage calculations */}
-        <View style={[styles.scheduleContainer, {height: columnHeight}]}>
+        <View style={[styles.scheduleContainer, { height: columnHeight }]}>
           {/* Background grid lines for visualization (optional) */}
-          {[0, 25, 50, 75, 100].map(percentage => (
+          {[0, 25, 50, 75, 100].map((percentage) => (
             <View
               key={percentage}
               style={[
@@ -223,7 +230,7 @@ export default function HomeScreen() {
                 {
                   top: calculatePosition(percentage),
                   width: columnWidth - 4,
-                }
+                },
               ]}
             />
           ))}
@@ -231,8 +238,12 @@ export default function HomeScreen() {
           {/* Schedule items */}
           {daySchedule.map((item, itemIndex) => {
             const top = getTopPosition(item.startTimestamp, item.endTimestamp);
-            const height = calculateHeight(item.startTimestamp, item.endTimestamp);
-            const isPending = item.fullyConfirmed === undefined || item.fullyConfirmed === null;
+            const height = calculateHeight(
+              item.startTimestamp,
+              item.endTimestamp,
+            );
+            const isPending =
+              item.fullyConfirmed === undefined || item.fullyConfirmed === null;
             const isConfirming = confirmingLessons.has(item.lessonId);
 
             const rectangleStyle = {
@@ -241,7 +252,8 @@ export default function HomeScreen() {
               height: height,
             };
 
-            const ItemComponent = isPending && !isConfirming ? TouchableOpacity : View;
+            const ItemComponent =
+              isPending && !isConfirming ? TouchableOpacity : View;
 
             return (
               <ItemComponent
@@ -252,20 +264,40 @@ export default function HomeScreen() {
                   rectangleStyle,
                   isConfirming && styles.scheduleItemLoading,
                 ]}
-                onPress={isPending && !isConfirming ? () => handleItemPress(date, itemIndex, item) : undefined}
+                onPress={
+                  isPending && !isConfirming
+                    ? () => handleItemPress(date, itemIndex, item)
+                    : undefined
+                }
                 activeOpacity={isPending && !isConfirming ? 0.7 : 1}
               >
                 {isConfirming ? (
-                  <ActivityIndicator color="white" size="small"/>
+                  <ActivityIndicator color="white" size="small" />
                 ) : (
                   <>
-                    <ThemedText style={[styles.scheduleText, getTextStyle(item.fullyConfirmed)]} numberOfLines={2}>
+                    <ThemedText
+                      style={[
+                        styles.scheduleText,
+                        getTextStyle(item.fullyConfirmed),
+                      ]}
+                      numberOfLines={2}
+                    >
                       {item.description}
                     </ThemedText>
-                    <ThemedText style={[styles.positionText, getTextStyle(item.fullyConfirmed)]}>
+                    <ThemedText
+                      style={[
+                        styles.positionText,
+                        getTextStyle(item.fullyConfirmed),
+                      ]}
+                    >
                       {item.startTime}-{item.endTime}
                     </ThemedText>
-                    <ThemedText style={[styles.statusText, getTextStyle(item.fullyConfirmed)]}>
+                    <ThemedText
+                      style={[
+                        styles.statusText,
+                        getTextStyle(item.fullyConfirmed),
+                      ]}
+                    >
                       {getConfirmationStatus(item.fullyConfirmed)}
                     </ThemedText>
                   </>
@@ -276,7 +308,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Column border */}
-        <View style={styles.columnBorder}/>
+        <View style={styles.columnBorder} />
       </View>
     );
   };
@@ -284,11 +316,15 @@ export default function HomeScreen() {
   // Loading state
   if (loading && !scheduleData) {
     return (
-      <ParallaxScrollView headerBackgroundColor={{light: '#A1CEDC', dark: '#1D3D47'}}>
+      <ParallaxScrollView
+        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      >
         <ThemedView style={styles.container}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF"/>
-            <ThemedText style={styles.loadingText}>Loading schedule...</ThemedText>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <ThemedText style={styles.loadingText}>
+              Loading schedule...
+            </ThemedText>
           </View>
         </ThemedView>
       </ParallaxScrollView>
@@ -298,10 +334,14 @@ export default function HomeScreen() {
   // Error state
   if (error && !scheduleData) {
     return (
-      <ParallaxScrollView headerBackgroundColor={{light: '#A1CEDC', dark: '#1D3D47'}}>
+      <ParallaxScrollView
+        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      >
         <ThemedView style={styles.container}>
           <View style={styles.errorContainer}>
-            <ThemedText style={styles.errorTitle}>Unable to load schedule</ThemedText>
+            <ThemedText style={styles.errorTitle}>
+              Unable to load schedule
+            </ThemedText>
             <ThemedText style={styles.errorMessage}>{error}</ThemedText>
             <TouchableOpacity style={styles.retryButton} onPress={refetch}>
               <Text style={styles.retryButtonText}>Try Again</Text>
@@ -314,7 +354,9 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-      <ParallaxScrollView headerBackgroundColor={{light: '#A1CEDC', dark: '#1D3D47'}}>
+      <ParallaxScrollView
+        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      >
         <ThemedView style={styles.container}>
           <ThemedText style={styles.title}>Weekly Schedule</ThemedText>
           <ThemedText style={styles.instruction}>
@@ -328,9 +370,11 @@ export default function HomeScreen() {
             disabled={refreshing}
           >
             {refreshing ? (
-              <ActivityIndicator color="#007AFF" size="small"/>
+              <ActivityIndicator color="#007AFF" size="small" />
             ) : (
-              <ThemedText style={styles.refreshButtonText}>🔄 Refresh</ThemedText>
+              <ThemedText style={styles.refreshButtonText}>
+                🔄 Refresh
+              </ThemedText>
             )}
           </TouchableOpacity>
 
@@ -345,20 +389,21 @@ export default function HomeScreen() {
           )}
 
           <ThemedText style={styles.dimensionInfo}>
-            Screen: {screenDimensions.width.toFixed(0)}x{screenDimensions.height.toFixed(0)}
-            {isLandscape ? ' (Landscape)' : ' (Portrait)'}
+            Screen: {screenDimensions.width.toFixed(0)}x
+            {screenDimensions.height.toFixed(0)}
+            {isLandscape ? " (Landscape)" : " (Portrait)"}
           </ThemedText>
 
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           >
             <View style={styles.gridContainer}>
               {Object.keys(scheduleData ?? {}).map((day, index) =>
-                renderColumn(day, index)
+                renderColumn(day, index),
               )}
             </View>
           </ScrollView>
@@ -367,15 +412,23 @@ export default function HomeScreen() {
           <View style={styles.statusLegend}>
             <ThemedText style={styles.legendTitle}>Status Legend:</ThemedText>
             <View style={styles.statusRow}>
-              <View style={[styles.statusIndicator, styles.scheduleItemConfirmed]}/>
+              <View
+                style={[styles.statusIndicator, styles.scheduleItemConfirmed]}
+              />
               <ThemedText style={styles.statusLabel}>Confirmed</ThemedText>
             </View>
             <View style={styles.statusRow}>
-              <View style={[styles.statusIndicator, styles.scheduleItemPending]}/>
-              <ThemedText style={styles.statusLabel}>Pending (tap to confirm)</ThemedText>
+              <View
+                style={[styles.statusIndicator, styles.scheduleItemPending]}
+              />
+              <ThemedText style={styles.statusLabel}>
+                Pending (tap to confirm)
+              </ThemedText>
             </View>
             <View style={styles.statusRow}>
-              <View style={[styles.statusIndicator, styles.scheduleItemRejected]}/>
+              <View
+                style={[styles.statusIndicator, styles.scheduleItemRejected]}
+              />
               <ThemedText style={styles.statusLabel}>Rejected</ThemedText>
             </View>
           </View>
@@ -389,22 +442,30 @@ export default function HomeScreen() {
           >
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
-                <ThemedText style={styles.modalTitle}>Confirm Schedule Item</ThemedText>
+                <ThemedText style={styles.modalTitle}>
+                  Confirm Schedule Item
+                </ThemedText>
                 <ThemedText style={styles.modalText}>
                   {selectedItem?.item.description}
                 </ThemedText>
                 <ThemedText style={styles.modalSubtext}>
-                  {selectedItem?.item.startTime}% - {selectedItem?.item.endTime}%
+                  {selectedItem?.item.startTime}% - {selectedItem?.item.endTime}
+                  %
                 </ThemedText>
 
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
                     style={[styles.modalButton, styles.confirmButton]}
                     onPress={() => handleConfirmation(true)}
-                    disabled={selectedItem ? confirmingLessons.has(selectedItem.item.lessonId) : false}
+                    disabled={
+                      selectedItem
+                        ? confirmingLessons.has(selectedItem.item.lessonId)
+                        : false
+                    }
                   >
-                    {selectedItem && confirmingLessons.has(selectedItem.item.lessonId) ? (
-                      <ActivityIndicator color="white" size="small"/>
+                    {selectedItem &&
+                    confirmingLessons.has(selectedItem.item.lessonId) ? (
+                      <ActivityIndicator color="white" size="small" />
                     ) : (
                       <ThemedText style={styles.buttonText}>Confirm</ThemedText>
                     )}
@@ -413,10 +474,15 @@ export default function HomeScreen() {
                   <TouchableOpacity
                     style={[styles.modalButton, styles.rejectButton]}
                     onPress={() => handleConfirmation(false)}
-                    disabled={selectedItem ? confirmingLessons.has(selectedItem.item.lessonId) : false}
+                    disabled={
+                      selectedItem
+                        ? confirmingLessons.has(selectedItem.item.lessonId)
+                        : false
+                    }
                   >
-                    {selectedItem && confirmingLessons.has(selectedItem.item.lessonId) ? (
-                      <ActivityIndicator color="white" size="small"/>
+                    {selectedItem &&
+                    confirmingLessons.has(selectedItem.item.lessonId) ? (
+                      <ActivityIndicator color="white" size="small" />
                     ) : (
                       <ThemedText style={styles.buttonText}>Reject</ThemedText>
                     )}
@@ -426,7 +492,9 @@ export default function HomeScreen() {
                     style={[styles.modalButton, styles.cancelButton]}
                     onPress={() => setModalVisible(false)}
                   >
-                    <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
+                    <ThemedText style={styles.cancelButtonText}>
+                      Cancel
+                    </ThemedText>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -445,40 +513,40 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   instruction: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 8,
     opacity: 0.8,
   },
   refreshButton: {
-    alignSelf: 'center',
-    backgroundColor: '#f0f0f0',
+    alignSelf: "center",
+    backgroundColor: "#f0f0f0",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     marginBottom: 12,
     minWidth: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   refreshButtonText: {
     fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '500',
+    color: "#007AFF",
+    fontWeight: "500",
   },
   dimensionInfo: {
     fontSize: 12,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
     opacity: 0.6,
   },
   gridContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     height: 450,
   },
   column: {
@@ -486,35 +554,35 @@ const styles = StyleSheet.create({
   },
   dayHeader: {
     height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#e0e0e0',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#e0e0e0",
     borderRadius: 4,
     marginBottom: 4,
   },
   dayText: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   scheduleContainer: {
-    position: 'relative',
-    backgroundColor: '#fafafa',
+    position: "relative",
+    backgroundColor: "#fafafa",
     borderRadius: 4,
   },
   gridLine: {
-    position: 'absolute',
+    position: "absolute",
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     opacity: 0.5,
   },
   scheduleItem: {
-    position: 'absolute',
+    position: "absolute",
     borderRadius: 6,
     padding: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -524,63 +592,63 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   scheduleItemConfirmed: {
-    backgroundColor: '#007AFF',
-    borderColor: '#0056b3',
+    backgroundColor: "#007AFF",
+    borderColor: "#0056b3",
   },
   scheduleItemPending: {
-    backgroundColor: '#87CEEB',
-    borderColor: '#6BB6FF',
+    backgroundColor: "#87CEEB",
+    borderColor: "#6BB6FF",
   },
   scheduleItemRejected: {
-    backgroundColor: '#9E9E9E',
-    borderColor: '#757575',
+    backgroundColor: "#9E9E9E",
+    borderColor: "#757575",
   },
   scheduleItemLoading: {
     opacity: 0.7,
   },
   scheduleText: {
-    color: 'white',
+    color: "white",
     fontSize: 9,
-    textAlign: 'center',
-    fontWeight: '500',
+    textAlign: "center",
+    fontWeight: "500",
     marginBottom: 1,
   },
   scheduleTextRejected: {
-    color: '#CCCCCC',
+    color: "#CCCCCC",
     fontSize: 9,
-    textAlign: 'center',
-    fontWeight: '500',
+    textAlign: "center",
+    fontWeight: "500",
     marginBottom: 1,
   },
   positionText: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 7,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 1,
   },
   statusText: {
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: "rgba(255, 255, 255, 0.9)",
     fontSize: 6,
-    textAlign: 'center',
-    fontWeight: 'bold',
+    textAlign: "center",
+    fontWeight: "bold",
   },
   columnBorder: {
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     top: 30,
     bottom: 0,
     width: 1,
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
   },
   statusLegend: {
     marginTop: 20,
     padding: 16,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     borderRadius: 8,
   },
   statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   statusIndicator: {
@@ -595,19 +663,19 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -616,78 +684,78 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalText: {
     fontSize: 16,
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalSubtext: {
     fontSize: 14,
     opacity: 0.7,
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 10,
   },
   modalButton: {
     borderRadius: 8,
     padding: 12,
     minWidth: 80,
-    alignItems: 'center',
+    alignItems: "center",
   },
   confirmButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
   },
   rejectButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: "#F44336",
   },
   cancelButton: {
-    backgroundColor: '#9E9E9E',
+    backgroundColor: "#9E9E9E",
   },
   buttonText: {
-    color: 'white',
+    color: "white",
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   cancelButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 14,
   },
   legendContainer: {
     marginTop: 20,
     padding: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     borderRadius: 8,
   },
   legendTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   legendDay: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 4,
   },
   legendDayName: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   legendItems: {
     fontSize: 14,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 50,
   },
   loadingText: {
@@ -696,52 +764,52 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 50,
   },
   errorTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   errorMessage: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
     opacity: 0.8,
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorBanner: {
-    backgroundColor: '#ffebee',
-    borderColor: '#f44336',
+    backgroundColor: "#ffebee",
+    borderColor: "#f44336",
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   errorBannerText: {
-    color: '#d32f2f',
+    color: "#d32f2f",
     fontSize: 14,
     flex: 1,
   },
   dismissText: {
-    color: '#d32f2f',
+    color: "#d32f2f",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     paddingLeft: 10,
   },
 });

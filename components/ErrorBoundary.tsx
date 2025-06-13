@@ -1,7 +1,8 @@
-import React, { Component, ReactNode } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { ThemedText } from './ThemedText';
-import { ThemedView } from './ThemedView';
+import React, { Component, ReactNode } from "react";
+import { Text, TouchableOpacity, StyleSheet } from "react-native";
+
+import { ThemedText } from "./ThemedText";
+import { ThemedView } from "./ThemedView";
 
 interface Props {
   children: ReactNode;
@@ -23,8 +24,8 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   render() {
@@ -37,7 +38,8 @@ export class ErrorBoundary extends Component<Props, State> {
         <ThemedView style={styles.container}>
           <ThemedText style={styles.title}>Something went wrong</ThemedText>
           <ThemedText style={styles.message}>
-            The app encountered an unexpected error. Please try restarting the app.
+            The app encountered an unexpected error. Please try restarting the
+            app.
           </ThemedText>
           <TouchableOpacity
             style={styles.button}
@@ -56,29 +58,29 @@ export class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   message: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   buttonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

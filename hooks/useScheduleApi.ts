@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { scheduleApi, Schedule, ApiClientError, ScheduleItem } from '@/services/api';
+import { scheduleApi, Schedule, ApiClientError } from '@/services/api';
 
 export interface UseScheduleApiState {
   scheduleData: Schedule | null;
@@ -22,7 +22,7 @@ export function useScheduleApi(): UseScheduleApiState {
       setLoading(true);
       setError(null);
 
-      const data = await scheduleApi.getScheduleWithRetry(3);
+      const data = await scheduleApi.getWeekSchedule();
       setScheduleData(data);
     } catch (err) {
       const apiError = err as ApiClientError;

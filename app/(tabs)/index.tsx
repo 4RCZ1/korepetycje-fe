@@ -19,7 +19,9 @@ import {ThemedText} from '@/components/ThemedText';
 import {ThemedView} from '@/components/ThemedView';
 import {ErrorBoundary} from '@/components/ErrorBoundary';
 import {useScheduleApi} from '@/hooks/useScheduleApi';
-import {ScheduleItem, Schedule} from '@/services/api';
+import {LessonEntry, Schedule} from '@/services/api';
+
+const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
 export default function HomeScreen() {
   const {
@@ -35,7 +37,7 @@ export default function HomeScreen() {
   const [selectedItem, setSelectedItem] = useState<{
     date: keyof Schedule;
     itemIndex: number;
-    item: ScheduleItem;
+    item: LessonEntry;
   } | null>(null);
 
   // State for screen dimensions that updates on rotation
@@ -47,13 +49,12 @@ export default function HomeScreen() {
   // State for pull-to-refresh
   const [refreshing, setRefreshing] = useState(false);
 
-  const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const weekdayAbbr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // Calculate dynamic values based on current screen dimensions
   const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
   const isLandscape = screenDimensions.width > screenDimensions.height;
-  const columnHeight = isLandscape ? 300 : 400; // Adjust height based on orientation
+  const columnHeight = isLandscape ? 430 : 600; // Adjust height based on orientation
 
   useEffect(() => {
     // Only enable rotation on native platforms, not web
@@ -118,17 +119,19 @@ export default function HomeScreen() {
     return (yPos / 100) * columnHeight;
   };
 
+
   const calculateHeight = (startTime: number, endTime: number): number => {
-    const startPercent = (startTime / (24 * 60 * 60 * 1000)) * 100;
-    const endPercent = (endTime / (24 * 60 * 60 * 1000)) * 100;
+    const startPercent = (startTime / (MS_IN_DAY)) * 100;
+    const endPercent = (endTime / (MS_IN_DAY)) * 100;
+    console.log(`Calculating height: startTime=${startTime}, endTime=${endTime}, startPercent=${startPercent}, endPercent=${endPercent}, columnHeight=${columnHeight}`);
     const startPos = calculatePosition(startPercent);
     const endPos = calculatePosition(endPercent);
     return Math.abs(endPos - startPos);
   };
 
   const getTopPosition = (startTime: number, endTime: number): number => {
-    const startPercent = (startTime / (24 * 60 * 60 * 1000)) * 100;
-    const endPercent = (endTime / (24 * 60 * 60 * 1000)) * 100;
+    const startPercent = (startTime / (MS_IN_DAY)) * 100;
+    const endPercent = (endTime / (MS_IN_DAY)) * 100;
     const startPos = calculatePosition(startPercent);
     const endPos = calculatePosition(endPercent);
     return Math.min(startPos, endPos);
@@ -151,8 +154,8 @@ export default function HomeScreen() {
     return styles.scheduleText;
   };
 
-  const handleItemPress = (date: string, itemIndex: number, item: ScheduleItem) => {
-    if (item.confirmed === undefined || item.confirmed === null) {
+  const handleItemPress = (date: string, itemIndex: number, item: LessonEntry) => {
+    if (item.fullyConfirmed === undefined || item.fullyConfirmed === null) {
       setSelectedItem({date, itemIndex, item});
       setModalVisible(true);
     }
@@ -227,9 +230,9 @@ export default function HomeScreen() {
 
           {/* Schedule items */}
           {daySchedule.map((item, itemIndex) => {
-            const top = getTopPosition(item.startTime, item.endTime);
-            const height = calculateHeight(item.startTime, item.endTime);
-            const isPending = item.confirmed === undefined || item.confirmed === null;
+            const top = getTopPosition(item.startTimestamp, item.endTimestamp);
+            const height = calculateHeight(item.startTimestamp, item.endTimestamp);
+            const isPending = item.fullyConfirmed === undefined || item.fullyConfirmed === null;
             const isConfirming = confirmingLessons.has(item.lessonId);
 
             const rectangleStyle = {
@@ -245,7 +248,7 @@ export default function HomeScreen() {
                 key={itemIndex}
                 style={[
                   styles.scheduleItem,
-                  getItemStyle(item.confirmed),
+                  getItemStyle(item.fullyConfirmed),
                   rectangleStyle,
                   isConfirming && styles.scheduleItemLoading,
                 ]}
@@ -256,14 +259,14 @@ export default function HomeScreen() {
                   <ActivityIndicator color="white" size="small"/>
                 ) : (
                   <>
-                    <ThemedText style={[styles.scheduleText, getTextStyle(item.confirmed)]} numberOfLines={2}>
-                      {item.text}
+                    <ThemedText style={[styles.scheduleText, getTextStyle(item.fullyConfirmed)]} numberOfLines={2}>
+                      {item.description}
                     </ThemedText>
-                    <ThemedText style={[styles.positionText, getTextStyle(item.confirmed)]}>
-                      {new Date(item.startTime).getHours()}:{new Date(item.startTime).getMinutes()}-{new Date(item.endTime).getHours()}:{new Date(item.endTime).getMinutes()}
+                    <ThemedText style={[styles.positionText, getTextStyle(item.fullyConfirmed)]}>
+                      {item.startTime}-{item.endTime}
                     </ThemedText>
-                    <ThemedText style={[styles.statusText, getTextStyle(item.confirmed)]}>
-                      {getConfirmationStatus(item.confirmed)}
+                    <ThemedText style={[styles.statusText, getTextStyle(item.fullyConfirmed)]}>
+                      {getConfirmationStatus(item.fullyConfirmed)}
                     </ThemedText>
                   </>
                 )}
@@ -354,7 +357,7 @@ export default function HomeScreen() {
             }
           >
             <View style={styles.gridContainer}>
-              {weekdays.map((day, index) =>
+              {Object.keys(scheduleData ?? {}).map((day, index) =>
                 renderColumn(day, index)
               )}
             </View>
@@ -388,7 +391,7 @@ export default function HomeScreen() {
               <View style={styles.modalContent}>
                 <ThemedText style={styles.modalTitle}>Confirm Schedule Item</ThemedText>
                 <ThemedText style={styles.modalText}>
-                  {selectedItem?.item.text}
+                  {selectedItem?.item.description}
                 </ThemedText>
                 <ThemedText style={styles.modalSubtext}>
                   {selectedItem?.item.startTime}% - {selectedItem?.item.endTime}%

@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import {Platform} from 'react-native';
 
 // Configuration
 const API_CONFIG = {
@@ -23,16 +23,66 @@ export interface ApiError {
   code?: string;
 }
 
-export interface ScheduleItem {
-  lessonId: string;
-  startTime: number;
-  endTime: number;
-  text: string;
-  confirmed?: boolean | null;
-}
+type LessonEntryDTO = {
+  LessonId: string;
+  StartTime: string;  // ISO 8601 datetime
+  EndTime: string;    // ISO 8601 datetime
+  Text: string;
+  ConfirmedBy: Record<string, boolean>;
+};
 
-export interface Schedule {
-  [date: string]: ScheduleItem[];
+export type LessonEntry = {
+  lessonId: string;
+  startTimestamp: number;  // miliseconds since the day started
+  endTimestamp: number;    // miliseconds since the day started
+  startTime: string; // HH:mm format
+  endTime: string;   // HH:mm format
+  description: string;
+  fullyConfirmed: boolean | null;
+  confirmedBy: Record<string, boolean>;
+};
+
+type ScheduleDTO = LessonEntryDTO[];
+
+export type Schedule = {
+  [date: string]: LessonEntry[];
+};
+
+export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
+  const schedule: Schedule = {};
+
+  for (const entryDTO of scheduleDTO) {
+    const startDate = new Date(entryDTO.StartTime);
+    const endDate = new Date(entryDTO.EndTime);
+
+    // Get the date string (YYYY-MM-DD format)
+    const dateKey = startDate.toISOString().split('T')[0];
+
+    // Calculate milliseconds since the day started
+    const dayStart = new Date(startDate);
+    dayStart.setHours(0, 0, 0, 0);
+
+    const startTimestamp = startDate.getTime() - dayStart.getTime();
+    const endTimestamp = endDate.getTime() - dayStart.getTime();
+
+    const lessonEntry: LessonEntry = {
+      lessonId: entryDTO.LessonId,
+      startTimestamp,
+      endTimestamp,
+      startTime: startDate.toISOString().substring(11, 16),
+      endTime: endDate.toISOString().substring(11, 16),
+      description: entryDTO.Text,
+      fullyConfirmed: Object.values(entryDTO.ConfirmedBy).every(Boolean) || Object.values(entryDTO.ConfirmedBy).every(e => e === undefined || e === null) ? null : false,
+      confirmedBy: entryDTO.ConfirmedBy,
+    };
+
+    if (!schedule[dateKey]) {
+      schedule[dateKey] = [];
+    }
+    schedule[dateKey].push(lessonEntry);
+  }
+
+  return schedule;
 }
 
 export interface ConfirmMeetingRequest {
@@ -62,10 +112,20 @@ export class ApiClientError extends Error {
 // Generic API request function with comprehensive error handling
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  queryParams?: Record<string, string>
 ): Promise<T> {
-  console.log(`Making API request to: ${endpoint}`, options);
-  const url = `${API_CONFIG.baseURL}${endpoint}`;
+  console.log(`Making API request to: ${endpoint}`, options, queryParams);
+  let url = `${API_CONFIG.baseURL}${endpoint}`;
+  if (queryParams && Object.keys(queryParams).length > 0) {
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    }
+    url = `${url}?${searchParams.toString()}`;
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
@@ -132,15 +192,34 @@ async function apiRequest<T>(
 // API service functions
 export const scheduleApi = {
   // GET request to fetch schedule
-  async getSchedule(): Promise<Schedule> {
+  async getSchedule(startDate: string, endDate: string): Promise<Schedule> {
     try {
-      const response = await apiRequest<ApiResponse<Schedule>>('/schedule');
+      const response = await apiRequest<ApiResponse<ScheduleDTO>>('/schedule', {}, {
+        startDate,
+        endDate,
+      });
 
-      return response.data;
+      return scheduleConverter(response.data);
     } catch (error) {
       console.error('Failed to fetch schedule:', error);
       throw error;
     }
+  },
+
+  // helper function to get a week schedule
+  async getWeekSchedule(weekOffset: number = 0): Promise<Schedule> {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - ((today.getDay() || 7) + 1) + weekOffset * 7);
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    endDate.setHours(23, 59, 59, 999);
+    return this.getSchedule(
+      startDate.toISOString(),
+      endDate.toISOString()
+    );
   },
 
   // POST request to confirm/cancel meeting
@@ -164,12 +243,12 @@ export const scheduleApi = {
   },
 
   // Additional utility methods for retries and offline handling
-  async getScheduleWithRetry(maxRetries: number = 3): Promise<Schedule> {
+  async getScheduleWithRetry(startDate: string, endDate: string, maxRetries: number = 3): Promise<Schedule> {
     let lastError: ApiClientError;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        return await this.getSchedule();
+        return await this.getSchedule(startDate, endDate);
       } catch (error) {
         lastError = error as ApiClientError;
 

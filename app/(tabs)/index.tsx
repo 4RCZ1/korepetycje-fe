@@ -1,27 +1,21 @@
 import * as ScreenOrientation from "expo-screen-orientation";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  StyleSheet,
-  Dimensions,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  Alert,
   ActivityIndicator,
-  RefreshControl,
-  Text,
+  Dimensions,
   Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import ScheduleContainer from "@/components/Schedule/ScheduleContainer";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useScheduleApi } from "@/hooks/useScheduleApi";
-import { LessonEntry, Schedule } from "@/services/api";
-
-const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
 export default function HomeScreen() {
   const {
@@ -33,13 +27,6 @@ export default function HomeScreen() {
     confirmingLessons,
   } = useScheduleApi();
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<{
-    date: keyof Schedule;
-    itemIndex: number;
-    item: LessonEntry;
-  } | null>(null);
-
   // State for screen dimensions that updates on rotation
   const [screenDimensions, setScreenDimensions] = useState(() => {
     const { width, height } = Dimensions.get("window");
@@ -48,8 +35,6 @@ export default function HomeScreen() {
 
   // State for pull-to-refresh
   const [refreshing, setRefreshing] = useState(false);
-
-  const weekdayAbbr = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   // Calculate dynamic values based on current screen dimensions
   const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
@@ -113,204 +98,6 @@ export default function HomeScreen() {
     } finally {
       setRefreshing(false);
     }
-  };
-
-  const calculatePosition = (yPos: number): number => {
-    return (yPos / 100) * columnHeight;
-  };
-
-  const calculateHeight = (startTime: number, endTime: number): number => {
-    const startPercent = (startTime / MS_IN_DAY) * 100;
-    const endPercent = (endTime / MS_IN_DAY) * 100;
-    console.log(
-      `Calculating height: startTime=${startTime}, endTime=${endTime}, startPercent=${startPercent}, endPercent=${endPercent}, columnHeight=${columnHeight}`,
-    );
-    const startPos = calculatePosition(startPercent);
-    const endPos = calculatePosition(endPercent);
-    return Math.abs(endPos - startPos);
-  };
-
-  const getTopPosition = (startTime: number, endTime: number): number => {
-    const startPercent = (startTime / MS_IN_DAY) * 100;
-    const endPercent = (endTime / MS_IN_DAY) * 100;
-    const startPos = calculatePosition(startPercent);
-    const endPos = calculatePosition(endPercent);
-    return Math.min(startPos, endPos);
-  };
-
-  const getItemStyle = (confirmed?: boolean | null) => {
-    if (confirmed === true) {
-      return styles.scheduleItemConfirmed; // Current blue style
-    } else if (confirmed === false) {
-      return styles.scheduleItemRejected; // Grayed out
-    } else {
-      return styles.scheduleItemPending; // Lighter blue
-    }
-  };
-
-  const getTextStyle = (confirmed?: boolean | null) => {
-    if (confirmed === false) {
-      return styles.scheduleTextRejected;
-    }
-    return styles.scheduleText;
-  };
-
-  const handleItemPress = (
-    date: string,
-    itemIndex: number,
-    item: LessonEntry,
-  ) => {
-    if (item.fullyConfirmed === undefined || item.fullyConfirmed === null) {
-      setSelectedItem({ date, itemIndex, item });
-      setModalVisible(true);
-    }
-  };
-
-  const handleConfirmation = async (confirmed: boolean) => {
-    if (!selectedItem) return;
-
-    const { item } = selectedItem;
-
-    try {
-      const success = await confirmMeeting(item.lessonId, confirmed);
-
-      if (success) {
-        setModalVisible(false);
-        setSelectedItem(null);
-
-        // Show success message
-        Alert.alert(
-          "Success",
-          `Meeting has been ${confirmed ? "confirmed" : "rejected"}.`,
-          [{ text: "OK" }],
-        );
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      // Error is already handled in the hook and displayed in the UI
-      Alert.alert(
-        "Error",
-        "Failed to update meeting status. Please try again.",
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Retry", onPress: () => handleConfirmation(confirmed) },
-        ],
-      );
-    }
-  };
-
-  const getConfirmationStatus = (confirmed?: boolean | null) => {
-    if (confirmed === true) return "✓ Confirmed";
-    if (confirmed === false) return "✗ Rejected";
-    return "? Pending";
-  };
-
-  const renderColumn = (date: string, columnIndex: number) => {
-    if (!scheduleData) return null;
-
-    const daySchedule = scheduleData[date];
-
-    return (
-      <View key={date} style={[styles.column, { width: columnWidth }]}>
-        {/* Day header */}
-        <View style={styles.dayHeader}>
-          <ThemedText style={styles.dayText}>
-            {weekdayAbbr[columnIndex]}
-          </ThemedText>
-        </View>
-
-        {/* Schedule container with fixed height for percentage calculations */}
-        <View style={[styles.scheduleContainer, { height: columnHeight }]}>
-          {/* Background grid lines for visualization (optional) */}
-          {[0, 25, 50, 75, 100].map((percentage) => (
-            <View
-              key={percentage}
-              style={[
-                styles.gridLine,
-                {
-                  top: calculatePosition(percentage),
-                  width: columnWidth - 4,
-                },
-              ]}
-            />
-          ))}
-
-          {/* Schedule items */}
-          {daySchedule.map((item, itemIndex) => {
-            const top = getTopPosition(item.startTimestamp, item.endTimestamp);
-            const height = calculateHeight(
-              item.startTimestamp,
-              item.endTimestamp,
-            );
-            const isPending =
-              item.fullyConfirmed === undefined || item.fullyConfirmed === null;
-            const isConfirming = confirmingLessons.has(item.lessonId);
-
-            const rectangleStyle = {
-              top: top,
-              width: columnWidth - 4,
-              height: height,
-            };
-
-            const ItemComponent =
-              isPending && !isConfirming ? TouchableOpacity : View;
-
-            return (
-              <ItemComponent
-                key={itemIndex}
-                style={[
-                  styles.scheduleItem,
-                  getItemStyle(item.fullyConfirmed),
-                  rectangleStyle,
-                  isConfirming && styles.scheduleItemLoading,
-                ]}
-                onPress={
-                  isPending && !isConfirming
-                    ? () => handleItemPress(date, itemIndex, item)
-                    : undefined
-                }
-                activeOpacity={isPending && !isConfirming ? 0.7 : 1}
-              >
-                {isConfirming ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <>
-                    <ThemedText
-                      style={[
-                        styles.scheduleText,
-                        getTextStyle(item.fullyConfirmed),
-                      ]}
-                      numberOfLines={2}
-                    >
-                      {item.description}
-                    </ThemedText>
-                    <ThemedText
-                      style={[
-                        styles.positionText,
-                        getTextStyle(item.fullyConfirmed),
-                      ]}
-                    >
-                      {item.startTime}-{item.endTime}
-                    </ThemedText>
-                    <ThemedText
-                      style={[
-                        styles.statusText,
-                        getTextStyle(item.fullyConfirmed),
-                      ]}
-                    >
-                      {getConfirmationStatus(item.fullyConfirmed)}
-                    </ThemedText>
-                  </>
-                )}
-              </ItemComponent>
-            );
-          })}
-        </View>
-
-        {/* Column border */}
-        <View style={styles.columnBorder} />
-      </View>
-    );
   };
 
   // Loading state
@@ -394,112 +181,15 @@ export default function HomeScreen() {
             {isLandscape ? " (Landscape)" : " (Portrait)"}
           </ThemedText>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          >
-            <View style={styles.gridContainer}>
-              {Object.keys(scheduleData ?? {}).map((day, index) =>
-                renderColumn(day, index),
-              )}
-            </View>
-          </ScrollView>
-
-          {/* Legend for confirmation states */}
-          <View style={styles.statusLegend}>
-            <ThemedText style={styles.legendTitle}>Status Legend:</ThemedText>
-            <View style={styles.statusRow}>
-              <View
-                style={[styles.statusIndicator, styles.scheduleItemConfirmed]}
-              />
-              <ThemedText style={styles.statusLabel}>Confirmed</ThemedText>
-            </View>
-            <View style={styles.statusRow}>
-              <View
-                style={[styles.statusIndicator, styles.scheduleItemPending]}
-              />
-              <ThemedText style={styles.statusLabel}>
-                Pending (tap to confirm)
-              </ThemedText>
-            </View>
-            <View style={styles.statusRow}>
-              <View
-                style={[styles.statusIndicator, styles.scheduleItemRejected]}
-              />
-              <ThemedText style={styles.statusLabel}>Rejected</ThemedText>
-            </View>
-          </View>
-
-          {/* Confirmation Modal */}
-          <Modal
-            animationType="fade"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => setModalVisible(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <ThemedText style={styles.modalTitle}>
-                  Confirm Schedule Item
-                </ThemedText>
-                <ThemedText style={styles.modalText}>
-                  {selectedItem?.item.description}
-                </ThemedText>
-                <ThemedText style={styles.modalSubtext}>
-                  {selectedItem?.item.startTime}% - {selectedItem?.item.endTime}
-                  %
-                </ThemedText>
-
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.confirmButton]}
-                    onPress={() => handleConfirmation(true)}
-                    disabled={
-                      selectedItem
-                        ? confirmingLessons.has(selectedItem.item.lessonId)
-                        : false
-                    }
-                  >
-                    {selectedItem &&
-                    confirmingLessons.has(selectedItem.item.lessonId) ? (
-                      <ActivityIndicator color="white" size="small" />
-                    ) : (
-                      <ThemedText style={styles.buttonText}>Confirm</ThemedText>
-                    )}
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.rejectButton]}
-                    onPress={() => handleConfirmation(false)}
-                    disabled={
-                      selectedItem
-                        ? confirmingLessons.has(selectedItem.item.lessonId)
-                        : false
-                    }
-                  >
-                    {selectedItem &&
-                    confirmingLessons.has(selectedItem.item.lessonId) ? (
-                      <ActivityIndicator color="white" size="small" />
-                    ) : (
-                      <ThemedText style={styles.buttonText}>Reject</ThemedText>
-                    )}
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.cancelButton]}
-                    onPress={() => setModalVisible(false)}
-                  >
-                    <ThemedText style={styles.cancelButtonText}>
-                      Cancel
-                    </ThemedText>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
+          <ScheduleContainer
+            scheduleData={scheduleData}
+            columnWidth={columnWidth}
+            columnHeight={columnHeight}
+            confirmingLessons={confirmingLessons}
+            confirmMeeting={confirmMeeting}
+            onRefresh={onRefresh}
+            refreshing={refreshing}
+          />
         </ThemedView>
       </ParallaxScrollView>
     </ErrorBoundary>
@@ -544,213 +234,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 16,
     opacity: 0.6,
-  },
-  gridContainer: {
-    flexDirection: "row",
-    height: 450,
-  },
-  column: {
-    marginRight: 2,
-  },
-  dayHeader: {
-    height: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#e0e0e0",
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  dayText: {
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  scheduleContainer: {
-    position: "relative",
-    backgroundColor: "#fafafa",
-    borderRadius: 4,
-  },
-  gridLine: {
-    position: "absolute",
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    opacity: 0.5,
-  },
-  scheduleItem: {
-    position: "absolute",
-    borderRadius: 6,
-    padding: 6,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    borderWidth: 1,
-  },
-  scheduleItemConfirmed: {
-    backgroundColor: "#007AFF",
-    borderColor: "#0056b3",
-  },
-  scheduleItemPending: {
-    backgroundColor: "#87CEEB",
-    borderColor: "#6BB6FF",
-  },
-  scheduleItemRejected: {
-    backgroundColor: "#9E9E9E",
-    borderColor: "#757575",
-  },
-  scheduleItemLoading: {
-    opacity: 0.7,
-  },
-  scheduleText: {
-    color: "white",
-    fontSize: 9,
-    textAlign: "center",
-    fontWeight: "500",
-    marginBottom: 1,
-  },
-  scheduleTextRejected: {
-    color: "#CCCCCC",
-    fontSize: 9,
-    textAlign: "center",
-    fontWeight: "500",
-    marginBottom: 1,
-  },
-  positionText: {
-    color: "rgba(255, 255, 255, 0.8)",
-    fontSize: 7,
-    textAlign: "center",
-    marginBottom: 1,
-  },
-  statusText: {
-    color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 6,
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  columnBorder: {
-    position: "absolute",
-    right: 0,
-    top: 30,
-    bottom: 0,
-    width: 1,
-    backgroundColor: "#ddd",
-  },
-  statusLegend: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-  },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  statusIndicator: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    marginRight: 10,
-    borderWidth: 1,
-  },
-  statusLabel: {
-    fontSize: 14,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    minWidth: 300,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  modalSubtext: {
-    fontSize: 14,
-    opacity: 0.7,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 10,
-  },
-  modalButton: {
-    borderRadius: 8,
-    padding: 12,
-    minWidth: 80,
-    alignItems: "center",
-  },
-  confirmButton: {
-    backgroundColor: "#4CAF50",
-  },
-  rejectButton: {
-    backgroundColor: "#F44336",
-  },
-  cancelButton: {
-    backgroundColor: "#9E9E9E",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  cancelButtonText: {
-    color: "white",
-    fontSize: 14,
-  },
-  legendContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 8,
-  },
-  legendTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  legendDay: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  legendDayName: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  legendItems: {
-    fontSize: 14,
   },
   loadingContainer: {
     flex: 1,

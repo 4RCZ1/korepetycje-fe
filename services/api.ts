@@ -1,5 +1,3 @@
-import { Platform } from "react-native";
-
 // Configuration
 const API_CONFIG = {
   baseURL: "localhost:3000/api",

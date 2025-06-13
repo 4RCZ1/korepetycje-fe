@@ -1,12 +1,12 @@
-import {Platform} from 'react-native';
+import { Platform } from "react-native";
 
 // Configuration
 const API_CONFIG = {
-  baseURL: 'localhost:3000/api',
+  baseURL: "localhost:3000/api",
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
 };
 
@@ -25,18 +25,18 @@ export interface ApiError {
 
 type LessonEntryDTO = {
   LessonId: string;
-  StartTime: string;  // ISO 8601 datetime
-  EndTime: string;    // ISO 8601 datetime
+  StartTime: string; // ISO 8601 datetime
+  EndTime: string; // ISO 8601 datetime
   Text: string;
   ConfirmedBy: Record<string, boolean>;
 };
 
 export type LessonEntry = {
   lessonId: string;
-  startTimestamp: number;  // miliseconds since the day started
-  endTimestamp: number;    // miliseconds since the day started
+  startTimestamp: number; // miliseconds since the day started
+  endTimestamp: number; // miliseconds since the day started
   startTime: string; // HH:mm format
-  endTime: string;   // HH:mm format
+  endTime: string; // HH:mm format
   description: string;
   fullyConfirmed: boolean | null;
   confirmedBy: Record<string, boolean>;
@@ -56,7 +56,7 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
     const endDate = new Date(entryDTO.EndTime);
 
     // Get the date string (YYYY-MM-DD format)
-    const dateKey = startDate.toISOString().split('T')[0];
+    const dateKey = startDate.toISOString().split("T")[0];
 
     // Calculate milliseconds since the day started
     const dayStart = new Date(startDate);
@@ -72,7 +72,13 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
       startTime: startDate.toISOString().substring(11, 16),
       endTime: endDate.toISOString().substring(11, 16),
       description: entryDTO.Text,
-      fullyConfirmed: Object.values(entryDTO.ConfirmedBy).every(Boolean) || Object.values(entryDTO.ConfirmedBy).every(e => e === undefined || e === null) ? null : false,
+      fullyConfirmed:
+        Object.values(entryDTO.ConfirmedBy).every(Boolean) ||
+        Object.values(entryDTO.ConfirmedBy).every(
+          (e) => e === undefined || e === null,
+        )
+          ? null
+          : false,
       confirmedBy: entryDTO.ConfirmedBy,
     };
 
@@ -103,7 +109,7 @@ export class ApiClientError extends Error {
 
   constructor(message: string, status: number, code?: string) {
     super(message);
-    this.name = 'ApiClientError';
+    this.name = "ApiClientError";
     this.status = status;
     this.code = code;
   }
@@ -113,7 +119,7 @@ export class ApiClientError extends Error {
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
-  queryParams?: Record<string, string>
+  queryParams?: Record<string, string>,
 ): Promise<T> {
   console.log(`Making API request to: ${endpoint}`, options, queryParams);
   let url = `${API_CONFIG.baseURL}${endpoint}`;
@@ -149,7 +155,7 @@ async function apiRequest<T>(
       throw new ApiClientError(
         errorData.message || `HTTP Error: ${response.status}`,
         response.status,
-        errorData.code
+        errorData.code,
       );
     }
 
@@ -158,9 +164,9 @@ async function apiRequest<T>(
     // Validate API response structure
     if (data.success === false) {
       throw new ApiClientError(
-        data.message || 'API returned error',
+        data.message || "API returned error",
         response.status,
-        data.code
+        data.code,
       );
     }
 
@@ -173,18 +179,22 @@ async function apiRequest<T>(
     }
     const error = _error as Error;
 
-    if (error.name === 'AbortError') {
-      throw new ApiClientError('Request timeout', 408, 'TIMEOUT');
+    if (error.name === "AbortError") {
+      throw new ApiClientError("Request timeout", 408, "TIMEOUT");
     }
 
-    if (error.name === 'TypeError' && error.message.includes('network')) {
-      throw new ApiClientError('Network error - check your connection', 0, 'NETWORK_ERROR');
+    if (error.name === "TypeError" && error.message.includes("network")) {
+      throw new ApiClientError(
+        "Network error - check your connection",
+        0,
+        "NETWORK_ERROR",
+      );
     }
 
     throw new ApiClientError(
-      error.message || 'Unknown error occurred',
+      error.message || "Unknown error occurred",
       0,
-      'UNKNOWN_ERROR'
+      "UNKNOWN_ERROR",
     );
   }
 }
@@ -194,14 +204,18 @@ export const scheduleApi = {
   // GET request to fetch schedule
   async getSchedule(startDate: string, endDate: string): Promise<Schedule> {
     try {
-      const response = await apiRequest<ApiResponse<ScheduleDTO>>('/schedule', {}, {
-        startDate,
-        endDate,
-      });
+      const response = await apiRequest<ApiResponse<ScheduleDTO>>(
+        "/schedule",
+        {},
+        {
+          startDate,
+          endDate,
+        },
+      );
 
       return scheduleConverter(response.data);
     } catch (error) {
-      console.error('Failed to fetch schedule:', error);
+      console.error("Failed to fetch schedule:", error);
       throw error;
     }
   },
@@ -210,40 +224,46 @@ export const scheduleApi = {
   async getWeekSchedule(weekOffset: number = 0): Promise<Schedule> {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - ((today.getDay() || 7) + 1) + weekOffset * 7);
+    startDate.setDate(
+      today.getDate() - ((today.getDay() || 7) + 1) + weekOffset * 7,
+    );
     startDate.setHours(0, 0, 0, 0);
 
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 6);
     endDate.setHours(23, 59, 59, 999);
-    return this.getSchedule(
-      startDate.toISOString(),
-      endDate.toISOString()
-    );
+    return this.getSchedule(startDate.toISOString(), endDate.toISOString());
   },
 
   // POST request to confirm/cancel meeting
   async confirmMeeting(
     lessonId: string,
-    isConfirmed: boolean
+    isConfirmed: boolean,
   ): Promise<ConfirmMeetingResponse> {
     try {
-      const response = await apiRequest<ApiResponse<ConfirmMeetingResponse>>('/schedule/confirm', {
-        method: 'POST',
-        body: JSON.stringify({
-          lessonId,
-          isConfirmed,
-        }),
-      });
+      const response = await apiRequest<ApiResponse<ConfirmMeetingResponse>>(
+        "/schedule/confirm",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            lessonId,
+            isConfirmed,
+          }),
+        },
+      );
       return response.data;
     } catch (error) {
-      console.error('Failed to confirm meeting:', error);
+      console.error("Failed to confirm meeting:", error);
       throw error;
     }
   },
 
   // Additional utility methods for retries and offline handling
-  async getScheduleWithRetry(startDate: string, endDate: string, maxRetries: number = 3): Promise<Schedule> {
+  async getScheduleWithRetry(
+    startDate: string,
+    endDate: string,
+    maxRetries: number = 3,
+  ): Promise<Schedule> {
     let lastError: ApiClientError;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -260,7 +280,7 @@ export const scheduleApi = {
         // Wait before retry (exponential backoff)
         if (attempt < maxRetries) {
           const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }

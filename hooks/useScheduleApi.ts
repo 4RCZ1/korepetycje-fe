@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { scheduleApi, Schedule, ApiClientError } from '@/services/api';
+import { useState, useEffect, useCallback } from "react";
+
+import { scheduleApi, Schedule, ApiClientError } from "@/services/api";
 
 export interface UseScheduleApiState {
   scheduleData: Schedule | null;
@@ -14,7 +15,9 @@ export function useScheduleApi(): UseScheduleApiState {
   const [scheduleData, setScheduleData] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [confirmingLessons, setConfirmingLessons] = useState<Set<string>>(new Set());
+  const [confirmingLessons, setConfirmingLessons] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Fetch schedule data
   const fetchSchedule = useCallback(async () => {
@@ -28,86 +31,88 @@ export function useScheduleApi(): UseScheduleApiState {
       const apiError = err as ApiClientError;
 
       // Provide user-friendly error messages
-      let errorMessage = 'Failed to load schedule';
+      let errorMessage = "Failed to load schedule";
 
-      if (apiError.code === 'NETWORK_ERROR') {
-        errorMessage = 'No internet connection. Please check your network.';
-      } else if (apiError.code === 'TIMEOUT') {
-        errorMessage = 'Request timed out. Please try again.';
+      if (apiError.code === "NETWORK_ERROR") {
+        errorMessage = "No internet connection. Please check your network.";
+      } else if (apiError.code === "TIMEOUT") {
+        errorMessage = "Request timed out. Please try again.";
       } else if (apiError.status === 401) {
-        errorMessage = 'Authentication required. Please log in.';
+        errorMessage = "Authentication required. Please log in.";
       } else if (apiError.status === 403) {
-        errorMessage = 'Access denied. You don\'t have permission.';
+        errorMessage = "Access denied. You don't have permission.";
       } else if (apiError.status >= 500) {
-        errorMessage = 'Server error. Please try again later.';
+        errorMessage = "Server error. Please try again later.";
       }
 
       setError(errorMessage);
-      console.error('Schedule fetch error:', apiError);
+      console.error("Schedule fetch error:", apiError);
     } finally {
       setLoading(false);
     }
   }, []);
 
   // Confirm or cancel meeting
-  const confirmMeeting = useCallback(async (
-    lessonId: string,
-    isConfirmed: boolean
-  ): Promise<boolean> => {
-    try {
-      // Add to confirming set for loading state
-      setConfirmingLessons(prev => new Set(prev).add(lessonId));
-      setError(null);
+  const confirmMeeting = useCallback(
+    async (lessonId: string, isConfirmed: boolean): Promise<boolean> => {
+      try {
+        // Add to confirming set for loading state
+        setConfirmingLessons((prev) => new Set(prev).add(lessonId));
+        setError(null);
 
-      const result = await scheduleApi.confirmMeeting(lessonId, isConfirmed);
+        const result = await scheduleApi.confirmMeeting(lessonId, isConfirmed);
 
-      // Update local state optimistically
-      setScheduleData(prevData => {
-        if (!prevData) return prevData;
+        // Update local state optimistically
+        setScheduleData((prevData) => {
+          if (!prevData) return prevData;
 
-        const newData = { ...prevData };
+          const newData = { ...prevData };
 
-        // Find and update the specific lesson
-        for (const [day, items] of Object.entries(newData)) {
-          const itemIndex = items.findIndex(item => item.lessonId === lessonId);
-          if (itemIndex !== -1) {
-            newData[day as keyof Schedule] = [...items];
-            newData[day as keyof Schedule][itemIndex] = {
-              ...items[itemIndex],
-            };
-            break;
+          // Find and update the specific lesson
+          for (const [day, items] of Object.entries(newData)) {
+            const itemIndex = items.findIndex(
+              (item) => item.lessonId === lessonId,
+            );
+            if (itemIndex !== -1) {
+              newData[day as keyof Schedule] = [...items];
+              newData[day as keyof Schedule][itemIndex] = {
+                ...items[itemIndex],
+              };
+              break;
+            }
           }
+
+          return newData;
+        });
+
+        return true;
+      } catch (err) {
+        const apiError = err as ApiClientError;
+
+        let errorMessage = "Failed to update meeting status";
+
+        if (apiError.code === "NETWORK_ERROR") {
+          errorMessage = "No internet connection. Changes not saved.";
+        } else if (apiError.status === 409) {
+          errorMessage = "Meeting status was already changed. Refreshing...";
+          // Refresh data on conflict
+          fetchSchedule();
         }
 
-        return newData;
-      });
-
-      return true;
-    } catch (err) {
-      const apiError = err as ApiClientError;
-
-      let errorMessage = 'Failed to update meeting status';
-
-      if (apiError.code === 'NETWORK_ERROR') {
-        errorMessage = 'No internet connection. Changes not saved.';
-      } else if (apiError.status === 409) {
-        errorMessage = 'Meeting status was already changed. Refreshing...';
-        // Refresh data on conflict
-        fetchSchedule();
+        setError(errorMessage);
+        console.error("Meeting confirmation error:", apiError);
+        return false;
+      } finally {
+        // Remove from confirming set
+        setConfirmingLessons((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(lessonId);
+          return newSet;
+        });
       }
-
-      setError(errorMessage);
-      console.error('Meeting confirmation error:', apiError);
-      return false;
-    } finally {
-      // Remove from confirming set
-      setConfirmingLessons(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(lessonId);
-        return newSet;
-      });
-    }
-  }, [fetchSchedule]);
+    },
+    [fetchSchedule],
+  );
 
   // Initial data fetch
   useEffect(() => {

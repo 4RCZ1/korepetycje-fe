@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
-import { scheduleApi, Schedule, ApiClientError } from "@/services/api";
+import { ApiClientError } from "@/services/api";
+import { scheduleApi, Schedule } from "@/services/scheduleApi";
 
 export interface UseScheduleApiState {
   scheduleData: Schedule | null;

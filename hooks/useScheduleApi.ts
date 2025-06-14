@@ -62,7 +62,9 @@ export function useScheduleApi(): UseScheduleApiState {
         setError(null);
 
         const result = await scheduleApi.confirmMeeting(lessonId, isConfirmed);
-
+        if (!result.confirmed) {
+          return false;
+        }
         // Update local state optimistically
         setScheduleData((prevData) => {
           if (!prevData) return prevData;

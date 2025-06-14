@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { Lesson } from "@/components/Schedule/Lesson";
 import { ThemedText } from "@/components/ThemedText";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { LessonEntry, Schedule } from "@/services/api";
+import { LessonEntry, Schedule } from "@/services/scheduleApi";
 
 export type ColumnProps = {
   date: string; // Date in YYYY-MM-DD format
@@ -28,10 +28,9 @@ export const Column = ({
   confirmingLessons,
 }: ColumnProps) => {
   // Color system hooks
-  const surfaceColor = useThemeColor({}, 'surface');
-  const backgroundColor = useThemeColor({}, 'background');
-  const borderColor = useThemeColor({}, 'border');
-  const whiteColor = useThemeColor({}, 'white', '300');
+  const surfaceColor = useThemeColor({}, "surface");
+  const borderColor = useThemeColor({}, "border");
+  const whiteColor = useThemeColor({}, "white", "300");
 
   const calculatePosition = (yPos: number): number => {
     return (yPos / 100) * columnHeight;
@@ -50,7 +49,12 @@ export const Column = ({
       </View>
 
       {/* Schedule container with fixed height for percentage calculations */}
-      <View style={[styles.scheduleContainer, { height: columnHeight, backgroundColor: surfaceColor }]}>
+      <View
+        style={[
+          styles.scheduleContainer,
+          { height: columnHeight, backgroundColor: surfaceColor },
+        ]}
+      >
         {/* Background grid lines for visualization (optional) */}
         {[0, 25, 50, 75, 100].map((percentage) => (
           <View

@@ -12,8 +12,12 @@ import {
 
 import { Column } from "@/components/Schedule/Column";
 import { ThemedText } from "@/components/ThemedText";
-import { useThemeColor, usePrimaryColor, useErrorColor } from "@/hooks/useThemeColor";
-import { LessonEntry, Schedule } from "@/services/api";
+import {
+  useThemeColor,
+  usePrimaryColor,
+  useErrorColor,
+} from "@/hooks/useThemeColor";
+import { LessonEntry, Schedule } from "@/services/scheduleApi";
 
 type ScheduleProps = {
   scheduleData: Schedule | null;
@@ -42,13 +46,12 @@ const ScheduleContainer = ({
   } | null>(null);
 
   // Color system hooks
-  const backgroundColor = useThemeColor({}, 'background');
-  const surfaceColor = useThemeColor({}, 'surface');
-  const primaryColor = usePrimaryColor('500');
-  const primaryDarkColor = usePrimaryColor('700');
-  const errorColor = useErrorColor('500');
-  const errorDarkColor = useErrorColor('700');
-  const borderColor = useThemeColor({}, 'border');
+  const surfaceColor = useThemeColor({}, "surface");
+  const primaryColor = usePrimaryColor("500");
+  const primaryDarkColor = usePrimaryColor("700");
+  const errorColor = useErrorColor("500");
+  const errorDarkColor = useErrorColor("700");
+  const borderColor = useThemeColor({}, "border");
 
   const handleItemPress = (
     date: string,
@@ -126,8 +129,15 @@ const ScheduleContainer = ({
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-          <View style={[styles.modalContent, { backgroundColor: surfaceColor }]}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+          ]}
+        >
+          <View
+            style={[styles.modalContent, { backgroundColor: surfaceColor }]}
+          >
             <ThemedText style={styles.modalTitle}>
               Confirm Schedule Item
             </ThemedText>
@@ -141,8 +151,11 @@ const ScheduleContainer = ({
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[
-                  styles.modalButton, 
-                  { backgroundColor: primaryColor, borderColor: primaryDarkColor }
+                  styles.modalButton,
+                  {
+                    backgroundColor: primaryColor,
+                    borderColor: primaryDarkColor,
+                  },
                 ]}
                 onPress={() => handleConfirmation(true)}
                 disabled={
@@ -161,8 +174,8 @@ const ScheduleContainer = ({
 
               <TouchableOpacity
                 style={[
-                  styles.modalButton, 
-                  { backgroundColor: errorColor, borderColor: errorDarkColor }
+                  styles.modalButton,
+                  { backgroundColor: errorColor, borderColor: errorDarkColor },
                 ]}
                 onPress={() => handleConfirmation(false)}
                 disabled={
@@ -181,8 +194,8 @@ const ScheduleContainer = ({
 
               <TouchableOpacity
                 style={[
-                  styles.modalButton, 
-                  { backgroundColor: borderColor, borderColor: borderColor }
+                  styles.modalButton,
+                  { backgroundColor: borderColor, borderColor: borderColor },
                 ]}
                 onPress={() => setModalVisible(false)}
               >

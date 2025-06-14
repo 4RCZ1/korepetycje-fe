@@ -5,7 +5,15 @@ import { useThemeColor, usePrimaryColor } from "@/hooks/useThemeColor";
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link" | "primary" | "warning" | "error";
+  type?:
+    | "default"
+    | "title"
+    | "defaultSemiBold"
+    | "subtitle"
+    | "link"
+    | "primary"
+    | "warning"
+    | "error";
   intensity?: "100" | "300" | "500" | "700" | "900";
 };
 
@@ -17,19 +25,39 @@ export function ThemedText({
   intensity = "500",
   ...rest
 }: ThemedTextProps) {
-  // Get color based on type
+  const primaryColor = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    "text",
+    intensity,
+  );
+  const warningColor = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    "warning",
+    intensity,
+  );
+  const errorColor = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    "error",
+    intensity,
+  );
+  const linkColor = usePrimaryColor("500");
+  const textColor = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    "white",
+  );
+
+  // Determine which color to use based on type
   let color: string;
-  
   if (type === "primary") {
-    color = useThemeColor({ light: lightColor, dark: darkColor }, "primary", intensity);
+    color = primaryColor;
   } else if (type === "warning") {
-    color = useThemeColor({ light: lightColor, dark: darkColor }, "warning", intensity);
+    color = warningColor;
   } else if (type === "error") {
-    color = useThemeColor({ light: lightColor, dark: darkColor }, "error", intensity);
+    color = errorColor;
   } else if (type === "link") {
-    color = usePrimaryColor("500");
+    color = linkColor;
   } else {
-    color = useThemeColor({ light: lightColor, dark: darkColor }, "text");
+    color = textColor;
   }
 
   return (

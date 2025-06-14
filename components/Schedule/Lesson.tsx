@@ -7,8 +7,8 @@ import {
 } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
-import { usePrimaryColor, useErrorColor, useThemeColor } from "@/hooks/useThemeColor";
-import { LessonEntry } from "@/services/api";
+import { usePrimaryColor, useThemeColor } from "@/hooks/useThemeColor";
+import { LessonEntry } from "@/services/scheduleApi";
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
@@ -36,14 +36,12 @@ export const Lesson = ({
   confirmingLessons,
 }: LessonProps) => {
   // Color system hooks
-  const primaryColor = usePrimaryColor('500');
-  const primaryDarkColor = usePrimaryColor('700');
-  const primaryLightColor = usePrimaryColor('300');
-  const errorColor = useErrorColor('500');
-  const errorDarkColor = useErrorColor('700');
-  const grayColor = useThemeColor({}, 'black', '300');
-  const grayDarkColor = useThemeColor({}, 'black', '500');
-  const whiteColor = useThemeColor({}, 'white', '500');
+  const primaryColor = usePrimaryColor("500");
+  const primaryDarkColor = usePrimaryColor("700");
+  const primaryLightColor = usePrimaryColor("300");
+  const grayColor = useThemeColor({}, "black", "100");
+  const grayDarkColor = useThemeColor({}, "black", "500");
+  const whiteColor = useThemeColor({}, "white", "500");
 
   const getTextStyle = (confirmed?: boolean | null) => {
     return {
@@ -57,7 +55,7 @@ export const Lesson = ({
 
   const getTextColor = (confirmed?: boolean | null): string => {
     if (confirmed === false) {
-      return '#CCCCCC'; // Keep muted text for rejected items
+      return "#CCCCCC"; // Keep muted text for rejected items
     }
     return whiteColor; // Use white from color system
   };
@@ -143,12 +141,18 @@ export const Lesson = ({
             {lesson.description}
           </ThemedText>
           <ThemedText
-            style={[styles.positionText, { color: `${getTextColor(lesson.fullyConfirmed)}CC` }]}
+            style={[
+              styles.positionText,
+              { color: `${getTextColor(lesson.fullyConfirmed)}CC` },
+            ]}
           >
             {lesson.startTime}-{lesson.endTime}
           </ThemedText>
           <ThemedText
-            style={[styles.statusText, { color: `${getTextColor(lesson.fullyConfirmed)}E6` }]}
+            style={[
+              styles.statusText,
+              { color: `${getTextColor(lesson.fullyConfirmed)}E6` },
+            ]}
           >
             {getConfirmationStatus(lesson.fullyConfirmed)}
           </ThemedText>
@@ -181,7 +185,6 @@ const styles = StyleSheet.create({
   positionText: {
     fontSize: 7,
     textAlign: "center",
-    marginBottom: 1,
   },
   statusText: {
     fontSize: 6,

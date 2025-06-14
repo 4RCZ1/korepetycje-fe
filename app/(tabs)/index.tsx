@@ -103,9 +103,7 @@ export default function HomeScreen() {
   // Loading state
   if (loading && !scheduleData) {
     return (
-      <ParallaxScrollView
-        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      >
+      <ParallaxScrollView>
         <ThemedView style={styles.container}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF" />
@@ -121,9 +119,7 @@ export default function HomeScreen() {
   // Error state
   if (error && !scheduleData) {
     return (
-      <ParallaxScrollView
-        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      >
+      <ParallaxScrollView>
         <ThemedView style={styles.container}>
           <View style={styles.errorContainer}>
             <ThemedText style={styles.errorTitle}>
@@ -141,9 +137,7 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-      <ParallaxScrollView
-        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      >
+      <ParallaxScrollView>
         <ThemedView style={styles.container}>
           <ThemedText style={styles.title}>Weekly Schedule</ThemedText>
           <ThemedText style={styles.instruction}>

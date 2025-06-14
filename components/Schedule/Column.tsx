@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 
 import { Lesson } from "@/components/Schedule/Lesson";
 import { ThemedText } from "@/components/ThemedText";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { LessonEntry, Schedule } from "@/services/api";
 
 export type ColumnProps = {
@@ -26,6 +27,12 @@ export const Column = ({
   handleItemPress,
   confirmingLessons,
 }: ColumnProps) => {
+  // Color system hooks
+  const surfaceColor = useThemeColor({}, 'surface');
+  const backgroundColor = useThemeColor({}, 'background');
+  const borderColor = useThemeColor({}, 'border');
+  const whiteColor = useThemeColor({}, 'white', '300');
+
   const calculatePosition = (yPos: number): number => {
     return (yPos / 100) * columnHeight;
   };
@@ -36,14 +43,14 @@ export const Column = ({
 
   return (
     <View key={date} style={[styles.column, { width: columnWidth }]}>
-      <View style={styles.dayHeader}>
+      <View style={[styles.dayHeader, { backgroundColor: whiteColor }]}>
         <ThemedText style={styles.dayText}>
           {weekdayAbbr[columnIndex]}
         </ThemedText>
       </View>
 
       {/* Schedule container with fixed height for percentage calculations */}
-      <View style={[styles.scheduleContainer, { height: columnHeight }]}>
+      <View style={[styles.scheduleContainer, { height: columnHeight, backgroundColor: surfaceColor }]}>
         {/* Background grid lines for visualization (optional) */}
         {[0, 25, 50, 75, 100].map((percentage) => (
           <View
@@ -53,6 +60,7 @@ export const Column = ({
               {
                 top: calculatePosition(percentage),
                 width: columnWidth - 4,
+                backgroundColor: borderColor,
               },
             ]}
           />
@@ -74,7 +82,7 @@ export const Column = ({
       </View>
 
       {/* Column border */}
-      <View style={styles.columnBorder} />
+      <View style={[styles.columnBorder, { backgroundColor: borderColor }]} />
     </View>
   );
 };
@@ -87,7 +95,6 @@ const styles = StyleSheet.create({
     height: 30,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#e0e0e0",
     borderRadius: 4,
     marginBottom: 4,
   },
@@ -97,13 +104,11 @@ const styles = StyleSheet.create({
   },
   scheduleContainer: {
     position: "relative",
-    backgroundColor: "#fafafa",
     borderRadius: 4,
   },
   gridLine: {
     position: "absolute",
     height: 1,
-    backgroundColor: "#e0e0e0",
     opacity: 0.5,
   },
   columnBorder: {
@@ -112,6 +117,5 @@ const styles = StyleSheet.create({
     top: 30,
     bottom: 0,
     width: 1,
-    backgroundColor: "#ddd",
   },
 });

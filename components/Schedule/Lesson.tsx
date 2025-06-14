@@ -7,6 +7,7 @@ import {
 } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
+import { usePrimaryColor, useErrorColor, useThemeColor } from "@/hooks/useThemeColor";
 import { LessonEntry } from "@/services/api";
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
@@ -34,11 +35,31 @@ export const Lesson = ({
   handleItemPress,
   confirmingLessons,
 }: LessonProps) => {
+  // Color system hooks
+  const primaryColor = usePrimaryColor('500');
+  const primaryDarkColor = usePrimaryColor('700');
+  const primaryLightColor = usePrimaryColor('300');
+  const errorColor = useErrorColor('500');
+  const errorDarkColor = useErrorColor('700');
+  const grayColor = useThemeColor({}, 'black', '300');
+  const grayDarkColor = useThemeColor({}, 'black', '500');
+  const whiteColor = useThemeColor({}, 'white', '500');
+
   const getTextStyle = (confirmed?: boolean | null) => {
+    return {
+      color: getTextColor(confirmed),
+      fontSize: 9,
+      textAlign: "center" as const,
+      fontWeight: "500" as const,
+      marginBottom: 1,
+    };
+  };
+
+  const getTextColor = (confirmed?: boolean | null): string => {
     if (confirmed === false) {
-      return styles.scheduleTextRejected;
+      return '#CCCCCC'; // Keep muted text for rejected items
     }
-    return styles.scheduleText;
+    return whiteColor; // Use white from color system
   };
 
   const calculateHeight = (startTime: number, endTime: number): number => {
@@ -59,11 +80,20 @@ export const Lesson = ({
 
   const getItemStyle = (confirmed?: boolean | null) => {
     if (confirmed === true) {
-      return styles.scheduleItemConfirmed; // Current blue style
+      return {
+        backgroundColor: primaryColor,
+        borderColor: primaryDarkColor,
+      };
     } else if (confirmed === false) {
-      return styles.scheduleItemRejected; // Grayed out
+      return {
+        backgroundColor: grayColor,
+        borderColor: grayDarkColor,
+      };
     } else {
-      return styles.scheduleItemPending; // Lighter blue
+      return {
+        backgroundColor: primaryLightColor,
+        borderColor: primaryColor,
+      };
     }
   };
 
@@ -107,18 +137,18 @@ export const Lesson = ({
       ) : (
         <>
           <ThemedText
-            style={[styles.scheduleText, getTextStyle(lesson.fullyConfirmed)]}
+            style={getTextStyle(lesson.fullyConfirmed)}
             numberOfLines={2}
           >
             {lesson.description}
           </ThemedText>
           <ThemedText
-            style={[styles.positionText, getTextStyle(lesson.fullyConfirmed)]}
+            style={[styles.positionText, { color: `${getTextColor(lesson.fullyConfirmed)}CC` }]}
           >
             {lesson.startTime}-{lesson.endTime}
           </ThemedText>
           <ThemedText
-            style={[styles.statusText, getTextStyle(lesson.fullyConfirmed)]}
+            style={[styles.statusText, { color: `${getTextColor(lesson.fullyConfirmed)}E6` }]}
           >
             {getConfirmationStatus(lesson.fullyConfirmed)}
           </ThemedText>
@@ -145,43 +175,15 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     borderWidth: 1,
   },
-  scheduleItemConfirmed: {
-    backgroundColor: "#007AFF",
-    borderColor: "#0056b3",
-  },
-  scheduleItemPending: {
-    backgroundColor: "#87CEEB",
-    borderColor: "#6BB6FF",
-  },
-  scheduleItemRejected: {
-    backgroundColor: "#9E9E9E",
-    borderColor: "#757575",
-  },
   scheduleItemLoading: {
     opacity: 0.7,
   },
-  scheduleText: {
-    color: "white",
-    fontSize: 9,
-    textAlign: "center",
-    fontWeight: "500",
-    marginBottom: 1,
-  },
-  scheduleTextRejected: {
-    color: "#CCCCCC",
-    fontSize: 9,
-    textAlign: "center",
-    fontWeight: "500",
-    marginBottom: 1,
-  },
   positionText: {
-    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 7,
     textAlign: "center",
     marginBottom: 1,
   },
   statusText: {
-    color: "rgba(255, 255, 255, 0.9)",
     fontSize: 6,
     textAlign: "center",
     fontWeight: "bold",

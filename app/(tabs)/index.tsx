@@ -10,12 +10,14 @@ import {
   View,
 } from "react-native";
 
+import { ColorSystemExample } from "@/components/ColorSystemExample";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import ScheduleContainer from "@/components/Schedule/ScheduleContainer";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useScheduleApi } from "@/hooks/useScheduleApi";
+import { usePrimaryColor } from "@/hooks/useThemeColor";
 
 export default function HomeScreen() {
   const {
@@ -27,6 +29,10 @@ export default function HomeScreen() {
     confirmingLessons,
   } = useScheduleApi();
 
+  // Color system hooks
+  const primaryColor = usePrimaryColor('500');
+  const primaryLightColor = usePrimaryColor('100');
+
   // State for screen dimensions that updates on rotation
   const [screenDimensions, setScreenDimensions] = useState(() => {
     const { width, height } = Dimensions.get("window");
@@ -35,6 +41,9 @@ export default function HomeScreen() {
 
   // State for pull-to-refresh
   const [refreshing, setRefreshing] = useState(false);
+  
+  // State for color system demo toggle
+  const [showColorDemo, setShowColorDemo] = useState(false);
 
   // Calculate dynamic values based on current screen dimensions
   const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
@@ -144,6 +153,22 @@ export default function HomeScreen() {
             Tap pending items (lighter blue) to confirm or reject them
           </ThemedText>
 
+          {/* Color System Demo Toggle */}
+          <TouchableOpacity
+            style={[
+              styles.colorDemoButton, 
+              { 
+                backgroundColor: primaryLightColor,
+                borderColor: primaryColor 
+              }
+            ]}
+            onPress={() => setShowColorDemo(!showColorDemo)}
+          >
+            <ThemedText type="primary" style={styles.colorDemoButtonText}>
+              {showColorDemo ? '🎨 Hide Color System Demo' : '🎨 Show Color System Demo'}
+            </ThemedText>
+          </TouchableOpacity>
+
           {/* Refresh button for manual refresh since ParallaxScrollView doesn't support RefreshControl */}
           <TouchableOpacity
             style={styles.refreshButton}
@@ -184,6 +209,9 @@ export default function HomeScreen() {
             onRefresh={onRefresh}
             refreshing={refreshing}
           />
+
+          {/* Example usage of ColorSystemExample component */}
+          {showColorDemo && <ColorSystemExample />}
         </ThemedView>
       </ParallaxScrollView>
     </ErrorBoundary>
@@ -206,6 +234,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 8,
     opacity: 0.8,
+  },
+  colorDemoButton: {
+    alignSelf: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  colorDemoButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
   refreshButton: {
     alignSelf: "center",

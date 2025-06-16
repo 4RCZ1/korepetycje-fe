@@ -1,12 +1,25 @@
 import { ApiClientError, ApiResponse, apiRequest } from "@/services/api";
 
+type AttendanceDTO = {
+  StudentName: string;
+  StudentSurname: string;
+  Confirmed: boolean | null;
+}
+
 type LessonEntryDTO = {
   LessonId: string;
   StartTime: string; // ISO 8601 datetime
   EndTime: string; // ISO 8601 datetime
-  Text: string;
-  ConfirmedBy: Record<string, boolean>;
+  Address: string;
+  Description: string;
+  Attendances: AttendanceDTO[];
 };
+
+export type AttendanceType = {
+  studentName: string;
+  studentSurname: string;
+  confirmed: boolean | null; // null means not confirmed by anyone
+}
 
 export type LessonEntry = {
   lessonId: string;
@@ -14,9 +27,10 @@ export type LessonEntry = {
   endTimestamp: number; // miliseconds since the day started
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
+  address: string
   description: string;
   fullyConfirmed: boolean | null;
-  confirmedBy: Record<string, boolean>;
+  attendances: AttendanceType[];
 };
 
 type ScheduleDTO = LessonEntryDTO[];
@@ -48,15 +62,20 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
       endTimestamp,
       startTime: startDate.toISOString().substring(11, 16),
       endTime: endDate.toISOString().substring(11, 16),
-      description: entryDTO.Text,
+      description: entryDTO.Description,
       fullyConfirmed:
-        Object.values(entryDTO.ConfirmedBy).every(Boolean) ||
-        Object.values(entryDTO.ConfirmedBy).every(
-          (e) => e === undefined || e === null,
+        entryDTO.Attendances.every(e=>Boolean(e.Confirmed)) ||
+        entryDTO.Attendances.every(
+          (e) => e.Confirmed === undefined || e.Confirmed === null,
         )
           ? null
           : false,
-      confirmedBy: entryDTO.ConfirmedBy,
+      attendances: entryDTO.Attendances.map((attendance) => ({
+        studentName: attendance.StudentName,
+        studentSurname: attendance.StudentSurname,
+        confirmed: attendance.Confirmed,
+      })),
+      address: entryDTO.Address,
     };
 
     if (!schedule[dateKey]) {
@@ -66,6 +85,15 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
   }
 
   return schedule;
+}
+
+export type LessonRequest = {
+  firstStartTime: string;    // ISO 8601 datetime
+  firstEndTime: string;      // ISO 8601 datetime
+  scheduleEndTime: string;   // ISO 8601 datetime
+  periodInDays: number;
+  addressId: string;
+  studentIds: string[];
 }
 
 export interface ConfirmMeetingRequest {
@@ -84,18 +112,34 @@ export const scheduleApi = {
   async getSchedule(startDate: string, endDate: string): Promise<Schedule> {
     try {
       const response = await apiRequest<ApiResponse<ScheduleDTO>>(
-        "/schedule",
+        "/lesson",
         {},
         {
-          startDate,
-          endDate,
+          startTime: startDate,
+          endTime: endDate,
         },
       );
 
-      return scheduleConverter(response.data);
+      return scheduleConverter(response.data ?? []);
     } catch (error) {
       console.error("Failed to fetch schedule:", error);
       throw error;
+    }
+  },
+
+  async planLesson(lesson: LessonRequest): Promise<boolean> {
+    try {
+      const response = await apiRequest<ApiResponse<boolean>>(
+        "/plan-lessons",
+        {
+          method: "POST",
+          body: JSON.stringify(lesson),
+        },
+      );
+      return response.success;
+    } catch (error) {
+      console.error("Failed to plan lesson:", error);
+      return false
     }
   },
 
@@ -118,7 +162,7 @@ export const scheduleApi = {
   async confirmMeeting(
     lessonId: string,
     isConfirmed: boolean,
-  ): Promise<ConfirmMeetingResponse> {
+  ): Promise<ConfirmMeetingResponse | null> {
     try {
       const response = await apiRequest<ApiResponse<ConfirmMeetingResponse>>(
         "/schedule/confirm",

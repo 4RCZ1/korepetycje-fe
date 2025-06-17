@@ -98,7 +98,7 @@ export type LessonRequest = {
 
 export interface ConfirmMeetingRequest {
   lessonId: string;
-  isConfirmed: boolean;
+  confirmed: boolean;
 }
 
 export interface ConfirmMeetingResponse {
@@ -165,18 +165,36 @@ export const scheduleApi = {
   ): Promise<ConfirmMeetingResponse | null> {
     try {
       const response = await apiRequest<ApiResponse<ConfirmMeetingResponse>>(
-        "/schedule/confirm",
+        `/lesson/${lessonId}/confirm`,
         {
-          method: "POST",
+          method: "PUT",
           body: JSON.stringify({
-            lessonId,
-            isConfirmed,
+            confirmed: isConfirmed,
           }),
         },
       );
       return response.data;
     } catch (error) {
       console.error("Failed to confirm meeting:", error);
+      throw error;
+    }
+  },
+
+  async deleteLesson(lessonId: string, deleteFutureLessons: boolean): Promise<boolean> {
+    try {
+      const response = await apiRequest<ApiResponse<boolean>>(
+        `/delete-lesson`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            lessonId,
+            deleteFutureLessons,
+          }),
+        },
+      );
+      return response.success;
+    } catch (error) {
+      console.error("Failed to delete lesson:", error);
       throw error;
     }
   },

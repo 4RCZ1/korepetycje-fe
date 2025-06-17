@@ -4,7 +4,7 @@ type AttendanceDTO = {
   StudentName: string;
   StudentSurname: string;
   Confirmed: boolean | null;
-}
+};
 
 type LessonEntryDTO = {
   LessonId: string;
@@ -19,7 +19,7 @@ export type AttendanceType = {
   studentName: string;
   studentSurname: string;
   confirmed: boolean | null; // null means not confirmed by anyone
-}
+};
 
 export type LessonEntry = {
   lessonId: string;
@@ -27,7 +27,7 @@ export type LessonEntry = {
   endTimestamp: number; // miliseconds since the day started
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
-  address: string
+  address: string;
   description: string;
   fullyConfirmed: boolean | null;
   attendances: AttendanceType[];
@@ -64,7 +64,7 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
       endTime: endDate.toISOString().substring(11, 16),
       description: entryDTO.Description,
       fullyConfirmed:
-        entryDTO.Attendances.every(e=>Boolean(e.Confirmed)) ||
+        entryDTO.Attendances.every((e) => Boolean(e.Confirmed)) ||
         entryDTO.Attendances.every(
           (e) => e.Confirmed === undefined || e.Confirmed === null,
         )
@@ -88,13 +88,13 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
 }
 
 export type LessonRequest = {
-  firstStartTime: string;    // ISO 8601 datetime
-  firstEndTime: string;      // ISO 8601 datetime
-  scheduleEndTime: string;   // ISO 8601 datetime
+  firstStartTime: string; // ISO 8601 datetime
+  firstEndTime: string; // ISO 8601 datetime
+  scheduleEndTime: string; // ISO 8601 datetime
   periodInDays: number;
   addressId: string;
   studentIds: string[];
-}
+};
 
 export interface ConfirmMeetingRequest {
   lessonId: string;
@@ -129,17 +129,14 @@ export const scheduleApi = {
 
   async planLesson(lesson: LessonRequest): Promise<boolean> {
     try {
-      const response = await apiRequest<ApiResponse<boolean>>(
-        "/plan-lessons",
-        {
-          method: "POST",
-          body: JSON.stringify(lesson),
-        },
-      );
+      const response = await apiRequest<ApiResponse<boolean>>("/plan-lessons", {
+        method: "POST",
+        body: JSON.stringify(lesson),
+      });
       return response.success;
     } catch (error) {
       console.error("Failed to plan lesson:", error);
-      return false
+      return false;
     }
   },
 
@@ -180,7 +177,10 @@ export const scheduleApi = {
     }
   },
 
-  async deleteLesson(lessonId: string, deleteFutureLessons: boolean): Promise<boolean> {
+  async deleteLesson(
+    lessonId: string,
+    deleteFutureLessons: boolean,
+  ): Promise<boolean> {
     try {
       const response = await apiRequest<ApiResponse<boolean>>(
         `/delete-lesson`,

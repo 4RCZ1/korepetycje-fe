@@ -32,7 +32,8 @@ export function useThemeColor(
   colorName: AvailableColors,
   intensity?: ColorIntensity,
 ) {
-  const theme = useColorScheme() ?? "light";
+  // const theme = useColorScheme() ?? "light";
+  const theme = "light"; // TODO: bring back theme support
   const colorFromProps = props[theme];
 
   if (colorFromProps) {

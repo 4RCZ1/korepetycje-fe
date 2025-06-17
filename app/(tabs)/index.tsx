@@ -12,11 +12,13 @@ import {
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import AddLessonModal from "@/components/Schedule/AddLessonModal";
 import ScheduleContainer from "@/components/Schedule/ScheduleContainer";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useScheduleApi } from "@/hooks/useScheduleApi";
 import { usePrimaryColor } from "@/hooks/useThemeColor";
+import { LessonRequest, scheduleApi } from "@/services/scheduleApi";
 
 export default function HomeScreen() {
   const {
@@ -37,9 +39,11 @@ export default function HomeScreen() {
     const { width, height } = Dimensions.get("window");
     return { width, height };
   });
-
   // State for pull-to-refresh
   const [refreshing, setRefreshing] = useState(false);
+
+  // State for Add Lesson modal
+  const [addLessonModalVisible, setAddLessonModalVisible] = useState(false);
 
   // Calculate dynamic values based on current screen dimensions
   const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
@@ -94,7 +98,6 @@ export default function HomeScreen() {
       }
     };
   }, []);
-
   // Pull to refresh handler
   const onRefresh = async () => {
     setRefreshing(true);
@@ -102,6 +105,23 @@ export default function HomeScreen() {
       await refetch();
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  // Add lesson handler
+  const handleAddLesson = async (
+    lessonRequest: LessonRequest,
+  ): Promise<boolean> => {
+    try {
+      const success = await scheduleApi.planLesson(lessonRequest);
+      if (success) {
+        // Refresh the schedule to show the new lesson
+        await refetch();
+      }
+      return success;
+    } catch (error) {
+      console.error("Failed to add lesson:", error);
+      return false;
     }
   };
 
@@ -142,15 +162,27 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
+      {" "}
       <ParallaxScrollView>
         <ThemedView style={styles.container}>
+          {/* Header with Add Lesson button */}
+          <View style={styles.headerContainer}>
+            <TouchableOpacity
+              style={[
+                styles.addLessonButton,
+                { backgroundColor: primaryColor },
+              ]}
+              onPress={() => setAddLessonModalVisible(true)}
+            >
+              <Text style={styles.addLessonButtonText}>+ Add Lesson</Text>
+            </TouchableOpacity>
+          </View>
           <ThemedText type={"primary"} style={styles.title}>
             Weekly Schedule
           </ThemedText>
           <ThemedText type={"primary"} style={styles.instruction}>
             Tap pending items (lighter blue) to confirm or reject them
           </ThemedText>
-
           {/* Refresh button for manual refresh since ParallaxScrollView doesn't support RefreshControl */}
           <TouchableOpacity
             style={[
@@ -171,7 +203,6 @@ export default function HomeScreen() {
               </ThemedText>
             )}
           </TouchableOpacity>
-
           {/* Show error banner if there's an error but we have cached data */}
           {error && scheduleData && (
             <View style={styles.errorBanner}>
@@ -181,13 +212,11 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
           )}
-
           <ThemedText type={"primary"} style={styles.dimensionInfo}>
             Screen: {screenDimensions.width.toFixed(0)}x
             {screenDimensions.height.toFixed(0)}
             {isLandscape ? " (Landscape)" : " (Portrait)"}
-          </ThemedText>
-
+          </ThemedText>{" "}
           <ScheduleContainer
             scheduleData={scheduleData}
             columnWidth={columnWidth}
@@ -196,6 +225,12 @@ export default function HomeScreen() {
             confirmMeeting={confirmMeeting}
             onRefresh={onRefresh}
             refreshing={refreshing}
+          />
+          {/* Add Lesson Modal */}
+          <AddLessonModal
+            visible={addLessonModalVisible}
+            onClose={() => setAddLessonModalVisible(false)}
+            onSubmit={handleAddLesson}
           />
         </ThemedView>
       </ParallaxScrollView>
@@ -207,6 +242,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingVertical: 16,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  addLessonButton: {
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  addLessonButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
   title: {
     fontSize: 24,

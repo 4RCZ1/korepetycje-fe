@@ -1,9 +1,9 @@
 import { ApiClientError, ApiResponse, apiRequest } from "@/services/api";
 
 export type AddressDTO = {
-  ExternalId: string;
-  AddressName: string;
-  AddressData: string; // City, Street, HouseNumber
+  externalId: string;
+  addressName: string;
+  addressData: string; // City, Street, HouseNumber
 };
 
 export type AddressType = {
@@ -14,9 +14,9 @@ export type AddressType = {
 
 export function addressConverter(addressDTO: AddressDTO): AddressType {
   return {
-    id: addressDTO.ExternalId,
-    name: addressDTO.AddressName,
-    data: addressDTO.AddressData,
+    id: addressDTO.externalId,
+    name: addressDTO.addressName,
+    data: addressDTO.addressData,
   };
 }
 

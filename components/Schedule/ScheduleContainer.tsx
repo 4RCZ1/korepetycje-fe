@@ -2,7 +2,6 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   Modal,
   Platform,
@@ -21,6 +20,7 @@ import {
   useErrorColor,
 } from "@/hooks/useThemeColor";
 import { LessonEntry, Schedule } from "@/services/scheduleApi";
+import alert from "@/utils/alert";
 
 const getDaysInRange = (startDate: Date, endDate: Date): string[] => {
   const days: string[] = [];
@@ -152,7 +152,7 @@ const ScheduleContainer = ({
         setModalVisible(false);
         setSelectedItem(null);
 
-        Alert.alert(
+        alert(
           "Success",
           `Meeting has been ${confirmed ? "confirmed" : "rejected"}.`,
           [{ text: "OK" }],
@@ -161,14 +161,10 @@ const ScheduleContainer = ({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Error is already handled in the hook and displayed in the UI
-      Alert.alert(
-        "Error",
-        "Failed to update meeting status. Please try again.",
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Retry", onPress: () => handleConfirmation(confirmed) },
-        ],
-      );
+      alert("Error", "Failed to update meeting status. Please try again.", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Retry", onPress: () => handleConfirmation(confirmed) },
+      ]);
     }
   };
 

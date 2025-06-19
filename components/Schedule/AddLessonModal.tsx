@@ -1,7 +1,6 @@
 import { Picker } from "@react-native-picker/picker";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  Alert,
   Modal,
   ScrollView,
   StyleSheet,
@@ -18,6 +17,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { addressApi, AddressType } from "@/services/addressApi";
 import { LessonRequest } from "@/services/scheduleApi";
 import { studentApi, StudentType } from "@/services/studentApi";
+import alert from "@/utils/alert";
 
 type AddLessonModalProps = {
   visible: boolean;
@@ -50,6 +50,26 @@ const AddLessonModal = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const resetForm = useCallback(() => {
+    // Set default values for better UX
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(now.getHours() + 1, 0, 0, 0);
+    const hourAfter = new Date(nextHour);
+    hourAfter.setHours(nextHour.getHours() + 1);
+
+    // Default schedule end to 3 months from now
+    const threeMonthsLater = new Date(now);
+    threeMonthsLater.setMonth(now.getMonth() + 3);
+
+    setFirstStartTime(formatDateTimeForInput(nextHour));
+    setFirstEndTime(formatDateTimeForInput(hourAfter));
+    setScheduleEndTime(formatDateTimeForInput(threeMonthsLater));
+    setPeriodInDays("7");
+    setSelectedAddressId("");
+    setSelectedStudentIds([]);
+  }, []);
+
   // Colors
   const backgroundColor = useThemeColor({}, "background");
   const surfaceColor = useThemeColor({}, "surface");
@@ -62,7 +82,7 @@ const AddLessonModal = ({
       // Set default form values
       resetForm();
     }
-  }, [visible]);
+  }, [visible, resetForm]);
 
   const loadData = async () => {
     setLoading(true);
@@ -79,7 +99,7 @@ const AddLessonModal = ({
       // }
     } catch (error) {
       console.error("Failed to load data:", error);
-      Alert.alert("Error", "Failed to load students and addresses");
+      alert("Error", "Failed to load students and addresses");
     } finally {
       setLoading(false);
     }
@@ -99,25 +119,6 @@ const AddLessonModal = ({
     if (!dateTimeLocal) return "";
     const date = new Date(dateTimeLocal);
     return date.toISOString();
-  };
-  const resetForm = () => {
-    // Set default values for better UX
-    const now = new Date();
-    const nextHour = new Date(now);
-    nextHour.setHours(now.getHours() + 1, 0, 0, 0);
-    const hourAfter = new Date(nextHour);
-    hourAfter.setHours(nextHour.getHours() + 1);
-
-    // Default schedule end to 3 months from now
-    const threeMonthsLater = new Date(now);
-    threeMonthsLater.setMonth(now.getMonth() + 3);
-
-    setFirstStartTime(formatDateTimeForInput(nextHour));
-    setFirstEndTime(formatDateTimeForInput(hourAfter));
-    setScheduleEndTime(formatDateTimeForInput(threeMonthsLater));
-    setPeriodInDays("7");
-    setSelectedAddressId("");
-    setSelectedStudentIds([]);
   };
 
   const handleClose = () => {
@@ -179,7 +180,7 @@ const AddLessonModal = ({
   const handleSubmit = async () => {
     const validationError = validateForm();
     if (validationError) {
-      Alert.alert("Validation Error", validationError);
+      alert("Validation Error", validationError);
       return;
     }
     setSubmitting(true);
@@ -195,14 +196,14 @@ const AddLessonModal = ({
 
       const success = await onSubmit(lessonRequest);
       if (success) {
-        Alert.alert("Success", "Lesson planned successfully");
+        alert("Success", "Lesson planned successfully");
         handleClose();
       } else {
-        Alert.alert("Error", "Failed to plan lesson");
+        alert("Error", "Failed to plan lesson");
       }
     } catch (error) {
       console.error("Failed to submit lesson:", error);
-      Alert.alert("Error", "Failed to plan lesson");
+      alert("Error", "Failed to plan lesson");
     } finally {
       setSubmitting(false);
     }

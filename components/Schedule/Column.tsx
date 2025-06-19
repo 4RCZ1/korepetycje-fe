@@ -38,7 +38,7 @@ export const Column = ({
 
   if (!scheduleData) return null;
 
-  const daySchedule = scheduleData[date];
+  const daySchedule = scheduleData[date] || [];
 
   return (
     <View key={date} style={[styles.column, { width: columnWidth }]}>

@@ -1,18 +1,19 @@
-import { ApiClientError, ApiResponse, apiRequest } from "@/services/api";
+import { ApiClientError, apiRequest } from "@/services/api";
+import { getWeekStartEndDates } from "@/utils/dates";
 
 type AttendanceDTO = {
-  StudentName: string;
-  StudentSurname: string;
-  Confirmed: boolean | null;
+  studentName: string;
+  studentSurname: string;
+  confirmed: boolean | null;
 };
 
 type LessonEntryDTO = {
-  LessonId: string;
-  StartTime: string; // ISO 8601 datetime
-  EndTime: string; // ISO 8601 datetime
-  Address: string;
-  Description: string;
-  Attendances: AttendanceDTO[];
+  lessonId: string;
+  startTime: string; // ISO 8601 datetime
+  endTime: string; // ISO 8601 datetime
+  address: string;
+  description: string;
+  attendances: AttendanceDTO[];
 };
 
 export type AttendanceType = {
@@ -43,8 +44,8 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
   const schedule: Schedule = {};
 
   for (const entryDTO of scheduleDTO) {
-    const startDate = new Date(entryDTO.StartTime);
-    const endDate = new Date(entryDTO.EndTime);
+    const startDate = new Date(entryDTO.startTime);
+    const endDate = new Date(entryDTO.endTime);
 
     // Get the date string (YYYY-MM-DD format)
     const dateKey = startDate.toISOString().split("T")[0];
@@ -57,25 +58,25 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
     const endTimestamp = endDate.getTime() - dayStart.getTime();
 
     const lessonEntry: LessonEntry = {
-      lessonId: entryDTO.LessonId,
+      lessonId: entryDTO.lessonId,
       startTimestamp,
       endTimestamp,
       startTime: startDate.toISOString().substring(11, 16),
       endTime: endDate.toISOString().substring(11, 16),
-      description: entryDTO.Description,
+      description: entryDTO.description,
       fullyConfirmed:
-        entryDTO.Attendances.every((e) => Boolean(e.Confirmed)) ||
-        entryDTO.Attendances.every(
-          (e) => e.Confirmed === undefined || e.Confirmed === null,
+        entryDTO.attendances.every((e) => Boolean(e.confirmed)) ||
+        entryDTO.attendances.every(
+          (e) => e.confirmed === undefined || e.confirmed === null,
         )
           ? null
           : false,
-      attendances: entryDTO.Attendances.map((attendance) => ({
-        studentName: attendance.StudentName,
-        studentSurname: attendance.StudentSurname,
-        confirmed: attendance.Confirmed,
+      attendances: entryDTO.attendances.map((attendance) => ({
+        studentName: attendance.studentName,
+        studentSurname: attendance.studentSurname,
+        confirmed: attendance.confirmed,
       })),
-      address: entryDTO.Address,
+      address: entryDTO.address,
     };
 
     if (!schedule[dateKey]) {
@@ -111,7 +112,7 @@ export const scheduleApi = {
   // GET request to fetch schedule
   async getSchedule(startDate: string, endDate: string): Promise<Schedule> {
     try {
-      const response = await apiRequest<ApiResponse<ScheduleDTO>>(
+      const response = await apiRequest<ScheduleDTO>(
         "/lesson",
         {},
         {
@@ -120,7 +121,7 @@ export const scheduleApi = {
         },
       );
 
-      return scheduleConverter(response.data ?? []);
+      return scheduleConverter(response ?? []);
     } catch (error) {
       console.error("Failed to fetch schedule:", error);
       throw error;
@@ -129,11 +130,11 @@ export const scheduleApi = {
 
   async planLesson(lesson: LessonRequest): Promise<boolean> {
     try {
-      const response = await apiRequest<ApiResponse<boolean>>("/plan-lessons", {
+      const response = await apiRequest<boolean>("/plan-lessons", {
         method: "POST",
         body: JSON.stringify(lesson),
       });
-      return response.success;
+      return response;
     } catch (error) {
       console.error("Failed to plan lesson:", error);
       return false;
@@ -142,16 +143,7 @@ export const scheduleApi = {
 
   // helper function to get a week schedule
   async getWeekSchedule(weekOffset: number = 0): Promise<Schedule> {
-    const today = new Date();
-    const startDate = new Date(today);
-    startDate.setDate(
-      today.getDate() - ((today.getDay() || 7) + 1) + weekOffset * 7,
-    );
-    startDate.setHours(0, 0, 0, 0);
-
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
-    endDate.setHours(23, 59, 59, 999);
+    const { startDate, endDate } = getWeekStartEndDates({ weekOffset });
     return this.getSchedule(startDate.toISOString(), endDate.toISOString());
   },
 
@@ -161,7 +153,7 @@ export const scheduleApi = {
     isConfirmed: boolean,
   ): Promise<ConfirmMeetingResponse | null> {
     try {
-      const response = await apiRequest<ApiResponse<ConfirmMeetingResponse>>(
+      const response = await apiRequest<ConfirmMeetingResponse>(
         `/lesson/${lessonId}/confirm`,
         {
           method: "PUT",
@@ -170,7 +162,7 @@ export const scheduleApi = {
           }),
         },
       );
-      return response.data;
+      return response;
     } catch (error) {
       console.error("Failed to confirm meeting:", error);
       throw error;
@@ -182,17 +174,14 @@ export const scheduleApi = {
     deleteFutureLessons: boolean,
   ): Promise<boolean> {
     try {
-      const response = await apiRequest<ApiResponse<boolean>>(
-        `/delete-lesson`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            lessonId,
-            deleteFutureLessons,
-          }),
-        },
-      );
-      return response.success;
+      const response = await apiRequest<boolean>(`/delete-lesson`, {
+        method: "POST",
+        body: JSON.stringify({
+          lessonId,
+          deleteFutureLessons,
+        }),
+      });
+      return response;
     } catch (error) {
       console.error("Failed to delete lesson:", error);
       throw error;

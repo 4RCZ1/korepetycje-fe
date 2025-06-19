@@ -24,8 +24,8 @@ export type StudentType = {
 export type StudentUpdateRequestType = {
   name?: string;
   surname?: string;
-  address?: 
-    | { id: string; name?: string }  // Update existing address
+  address?:
+    | { id: string; name?: string } // Update existing address
     | { name: string; data?: string }; // Create new address
 };
 
@@ -39,7 +39,7 @@ type StudentRequestDTO = {
     | { addressName: string; addressData: string };
 };
 
-type StudentRequestType = {
+export type StudentRequestType = {
   email: string;
   phoneNumber: string;
   name: string;
@@ -176,7 +176,10 @@ export const studentApi = {
     }
   },
 
-  async updateStudent(id: string, studentData: StudentUpdateRequestType): Promise<ApiResponse<StudentType>> {
+  async updateStudent(
+    id: string,
+    studentData: StudentUpdateRequestType,
+  ): Promise<ApiResponse<StudentType>> {
     try {
       const response = await apiRequest<StudentDTO>(`/student/${id}`, {
         method: "PATCH",

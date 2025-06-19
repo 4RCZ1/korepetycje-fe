@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 
 import { ApiClientError } from "@/services/api";
-import { studentApi, StudentType, StudentUpdateRequestType } from "@/services/studentApi";
+import {
+  studentApi,
+  StudentType,
+  StudentUpdateRequestType,
+  StudentRequestType,
+} from "@/services/studentApi";
 
 export interface UseStudentApiState {
   students: StudentType[];
@@ -9,8 +14,11 @@ export interface UseStudentApiState {
   error: string | null;
   refetch: () => Promise<void>;
   deleteStudent: (studentId: string) => Promise<boolean>;
-  addStudent: (studentData: Omit<StudentType, "id">) => Promise<boolean>;
-  updateStudent: (studentId: string, studentData: StudentUpdateRequestType) => Promise<boolean>;
+  addStudent: (studentData: StudentRequestType) => Promise<boolean>;
+  updateStudent: (
+    studentId: string,
+    studentData: StudentUpdateRequestType,
+  ) => Promise<boolean>;
   deletingStudents: Set<string>;
   updatingStudents: Set<string>;
 }
@@ -112,22 +120,20 @@ export function useStudentApi(
 
   // Add student
   const addStudent = useCallback(
-    async (studentData: Omit<StudentType, "id">): Promise<boolean> => {
+    async (studentData: StudentRequestType): Promise<boolean> => {
       try {
         setError(null);
 
-        // TODO: Implement actual create API call when available
-        // const result = await studentApi.createStudent(studentData);
+        const result = await studentApi.addStudent(studentData);
 
-        // For now, simulate success and add to local state with generated ID
-        const newStudent: StudentType = {
-          ...studentData,
-          id: Date.now().toString(), // Temporary ID generation
-        };
-
-        setStudents((prevStudents) => [...prevStudents, newStudent]);
-
-        return true;
+        if (result) {
+          // Refresh the student list to get the updated data with the new student
+          await fetchStudents();
+          return true;
+        } else {
+          setError("Failed to create student");
+          return false;
+        }
       } catch (err) {
         const apiError = err as ApiClientError;
 
@@ -144,24 +150,27 @@ export function useStudentApi(
         return false;
       }
     },
-    [],
+    [fetchStudents],
   );
 
   // Update student
   const updateStudent = useCallback(
-    async (studentId: string, studentData: StudentUpdateRequestType): Promise<boolean> => {
+    async (
+      studentId: string,
+      studentData: StudentUpdateRequestType,
+    ): Promise<boolean> => {
       try {
         // Add to updating set for loading state
         setUpdatingStudents((prev) => new Set(prev).add(studentId));
         setError(null);
 
         const result = await studentApi.updateStudent(studentId, studentData);
-        
+
         if (result.success && result.data) {
           // Update local state with the returned student data
           setStudents((prevStudents) =>
             prevStudents.map((student) =>
-              student.id === studentId ? result.data! : student
+              student.id === studentId ? result.data! : student,
             ),
           );
           return true;

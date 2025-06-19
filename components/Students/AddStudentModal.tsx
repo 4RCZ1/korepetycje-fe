@@ -15,12 +15,12 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { AddressType, addressApi } from "@/services/addressApi";
-import { StudentType } from "@/services/studentApi";
+import { StudentRequestType } from "@/services/studentApi";
 
 type AddStudentModalProps = {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (studentData: Omit<StudentType, "id">) => Promise<boolean>;
+  onSubmit: (studentData: StudentRequestType) => Promise<boolean>;
 };
 
 const AddStudentModal = ({
@@ -31,7 +31,14 @@ const AddStudentModal = ({
   // State for form fields
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [newAddressName, setNewAddressName] = useState("");
+  const [newAddressData, setNewAddressData] = useState("");
+  const [addressMode, setAddressMode] = useState<"existing" | "new">(
+    "existing",
+  );
 
   // State for data loading
   const [addresses, setAddresses] = useState<AddressType[]>([]);
@@ -84,7 +91,12 @@ const AddStudentModal = ({
   const resetForm = () => {
     setName("");
     setSurname("");
+    setEmail("");
+    setPhoneNumber("");
     setSelectedAddressId("");
+    setNewAddressName("");
+    setNewAddressData("");
+    setAddressMode("existing");
   };
 
   const handleClose = () => {
@@ -95,9 +107,40 @@ const AddStudentModal = ({
   const validateForm = (): string | null => {
     if (!name.trim()) return "Name is required";
     if (!surname.trim()) return "Surname is required";
-    if (!selectedAddressId) return "Address is required";
+    if (!email.trim()) return "Email is required";
+    if (!phoneNumber.trim()) return "Phone number is required";
+
+    if (addressMode === "existing") {
+      if (!selectedAddressId) return "Address is required";
+    } else {
+      if (!newAddressName.trim()) return "Address name is required";
+      if (!newAddressData.trim()) return "Address data is required";
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return "Please enter a valid email address";
+    }
 
     return null;
+  };
+
+  const isFormValid = () => {
+    if (
+      !name.trim() ||
+      !surname.trim() ||
+      !email.trim() ||
+      !phoneNumber.trim()
+    ) {
+      return false;
+    }
+
+    if (addressMode === "existing") {
+      return !!selectedAddressId;
+    } else {
+      return !!newAddressName.trim() && !!newAddressData.trim();
+    }
   };
 
   const handleSubmit = async () => {
@@ -109,19 +152,28 @@ const AddStudentModal = ({
 
     setSubmitting(true);
     try {
-      const selectedAddress = addresses.find(
-        (addr) => addr.id === selectedAddressId,
-      );
-      if (!selectedAddress) {
-        Alert.alert("Error", "Selected address not found");
-        return;
-      }
+      let studentData: StudentRequestType;
 
-      const studentData: Omit<StudentType, "id"> = {
-        name: name.trim(),
-        surname: surname.trim(),
-        address: selectedAddress,
-      };
+      if (addressMode === "existing") {
+        studentData = {
+          name: name.trim(),
+          surname: surname.trim(),
+          email: email.trim(),
+          phoneNumber: phoneNumber.trim(),
+          address: { id: selectedAddressId },
+        };
+      } else {
+        studentData = {
+          name: name.trim(),
+          surname: surname.trim(),
+          email: email.trim(),
+          phoneNumber: phoneNumber.trim(),
+          address: {
+            name: newAddressName.trim(),
+            data: newAddressData.trim(),
+          },
+        };
+      }
 
       const success = await onSubmit(studentData);
       if (success) {
@@ -168,7 +220,7 @@ const AddStudentModal = ({
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Name
+                  First Name *
                 </ThemedText>
                 <TextInput
                   style={[
@@ -177,14 +229,14 @@ const AddStudentModal = ({
                   ]}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Enter student's name"
+                  placeholder="Enter student's first name"
                   placeholderTextColor={textColor + "80"}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Surname
+                  Last Name *
                 </ThemedText>
                 <TextInput
                   style={[
@@ -193,75 +245,189 @@ const AddStudentModal = ({
                   ]}
                   value={surname}
                   onChangeText={setSurname}
-                  placeholder="Enter student's surname"
+                  placeholder="Enter student's last name"
                   placeholderTextColor={textColor + "80"}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Address
+                  Email *
                 </ThemedText>
-                <View style={styles.addressContainer}>
-                  {addresses.map((address) => (
-                    <TouchableOpacity
-                      key={address.id}
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: textColor, borderColor: primaryColor },
+                  ]}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Enter student's email"
+                  placeholderTextColor={textColor + "80"}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <ThemedText style={[styles.label, { color: textColor }]}>
+                  Phone Number *
+                </ThemedText>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: textColor, borderColor: primaryColor },
+                  ]}
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  placeholder="Enter student's phone number"
+                  placeholderTextColor={textColor + "80"}
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <ThemedText style={[styles.label, { color: textColor }]}>
+                  Address *
+                </ThemedText>
+
+                <View style={styles.addressModeContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.modeButton,
+                      addressMode === "existing" && {
+                        backgroundColor: primaryColor + "20",
+                      },
+                    ]}
+                    onPress={() => setAddressMode("existing")}
+                  >
+                    <ThemedText
                       style={[
-                        styles.addressItem,
+                        styles.modeButtonText,
                         {
-                          borderColor: primaryColor,
-                          backgroundColor:
-                            selectedAddressId === address.id
-                              ? primaryColor + "20"
-                              : "transparent",
+                          color:
+                            addressMode === "existing"
+                              ? primaryColor
+                              : textColor + "80",
                         },
                       ]}
-                      onPress={() => setSelectedAddressId(address.id)}
                     >
-                      <View style={styles.addressInfo}>
-                        <ThemedText
-                          style={[styles.addressName, { color: textColor }]}
-                        >
-                          {address.name}
-                        </ThemedText>
-                        <ThemedText
-                          style={[
-                            styles.addressData,
-                            { color: textColor + "80" },
-                          ]}
-                        >
-                          {address.data}
-                        </ThemedText>
-                      </View>
-                      {selectedAddressId === address.id && (
-                        <Text
-                          style={[styles.checkmark, { color: primaryColor }]}
-                        >
-                          ✓
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-                  ))}
+                      Use Existing
+                    </ThemedText>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.modeButton,
+                      addressMode === "new" && {
+                        backgroundColor: primaryColor + "20",
+                      },
+                    ]}
+                    onPress={() => setAddressMode("new")}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.modeButtonText,
+                        {
+                          color:
+                            addressMode === "new"
+                              ? primaryColor
+                              : textColor + "80",
+                        },
+                      ]}
+                    >
+                      Create New
+                    </ThemedText>
+                  </TouchableOpacity>
                 </View>
+
+                {addressMode === "existing" ? (
+                  <View style={styles.addressContainer}>
+                    {addresses.map((address) => (
+                      <TouchableOpacity
+                        key={address.id}
+                        style={[
+                          styles.addressItem,
+                          {
+                            borderColor: primaryColor,
+                            backgroundColor:
+                              selectedAddressId === address.id
+                                ? primaryColor + "20"
+                                : "transparent",
+                          },
+                        ]}
+                        onPress={() => setSelectedAddressId(address.id)}
+                      >
+                        <View style={styles.addressInfo}>
+                          <ThemedText
+                            style={[styles.addressName, { color: textColor }]}
+                          >
+                            {address.name}
+                          </ThemedText>
+                          <ThemedText
+                            style={[
+                              styles.addressData,
+                              { color: textColor + "80" },
+                            ]}
+                          >
+                            {address.data}
+                          </ThemedText>
+                        </View>
+                        {selectedAddressId === address.id && (
+                          <Text
+                            style={[styles.checkmark, { color: primaryColor }]}
+                          >
+                            ✓
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.newAddressContainer}>
+                    <View style={styles.inputGroup}>
+                      <ThemedText style={[styles.label, { color: textColor }]}>
+                        Address Name *
+                      </ThemedText>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          { color: textColor, borderColor: primaryColor },
+                        ]}
+                        value={newAddressName}
+                        onChangeText={setNewAddressName}
+                        placeholder="Enter address name"
+                        placeholderTextColor={textColor + "80"}
+                      />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <ThemedText style={[styles.label, { color: textColor }]}>
+                        Address Data *
+                      </ThemedText>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          { color: textColor, borderColor: primaryColor },
+                        ]}
+                        value={newAddressData}
+                        onChangeText={setNewAddressData}
+                        placeholder="Enter address details"
+                        placeholderTextColor={textColor + "80"}
+                        multiline
+                        numberOfLines={3}
+                      />
+                    </View>
+                  </View>
+                )}
               </View>
 
               <TouchableOpacity
                 style={[
                   styles.submitButton,
                   { backgroundColor: primaryColor },
-                  (submitting ||
-                    !name.trim() ||
-                    !surname.trim() ||
-                    !selectedAddressId) &&
-                    styles.disabledButton,
+                  (submitting || !isFormValid()) && styles.disabledButton,
                 ]}
                 onPress={handleSubmit}
-                disabled={
-                  submitting ||
-                  !name.trim() ||
-                  !surname.trim() ||
-                  !selectedAddressId
-                }
+                disabled={submitting || !isFormValid()}
               >
                 {submitting ? (
                   <ActivityIndicator size="small" color="white" />
@@ -331,6 +497,26 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   addressContainer: {
+    gap: 8,
+  },
+  addressModeContainer: {
+    flexDirection: "row",
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  modeButton: {
+    flex: 1,
+    padding: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#00000010",
+  },
+  modeButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  newAddressContainer: {
     gap: 8,
   },
   addressItem: {

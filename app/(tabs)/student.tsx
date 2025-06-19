@@ -14,7 +14,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useStudentApi } from "@/hooks/useStudentApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { StudentType, StudentUpdateRequestType } from "@/services/studentApi";
+import {
+  StudentUpdateRequestType,
+  StudentRequestType,
+} from "@/services/studentApi";
 
 export default function StudentsScreen() {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -38,7 +41,7 @@ export default function StudentsScreen() {
   const errorColor = useThemeColor({}, "error", "500");
 
   const handleAddStudent = async (
-    studentData: Omit<StudentType, "id">,
+    studentData: StudentRequestType,
   ): Promise<boolean> => {
     return await addStudent(studentData);
   };

@@ -33,7 +33,7 @@ export default function TabLayout() {
           }}
         />
         <Drawer.Screen
-          name="explore"
+          name="student"
           options={{
             drawerLabel: "Students",
             title: "Students",

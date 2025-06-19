@@ -6,10 +6,10 @@ import {
 import { ApiClientError, ApiResponse, apiRequest } from "@/services/api";
 
 type StudentDTO = {
-  ExternalId: string;
-  Name: string;
-  Surname: string;
-  Address: AddressDTO;
+  externalId: string;
+  name: string;
+  surname: string;
+  address: AddressDTO;
 };
 
 export type StudentType = {
@@ -20,17 +20,17 @@ export type StudentType = {
 };
 export function studentConverter(studentDTO: StudentDTO): StudentType {
   return {
-    id: studentDTO.ExternalId,
-    name: studentDTO.Name,
-    surname: studentDTO.Surname,
-    address: addressConverter(studentDTO.Address),
+    id: studentDTO.externalId,
+    name: studentDTO.name,
+    surname: studentDTO.surname,
+    address: addressConverter(studentDTO.address),
   };
 }
 
 export const studentApi = {
   async getStudents(): Promise<ApiResponse<StudentType[]>> {
     try {
-      const response = await apiRequest<StudentDTO[]>("/students");
+      const response = await apiRequest<StudentDTO[]>("/student");
       const students = response.map(studentConverter);
       return { data: students, success: true };
     } catch (error) {
@@ -43,7 +43,7 @@ export const studentApi = {
 
   async getStudentById(id: string): Promise<ApiResponse<StudentType>> {
     try {
-      const response = await apiRequest<StudentDTO>(`/students/${id}`);
+      const response = await apiRequest<StudentDTO>(`/student/${id}`);
       const student = studentConverter(response);
       return { data: student, success: true };
     } catch (error) {

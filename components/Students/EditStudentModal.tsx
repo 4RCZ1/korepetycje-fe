@@ -68,7 +68,11 @@ const EditStudentModal = ({
         setAddresses(addressesResponse.data);
       }
     } catch (error) {
-      alert("Error", "Failed to load addresses");
+      alert(
+        "Error",
+        "Failed to load addresses" +
+          (error instanceof Error ? `: ${error.message}` : ""),
+      );
     } finally {
       setLoading(false);
     }
@@ -123,7 +127,11 @@ const EditStudentModal = ({
         handleClose();
       }
     } catch (error) {
-      alert("Error", "Failed to update student");
+      alert(
+        "Error",
+        "Failed to update student" +
+          (error instanceof Error ? `: ${error.message}` : ""),
+      );
     } finally {
       setSubmitting(false);
     }

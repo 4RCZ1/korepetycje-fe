@@ -1,7 +1,6 @@
 import { Picker } from "@react-native-picker/picker";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  Alert,
   Modal,
   ScrollView,
   StyleSheet,
@@ -51,6 +50,26 @@ const AddLessonModal = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const resetForm = useCallback(() => {
+    // Set default values for better UX
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(now.getHours() + 1, 0, 0, 0);
+    const hourAfter = new Date(nextHour);
+    hourAfter.setHours(nextHour.getHours() + 1);
+
+    // Default schedule end to 3 months from now
+    const threeMonthsLater = new Date(now);
+    threeMonthsLater.setMonth(now.getMonth() + 3);
+
+    setFirstStartTime(formatDateTimeForInput(nextHour));
+    setFirstEndTime(formatDateTimeForInput(hourAfter));
+    setScheduleEndTime(formatDateTimeForInput(threeMonthsLater));
+    setPeriodInDays("7");
+    setSelectedAddressId("");
+    setSelectedStudentIds([]);
+  }, []);
+
   // Colors
   const backgroundColor = useThemeColor({}, "background");
   const surfaceColor = useThemeColor({}, "surface");
@@ -63,7 +82,7 @@ const AddLessonModal = ({
       // Set default form values
       resetForm();
     }
-  }, [visible]);
+  }, [visible, resetForm]);
 
   const loadData = async () => {
     setLoading(true);
@@ -100,25 +119,6 @@ const AddLessonModal = ({
     if (!dateTimeLocal) return "";
     const date = new Date(dateTimeLocal);
     return date.toISOString();
-  };
-  const resetForm = () => {
-    // Set default values for better UX
-    const now = new Date();
-    const nextHour = new Date(now);
-    nextHour.setHours(now.getHours() + 1, 0, 0, 0);
-    const hourAfter = new Date(nextHour);
-    hourAfter.setHours(nextHour.getHours() + 1);
-
-    // Default schedule end to 3 months from now
-    const threeMonthsLater = new Date(now);
-    threeMonthsLater.setMonth(now.getMonth() + 3);
-
-    setFirstStartTime(formatDateTimeForInput(nextHour));
-    setFirstEndTime(formatDateTimeForInput(hourAfter));
-    setScheduleEndTime(formatDateTimeForInput(threeMonthsLater));
-    setPeriodInDays("7");
-    setSelectedAddressId("");
-    setSelectedStudentIds([]);
   };
 
   const handleClose = () => {

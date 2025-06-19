@@ -4,10 +4,8 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Text,
   TextInput,
   ScrollView,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 
@@ -16,12 +14,16 @@ import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { AddressType, addressApi } from "@/services/addressApi";
 import { StudentType, StudentUpdateRequestType } from "@/services/studentApi";
+import alert from "@/utils/alert";
 
 type EditStudentModalProps = {
   visible: boolean;
   student: StudentType | null;
   onClose: () => void;
-  onSubmit: (studentId: string, studentData: StudentUpdateRequestType) => Promise<boolean>;
+  onSubmit: (
+    studentId: string,
+    studentData: StudentUpdateRequestType,
+  ) => Promise<boolean>;
 };
 
 const EditStudentModal = ({
@@ -66,7 +68,7 @@ const EditStudentModal = ({
         setAddresses(addressesResponse.data);
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to load addresses");
+      alert("Error", "Failed to load addresses");
     } finally {
       setLoading(false);
     }
@@ -76,7 +78,7 @@ const EditStudentModal = ({
     if (!student) return;
 
     if (!name.trim() || !surname.trim()) {
-      Alert.alert("Error", "Please fill in all required fields");
+      alert("Error", "Please fill in all required fields");
       return;
     }
 
@@ -98,18 +100,20 @@ const EditStudentModal = ({
         updateData.address = { id: selectedAddressId };
       } else if (editMode === "new") {
         // For simplicity, we'll use the selected address name and current data
-        const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
+        const selectedAddress = addresses.find(
+          (addr) => addr.id === selectedAddressId,
+        );
         if (selectedAddress) {
-          updateData.address = { 
+          updateData.address = {
             name: selectedAddress.name,
-            data: student.address.data // Keep existing data unless modified
+            data: student.address.data, // Keep existing data unless modified
           };
         }
       }
 
       // Only submit if there are actual changes
       if (Object.keys(updateData).length === 0) {
-        Alert.alert("Info", "No changes to save");
+        alert("Info", "No changes to save");
         return;
       }
 
@@ -119,7 +123,7 @@ const EditStudentModal = ({
         handleClose();
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to update student");
+      alert("Error", "Failed to update student");
     } finally {
       setSubmitting(false);
     }
@@ -157,7 +161,9 @@ const EditStudentModal = ({
             {submitting ? (
               <ActivityIndicator size="small" color={primaryColor} />
             ) : (
-              <ThemedText style={[styles.headerButton, { color: primaryColor }]}>
+              <ThemedText
+                style={[styles.headerButton, { color: primaryColor }]}
+              >
                 Save
               </ThemedText>
             )}
@@ -176,7 +182,9 @@ const EditStudentModal = ({
           ) : (
             <>
               {/* Basic Info */}
-              <ThemedView style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <ThemedView
+                style={[styles.section, { backgroundColor: surfaceColor }]}
+              >
                 <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
                   Student Information
                 </ThemedText>
@@ -186,7 +194,10 @@ const EditStudentModal = ({
                     First Name *
                   </ThemedText>
                   <TextInput
-                    style={[styles.input, { color: textColor, borderColor: textColor + "20" }]}
+                    style={[
+                      styles.input,
+                      { color: textColor, borderColor: textColor + "20" },
+                    ]}
                     value={name}
                     onChangeText={setName}
                     placeholder="Enter first name"
@@ -199,7 +210,10 @@ const EditStudentModal = ({
                     Last Name *
                   </ThemedText>
                   <TextInput
-                    style={[styles.input, { color: textColor, borderColor: textColor + "20" }]}
+                    style={[
+                      styles.input,
+                      { color: textColor, borderColor: textColor + "20" },
+                    ]}
                     value={surname}
                     onChangeText={setSurname}
                     placeholder="Enter last name"
@@ -209,7 +223,9 @@ const EditStudentModal = ({
               </ThemedView>
 
               {/* Address Section */}
-              <ThemedView style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <ThemedView
+                style={[styles.section, { backgroundColor: surfaceColor }]}
+              >
                 <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
                   Address
                 </ThemedText>
@@ -218,28 +234,46 @@ const EditStudentModal = ({
                   <TouchableOpacity
                     style={[
                       styles.modeButton,
-                      editMode === "existing" && { backgroundColor: primaryColor + "20" },
+                      editMode === "existing" && {
+                        backgroundColor: primaryColor + "20",
+                      },
                     ]}
                     onPress={() => setEditMode("existing")}
                   >
-                    <ThemedText style={[
-                      styles.modeButtonText,
-                      { color: editMode === "existing" ? primaryColor : textColor + "80" }
-                    ]}>
+                    <ThemedText
+                      style={[
+                        styles.modeButtonText,
+                        {
+                          color:
+                            editMode === "existing"
+                              ? primaryColor
+                              : textColor + "80",
+                        },
+                      ]}
+                    >
                       Use Existing
                     </ThemedText>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[
                       styles.modeButton,
-                      editMode === "new" && { backgroundColor: primaryColor + "20" },
+                      editMode === "new" && {
+                        backgroundColor: primaryColor + "20",
+                      },
                     ]}
                     onPress={() => setEditMode("new")}
                   >
-                    <ThemedText style={[
-                      styles.modeButtonText,
-                      { color: editMode === "new" ? primaryColor : textColor + "80" }
-                    ]}>
+                    <ThemedText
+                      style={[
+                        styles.modeButtonText,
+                        {
+                          color:
+                            editMode === "new"
+                              ? primaryColor
+                              : textColor + "80",
+                        },
+                      ]}
+                    >
                       Create New
                     </ThemedText>
                   </TouchableOpacity>
@@ -249,7 +283,9 @@ const EditStudentModal = ({
                   <ThemedText style={[styles.label, { color: textColor }]}>
                     Current Address: {student.address.name}
                   </ThemedText>
-                  <ThemedText style={[styles.addressData, { color: textColor + "60" }]}>
+                  <ThemedText
+                    style={[styles.addressData, { color: textColor + "60" }]}
+                  >
                     {student.address.data}
                   </ThemedText>
                 </View>
@@ -271,10 +307,17 @@ const EditStudentModal = ({
                           ]}
                           onPress={() => setSelectedAddressId(address.id)}
                         >
-                          <ThemedText style={[styles.addressName, { color: textColor }]}>
+                          <ThemedText
+                            style={[styles.addressName, { color: textColor }]}
+                          >
                             {address.name}
                           </ThemedText>
-                          <ThemedText style={[styles.addressData, { color: textColor + "60" }]}>
+                          <ThemedText
+                            style={[
+                              styles.addressData,
+                              { color: textColor + "60" },
+                            ]}
+                          >
                             {address.data}
                           </ThemedText>
                         </TouchableOpacity>

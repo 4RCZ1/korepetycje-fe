@@ -145,12 +145,12 @@ export const studentApi = {
 
   async addStudent(studentData: StudentRequestType): Promise<boolean> {
     try {
-      const response = await apiRequest<boolean>("/auth/register-student", {
+      const response = await apiRequest<string>("/auth/register-student", {
         method: "POST",
         body: JSON.stringify(studentRequestConverter(studentData)),
       });
 
-      return response ? true : false;
+      return response === "";
     } catch (error) {
       if (error instanceof ApiClientError) {
         console.error("Failed to add student:", error.message);
@@ -162,11 +162,11 @@ export const studentApi = {
 
   async deleteStudent(id: string): Promise<boolean> {
     try {
-      const response = await apiRequest(`/student/${id}`, {
+      const response = await apiRequest<string>(`/student/${id}`, {
         method: "DELETE",
       });
 
-      return response ? true : false;
+      return response === "";
     } catch (error) {
       if (error instanceof ApiClientError) {
         console.error("Failed to delete student:", error.message);
@@ -179,15 +179,13 @@ export const studentApi = {
   async updateStudent(
     id: string,
     studentData: StudentUpdateRequestType,
-  ): Promise<ApiResponse<StudentType>> {
+  ): Promise<ApiResponse<boolean>> {
     try {
-      const response = await apiRequest<StudentDTO>(`/student/${id}`, {
+      const response = await apiRequest<string>(`/student/${id}`, {
         method: "PATCH",
         body: JSON.stringify(studentUpdateRequestConverter(studentData)),
       });
-
-      const student = studentConverter(response);
-      return { data: student, success: true };
+      return { data: response === "", success: true };
     } catch (error) {
       if (error instanceof ApiClientError) {
         return { data: null, success: false, message: error.message };

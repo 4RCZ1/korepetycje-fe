@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
+import { AddressType } from "@/services/addressApi";
 import { ApiClientError } from "@/services/api";
 import {
   studentApi,
@@ -36,7 +37,6 @@ export function useStudentApi(
     new Set(),
   );
 
-  // Fetch students data
   const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
@@ -73,7 +73,6 @@ export function useStudentApi(
     }
   }, []);
 
-  // Delete student
   const deleteStudent = useCallback(
     async (studentId: string): Promise<boolean> => {
       try {
@@ -81,14 +80,18 @@ export function useStudentApi(
         setDeletingStudents((prev) => new Set(prev).add(studentId));
         setError(null);
 
-        // TODO: Implement actual delete API call when available
-        // const result = await studentApi.deleteStudent(studentId);
+        const result = await studentApi.deleteStudent(studentId);
 
-        // For now, simulate success and remove from local state
+        if (!result) {
+          setError("Failed to delete student");
+          return false;
+        }
+        // Optimistically update local state
         setStudents((prevStudents) =>
           prevStudents.filter((student) => student.id !== studentId),
         );
-
+        // Refresh the student list to ensure data consistency
+        await fetchStudents();
         return true;
       } catch (err) {
         const apiError = err as ApiClientError;
@@ -118,7 +121,6 @@ export function useStudentApi(
     [fetchStudents],
   );
 
-  // Add student
   const addStudent = useCallback(
     async (studentData: StudentRequestType): Promise<boolean> => {
       try {
@@ -153,7 +155,6 @@ export function useStudentApi(
     [fetchStudents],
   );
 
-  // Update student
   const updateStudent = useCallback(
     async (
       studentId: string,
@@ -167,11 +168,21 @@ export function useStudentApi(
         const result = await studentApi.updateStudent(studentId, studentData);
 
         if (result.success && result.data) {
-          // Update local state with the returned student data
+          // Optimistic update of local state
           setStudents((prevStudents) =>
-            prevStudents.map((student) =>
-              student.id === studentId ? result.data! : student,
-            ),
+            prevStudents.map((student) => {
+              if (student.id === studentId) {
+                studentData.address = {
+                  ...student.address,
+                  ...studentData.address,
+                } as AddressType;
+                return {
+                  ...student,
+                  ...(studentData as StudentType),
+                };
+              }
+              return student;
+            }),
           );
           return true;
         } else {

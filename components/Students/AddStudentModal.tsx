@@ -16,6 +16,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { AddressType, addressApi } from "@/services/addressApi";
 import { StudentRequestType } from "@/services/studentApi";
+import alert from "@/utils/alert";
 
 type AddStudentModalProps = {
   visible: boolean;
@@ -146,7 +147,7 @@ const AddStudentModal = ({
   const handleSubmit = async () => {
     const validationError = validateForm();
     if (validationError) {
-      Alert.alert("Validation Error", validationError);
+      alert("Validation Error", validationError);
       return;
     }
 
@@ -177,14 +178,14 @@ const AddStudentModal = ({
 
       const success = await onSubmit(studentData);
       if (success) {
-        Alert.alert("Success", "Student created successfully");
+        alert("Success", "Student created successfully");
         handleClose();
       } else {
-        Alert.alert("Error", "Failed to create student");
+        alert("Error", "Failed to create student");
       }
     } catch (error) {
       console.error("Failed to submit student:", error);
-      Alert.alert("Error", "Failed to create student");
+      alert("Error", "Failed to create student");
     } finally {
       setSubmitting(false);
     }

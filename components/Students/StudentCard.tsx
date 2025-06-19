@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 
@@ -12,6 +11,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { StudentType, StudentUpdateRequestType } from "@/services/studentApi";
+import alert from "@/utils/alert";
 
 import EditStudentModal from "./EditStudentModal";
 
@@ -40,7 +40,8 @@ const StudentCard = ({
   const errorColor = useThemeColor({}, "error", "500");
 
   const handleDelete = () => {
-    Alert.alert(
+    console.log("Delete student:", student.id);
+    alert(
       "Delete Student",
       `Are you sure you want to delete ${student.name} ${student.surname}?`,
       [
@@ -54,7 +55,7 @@ const StudentCard = ({
           onPress: async () => {
             const success = await onDelete(student.id);
             if (!success) {
-              Alert.alert("Error", "Failed to delete student");
+              alert("Error", "Failed to delete student");
             }
           },
         },
@@ -68,7 +69,7 @@ const StudentCard = ({
   ) => {
     const success = await onUpdate(studentId, studentData);
     if (!success) {
-      Alert.alert("Error", "Failed to update student");
+      alert("Error", "Failed to update student");
     }
     return success;
   };

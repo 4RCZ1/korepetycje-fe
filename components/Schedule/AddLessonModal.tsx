@@ -18,6 +18,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { addressApi, AddressType } from "@/services/addressApi";
 import { LessonRequest } from "@/services/scheduleApi";
 import { studentApi, StudentType } from "@/services/studentApi";
+import alert from "@/utils/alert";
 
 type AddLessonModalProps = {
   visible: boolean;
@@ -79,7 +80,7 @@ const AddLessonModal = ({
       // }
     } catch (error) {
       console.error("Failed to load data:", error);
-      Alert.alert("Error", "Failed to load students and addresses");
+      alert("Error", "Failed to load students and addresses");
     } finally {
       setLoading(false);
     }
@@ -179,7 +180,7 @@ const AddLessonModal = ({
   const handleSubmit = async () => {
     const validationError = validateForm();
     if (validationError) {
-      Alert.alert("Validation Error", validationError);
+      alert("Validation Error", validationError);
       return;
     }
     setSubmitting(true);
@@ -195,14 +196,14 @@ const AddLessonModal = ({
 
       const success = await onSubmit(lessonRequest);
       if (success) {
-        Alert.alert("Success", "Lesson planned successfully");
+        alert("Success", "Lesson planned successfully");
         handleClose();
       } else {
-        Alert.alert("Error", "Failed to plan lesson");
+        alert("Error", "Failed to plan lesson");
       }
     } catch (error) {
       console.error("Failed to submit lesson:", error);
-      Alert.alert("Error", "Failed to plan lesson");
+      alert("Error", "Failed to plan lesson");
     } finally {
       setSubmitting(false);
     }

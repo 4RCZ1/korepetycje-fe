@@ -1,21 +1,17 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import AddLessonModal from "@/components/Schedule/AddLessonModal";
 import WeeklySchedule from "@/components/Schedule/WeeklySchedule";
-import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import ThemedButton from "@/components/ui/ThemedButton";
 import { useScheduleApi } from "@/hooks/useScheduleApi";
-import { usePrimaryColor } from "@/hooks/useThemeColor";
 import { LessonRequest, scheduleApi } from "@/services/scheduleApi";
 
 export default function HomeScreen() {
   const { refetch } = useScheduleApi();
-
-  // Color system hooks
-  const primaryColor = usePrimaryColor("500");
 
   // State for Add Lesson modal
   const [addLessonModalVisible, setAddLessonModalVisible] = useState(false);
@@ -45,22 +41,14 @@ export default function HomeScreen() {
         <ThemedView style={styles.container}>
           {/* Header with Add Lesson button */}
           <View style={styles.headerContainer}>
-            <TouchableOpacity
-              style={[
-                styles.addLessonButton,
-                { backgroundColor: primaryColor },
-              ]}
+            <ThemedButton
+              title="Add Lesson"
+              variant="filled"
+              size="medium"
+              color="primary"
               onPress={() => setAddLessonModalVisible(true)}
-            >
-              <Text style={styles.addLessonButtonText}>+ Add Lesson</Text>
-            </TouchableOpacity>
+            />
           </View>
-          <ThemedText type={"primary"} style={styles.title}>
-            Weekly Schedule
-          </ThemedText>
-          <ThemedText type={"primary"} style={styles.instruction}>
-            Tap pending items (lighter blue) to confirm or reject them
-          </ThemedText>
           <WeeklySchedule />
           {/* Add Lesson Modal */}
           <AddLessonModal
@@ -99,18 +87,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  instruction: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 8,
-    opacity: 0.8,
   },
   colorDemoButton: {
     alignSelf: "center",

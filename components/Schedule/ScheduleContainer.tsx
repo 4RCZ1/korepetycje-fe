@@ -1,24 +1,19 @@
 import * as ScreenOrientation from "expo-screen-orientation";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   Modal,
   Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from "react-native";
 
 import { Column } from "@/components/Schedule/Column";
 import { ThemedText } from "@/components/ThemedText";
-import {
-  useThemeColor,
-  usePrimaryColor,
-  useErrorColor,
-} from "@/hooks/useThemeColor";
+import ThemedButton from "@/components/ui/ThemedButton";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { LessonEntry, Schedule } from "@/services/scheduleApi";
 import alert from "@/utils/alert";
 
@@ -71,11 +66,6 @@ const ScheduleContainer = ({
 
   // Color system hooks
   const surfaceColor = useThemeColor({}, "surface");
-  const primaryColor = usePrimaryColor("500");
-  const primaryDarkColor = usePrimaryColor("700");
-  const errorColor = useErrorColor("500");
-  const errorDarkColor = useErrorColor("700");
-  const borderColor = useThemeColor({}, "border");
 
   const handleItemPress = (
     date: string,
@@ -220,58 +210,52 @@ const ScheduleContainer = ({
             </ThemedText>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  {
-                    backgroundColor: primaryColor,
-                    borderColor: primaryDarkColor,
-                  },
-                ]}
+              <ThemedButton
+                title="Confirm"
+                variant="filled"
+                size="medium"
+                color="primary"
+                loading={
+                  selectedItem
+                    ? confirmingLessons.has(selectedItem.item.lessonId)
+                    : false
+                }
+                disabled={
+                  selectedItem
+                    ? confirmingLessons.has(selectedItem.item.lessonId)
+                    : false
+                }
                 onPress={() => handleConfirmation(true)}
+                style={styles.modalButton}
+              />
+
+              <ThemedButton
+                title="Reject"
+                variant="filled"
+                size="medium"
+                color="error"
+                loading={
+                  selectedItem
+                    ? confirmingLessons.has(selectedItem.item.lessonId)
+                    : false
+                }
                 disabled={
                   selectedItem
                     ? confirmingLessons.has(selectedItem.item.lessonId)
                     : false
                 }
-              >
-                {selectedItem &&
-                confirmingLessons.has(selectedItem.item.lessonId) ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <ThemedText style={styles.buttonText}>Confirm</ThemedText>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  { backgroundColor: errorColor, borderColor: errorDarkColor },
-                ]}
                 onPress={() => handleConfirmation(false)}
-                disabled={
-                  selectedItem
-                    ? confirmingLessons.has(selectedItem.item.lessonId)
-                    : false
-                }
-              >
-                {selectedItem &&
-                confirmingLessons.has(selectedItem.item.lessonId) ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <ThemedText style={styles.buttonText}>Reject</ThemedText>
-                )}
-              </TouchableOpacity>
+                style={styles.modalButton}
+              />
 
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  { backgroundColor: borderColor, borderColor: borderColor },
-                ]}
+              <ThemedButton
+                title="Cancel"
+                variant="outline"
+                size="medium"
+                color="surface"
                 onPress={() => setModalVisible(false)}
-              >
-                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
-              </TouchableOpacity>
+                style={styles.modalButton}
+              />
             </View>
           </View>
         </View>
@@ -328,20 +312,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   modalButton: {
-    borderRadius: 8,
-    padding: 12,
-    minWidth: 80,
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  cancelButtonText: {
-    color: "white",
-    fontSize: 14,
+    flex: 1,
   },
 });
 

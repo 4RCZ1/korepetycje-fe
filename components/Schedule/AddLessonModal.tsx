@@ -13,6 +13,7 @@ import {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import ThemedButton from "@/components/ui/ThemedButton";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { addressApi, AddressType } from "@/services/addressApi";
 import { LessonRequest } from "@/services/scheduleApi";
@@ -219,11 +220,14 @@ const AddLessonModal = ({
       <ThemedView style={[styles.container, { backgroundColor }]}>
         <View style={[styles.header, { backgroundColor: surfaceColor }]}>
           <ThemedText style={styles.title}>Add New Lesson</ThemedText>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Text style={[styles.closeButtonText, { color: primaryColor }]}>
-              ✕
-            </Text>
-          </TouchableOpacity>
+          <ThemedButton
+            title="✕"
+            variant="outline"
+            size="small"
+            color="primary"
+            onPress={handleClose}
+            style={styles.closeButton}
+          />
         </View>
 
         {loading ? (
@@ -372,21 +376,16 @@ const AddLessonModal = ({
                 </View>
               </View>
               {/* Submit Button */}
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  { backgroundColor: primaryColor },
-                  submitting && styles.disabledButton,
-                ]}
-                onPress={handleSubmit}
+              <ThemedButton
+                title="Plan Lesson"
+                variant="filled"
+                size="large"
+                color="primary"
+                loading={submitting}
                 disabled={submitting}
-              >
-                {submitting ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text style={styles.submitButtonText}>Plan Lesson</Text>
-                )}
-              </TouchableOpacity>
+                onPress={handleSubmit}
+                style={styles.submitButton}
+              />
             </View>
           </ScrollView>
         )}
@@ -412,11 +411,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   closeButton: {
-    padding: 8,
-  },
-  closeButtonText: {
-    fontSize: 24,
-    fontWeight: "bold",
+    width: 40,
+    height: 40,
   },
   loadingContainer: {
     flex: 1,
@@ -480,19 +476,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   submitButton: {
-    borderRadius: 8,
-    padding: 16,
-    alignItems: "center",
     marginTop: 24,
     marginBottom: 32,
-  },
-  submitButtonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  disabledButton: {
-    opacity: 0.6,
   },
 });
 

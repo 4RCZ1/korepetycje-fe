@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   View,
@@ -12,6 +11,7 @@ import AddStudentModal from "@/components/Students/AddStudentModal";
 import StudentCard from "@/components/Students/StudentCard";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import ThemedButton from "@/components/ui/ThemedButton";
 import { useStudentApi } from "@/hooks/useStudentApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import {
@@ -85,12 +85,13 @@ export default function StudentsScreen() {
         <ThemedText style={[styles.title, { color: textColor }]}>
           Students
         </ThemedText>
-        <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: primaryColor }]}
+        <ThemedButton
+          title="Add Student"
+          variant="filled"
+          size="medium"
+          color="primary"
           onPress={() => setIsAddModalVisible(true)}
-        >
-          <ThemedText style={styles.addButtonText}>Add Student</ThemedText>
-        </TouchableOpacity>
+        />
       </View>
 
       {error && (
@@ -103,14 +104,13 @@ export default function StudentsScreen() {
           <ThemedText style={[styles.errorText, { color: errorColor }]}>
             {error}
           </ThemedText>
-          <TouchableOpacity
-            style={[styles.retryButton, { borderColor: errorColor }]}
+          <ThemedButton
+            title="Retry"
+            variant="outline"
+            size="small"
+            color="error"
             onPress={handleRefresh}
-          >
-            <ThemedText style={[styles.retryButtonText, { color: errorColor }]}>
-              Retry
-            </ThemedText>
-          </TouchableOpacity>
+          />
         </View>
       )}
 
@@ -134,14 +134,14 @@ export default function StudentsScreen() {
             <ThemedText style={[styles.emptyText, { color: textColor + "80" }]}>
               Add your first student to get started
             </ThemedText>
-            <TouchableOpacity
-              style={[styles.emptyButton, { backgroundColor: primaryColor }]}
+            <ThemedButton
+              title="Add Student"
+              variant="filled"
+              size="large"
+              color="primary"
               onPress={() => setIsAddModalVisible(true)}
-            >
-              <ThemedText style={styles.emptyButtonText}>
-                Add Student
-              </ThemedText>
-            </TouchableOpacity>
+              style={styles.emptyButton}
+            />
           </View>
         ) : (
           <View style={styles.studentsContainer}>
@@ -183,16 +183,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
   },
-  addButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -214,16 +204,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     marginRight: 12,
-  },
-  retryButton: {
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  retryButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
   },
   scrollView: {
     flex: 1,
@@ -249,14 +229,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   emptyButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  emptyButtonText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
+    marginTop: 8,
   },
   studentsContainer: {
     paddingTop: 8,

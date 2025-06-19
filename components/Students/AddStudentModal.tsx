@@ -12,6 +12,7 @@ import {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import ThemedButton from "@/components/ui/ThemedButton";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { AddressType, addressApi } from "@/services/addressApi";
 import { StudentRequestType } from "@/services/studentApi";
@@ -233,7 +234,6 @@ const AddStudentModal = ({
                   placeholderTextColor={textColor + "80"}
                 />
               </View>
-
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
                   Last Name *
@@ -249,7 +249,6 @@ const AddStudentModal = ({
                   placeholderTextColor={textColor + "80"}
                 />
               </View>
-
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
                   Email *
@@ -267,7 +266,6 @@ const AddStudentModal = ({
                   autoCapitalize="none"
                 />
               </View>
-
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
                   Phone Number *
@@ -284,7 +282,6 @@ const AddStudentModal = ({
                   keyboardType="phone-pad"
                 />
               </View>
-
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
                   Address *
@@ -418,23 +415,17 @@ const AddStudentModal = ({
                     </View>
                   </View>
                 )}
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  { backgroundColor: primaryColor },
-                  (submitting || !isFormValid()) && styles.disabledButton,
-                ]}
-                onPress={handleSubmit}
+              </View>{" "}
+              <ThemedButton
+                title="Create Student"
+                variant="filled"
+                size="large"
+                color="primary"
+                loading={submitting}
                 disabled={submitting || !isFormValid()}
-              >
-                {submitting ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text style={styles.submitButtonText}>Create Student</Text>
-                )}
-              </TouchableOpacity>
+                onPress={handleSubmit}
+                style={styles.submitButton}
+              />
             </View>
           </ScrollView>
         )}
@@ -543,19 +534,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   submitButton: {
-    borderRadius: 8,
-    padding: 16,
-    alignItems: "center",
     marginTop: 24,
     marginBottom: 32,
-  },
-  submitButtonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  disabledButton: {
-    opacity: 0.6,
   },
 });
 

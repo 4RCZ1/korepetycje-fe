@@ -21,6 +21,14 @@ export type StudentType = {
   address: AddressType;
 };
 
+export type StudentUpdateRequestType = {
+  name?: string;
+  surname?: string;
+  address?: 
+    | { id: string; name?: string }  // Update existing address
+    | { name: string; data?: string }; // Create new address
+};
+
 type StudentRequestDTO = {
   email: string;
   phoneNumber: string;
@@ -39,6 +47,14 @@ type StudentRequestType = {
   address: { id: string } | { name: string; data: string };
 };
 
+type StudentUpdateRequestDTO = {
+  Name?: string;
+  Surname?: string;
+  Address?:
+    | { ExternalId: string; AddressName?: string }
+    | { AddressName: string; AddressData?: string };
+};
+
 function studentRequestConverter(
   studentRequest: StudentRequestType,
 ): StudentRequestDTO {
@@ -55,6 +71,40 @@ function studentRequestConverter(
             addressData: studentRequest.address.data,
           },
   };
+}
+
+function studentUpdateRequestConverter(
+  studentUpdateRequest: StudentUpdateRequestType,
+): StudentUpdateRequestDTO {
+  const dto: StudentUpdateRequestDTO = {};
+
+  if (studentUpdateRequest.name !== undefined) {
+    dto.Name = studentUpdateRequest.name;
+  }
+
+  if (studentUpdateRequest.surname !== undefined) {
+    dto.Surname = studentUpdateRequest.surname;
+  }
+
+  if (studentUpdateRequest.address !== undefined) {
+    if ("id" in studentUpdateRequest.address) {
+      dto.Address = {
+        ExternalId: studentUpdateRequest.address.id,
+        ...(studentUpdateRequest.address.name && {
+          AddressName: studentUpdateRequest.address.name,
+        }),
+      };
+    } else {
+      dto.Address = {
+        AddressName: studentUpdateRequest.address.name,
+        ...(studentUpdateRequest.address.data && {
+          AddressData: studentUpdateRequest.address.data,
+        }),
+      };
+    }
+  }
+
+  return dto;
 }
 
 export function studentConverter(studentDTO: StudentDTO): StudentType {
@@ -121,6 +171,23 @@ export const studentApi = {
       if (error instanceof ApiClientError) {
         console.error("Failed to delete student:", error.message);
         return false;
+      }
+      throw error; // Re-throw unexpected errors
+    }
+  },
+
+  async updateStudent(id: string, studentData: StudentUpdateRequestType): Promise<ApiResponse<StudentType>> {
+    try {
+      const response = await apiRequest<StudentDTO>(`/student/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(studentUpdateRequestConverter(studentData)),
+      });
+
+      const student = studentConverter(response);
+      return { data: student, success: true };
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        return { data: null, success: false, message: error.message };
       }
       throw error; // Re-throw unexpected errors
     }

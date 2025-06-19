@@ -23,6 +23,7 @@ const MAPPING = {
   "chevron.right": "chevron-right",
   calendar: "calendar-month",
   "trash.fill": "delete",
+  pencil: "edit",
 } as IconMapping;
 
 /**

@@ -14,7 +14,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useStudentApi } from "@/hooks/useStudentApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { StudentType } from "@/services/studentApi";
+import { StudentType, StudentUpdateRequestType } from "@/services/studentApi";
 
 export default function StudentsScreen() {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -26,7 +26,9 @@ export default function StudentsScreen() {
     refetch,
     deleteStudent,
     addStudent,
+    updateStudent,
     deletingStudents,
+    updatingStudents,
   } = useStudentApi();
 
   // Colors
@@ -43,6 +45,13 @@ export default function StudentsScreen() {
 
   const handleDeleteStudent = async (studentId: string): Promise<boolean> => {
     return await deleteStudent(studentId);
+  };
+
+  const handleUpdateStudent = async (
+    studentId: string,
+    studentData: StudentUpdateRequestType,
+  ): Promise<boolean> => {
+    return await updateStudent(studentId, studentData);
   };
 
   const handleRefresh = async () => {
@@ -138,7 +147,9 @@ export default function StudentsScreen() {
                 key={student.id}
                 student={student}
                 onDelete={handleDeleteStudent}
+                onUpdate={handleUpdateStudent}
                 isDeleting={deletingStudents.has(student.id)}
+                isUpdating={updatingStudents.has(student.id)}
               />
             ))}
           </View>

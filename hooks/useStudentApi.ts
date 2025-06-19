@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 import { ApiClientError } from "@/services/api";
-import { studentApi, StudentType } from "@/services/studentApi";
+import { studentApi, StudentType, StudentUpdateRequestType } from "@/services/studentApi";
 
 export interface UseStudentApiState {
   students: StudentType[];
@@ -10,7 +10,9 @@ export interface UseStudentApiState {
   refetch: () => Promise<void>;
   deleteStudent: (studentId: string) => Promise<boolean>;
   addStudent: (studentData: Omit<StudentType, "id">) => Promise<boolean>;
+  updateStudent: (studentId: string, studentData: StudentUpdateRequestType) => Promise<boolean>;
   deletingStudents: Set<string>;
+  updatingStudents: Set<string>;
 }
 
 export function useStudentApi(
@@ -20,6 +22,9 @@ export function useStudentApi(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingStudents, setDeletingStudents] = useState<Set<string>>(
+    new Set(),
+  );
+  const [updatingStudents, setUpdatingStudents] = useState<Set<string>>(
     new Set(),
   );
 
@@ -142,6 +147,56 @@ export function useStudentApi(
     [],
   );
 
+  // Update student
+  const updateStudent = useCallback(
+    async (studentId: string, studentData: StudentUpdateRequestType): Promise<boolean> => {
+      try {
+        // Add to updating set for loading state
+        setUpdatingStudents((prev) => new Set(prev).add(studentId));
+        setError(null);
+
+        const result = await studentApi.updateStudent(studentId, studentData);
+        
+        if (result.success && result.data) {
+          // Update local state with the returned student data
+          setStudents((prevStudents) =>
+            prevStudents.map((student) =>
+              student.id === studentId ? result.data! : student
+            ),
+          );
+          return true;
+        } else {
+          setError(result.message || "Failed to update student");
+          return false;
+        }
+      } catch (err) {
+        const apiError = err as ApiClientError;
+
+        let errorMessage = "Failed to update student";
+
+        if (apiError.code === "NETWORK_ERROR") {
+          errorMessage = "No internet connection. Changes not saved.";
+        } else if (apiError.status === 409) {
+          errorMessage = "Student data was changed. Refreshing...";
+          // Refresh data on conflict
+          fetchStudents();
+        }
+
+        setError(errorMessage);
+        console.error("Student update error:", apiError);
+        return false;
+      } finally {
+        // Remove from updating set
+        setUpdatingStudents((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(studentId);
+          return newSet;
+        });
+      }
+    },
+    [fetchStudents],
+  );
+
   // Initial data fetch
   useEffect(() => {
     if (!fetchOnRender) return;
@@ -155,6 +210,8 @@ export function useStudentApi(
     refetch: fetchStudents,
     deleteStudent,
     addStudent,
+    updateStudent,
     deletingStudents,
+    updatingStudents,
   };
 }

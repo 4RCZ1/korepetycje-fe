@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -11,15 +11,29 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { StudentType } from "@/services/studentApi";
+import { StudentType, StudentUpdateRequestType } from "@/services/studentApi";
+
+import EditStudentModal from "./EditStudentModal";
 
 type StudentCardProps = {
   student: StudentType;
   onDelete: (studentId: string) => Promise<boolean>;
+  onUpdate: (
+    studentId: string,
+    studentData: StudentUpdateRequestType,
+  ) => Promise<boolean>;
   isDeleting: boolean;
+  isUpdating: boolean;
 };
 
-const StudentCard = ({ student, onDelete, isDeleting }: StudentCardProps) => {
+const StudentCard = ({
+  student,
+  onDelete,
+  onUpdate,
+  isDeleting,
+  isUpdating,
+}: StudentCardProps) => {
+  const [showEditModal, setShowEditModal] = useState(false);
   const backgroundColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
   const primaryColor = useThemeColor({}, "tint");
@@ -48,6 +62,17 @@ const StudentCard = ({ student, onDelete, isDeleting }: StudentCardProps) => {
     );
   };
 
+  const handleUpdate = async (
+    studentId: string,
+    studentData: StudentUpdateRequestType,
+  ) => {
+    const success = await onUpdate(studentId, studentData);
+    if (!success) {
+      Alert.alert("Error", "Failed to update student");
+    }
+    return success;
+  };
+
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
       <View style={styles.content}>
@@ -55,25 +80,38 @@ const StudentCard = ({ student, onDelete, isDeleting }: StudentCardProps) => {
           <ThemedText style={[styles.name, { color: textColor }]}>
             {student.name} {student.surname}
           </ThemedText>
-          <TouchableOpacity
-            style={[
-              styles.deleteButton,
-              { borderColor: errorColor },
-              isDeleting && styles.disabledButton,
-            ]}
-            onPress={handleDelete}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <ActivityIndicator size="small" color={errorColor} />
-            ) : (
-              <IconSymbol
-                name="trash.fill"
-                size={18}
-                color={errorColor}
-              />
-            )}
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { borderColor: primaryColor },
+                isUpdating && styles.disabledButton,
+              ]}
+              onPress={() => setShowEditModal(true)}
+              disabled={isUpdating || isDeleting}
+            >
+              {isUpdating ? (
+                <ActivityIndicator size="small" color={primaryColor} />
+              ) : (
+                <IconSymbol name="pencil" size={18} color={primaryColor} />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { borderColor: errorColor },
+                isDeleting && styles.disabledButton,
+              ]}
+              onPress={handleDelete}
+              disabled={isDeleting || isUpdating}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color={errorColor} />
+              ) : (
+                <IconSymbol name="trash.fill" size={18} color={errorColor} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.addressSection}>
@@ -90,6 +128,13 @@ const StudentCard = ({ student, onDelete, isDeleting }: StudentCardProps) => {
           </ThemedText>
         </View>
       </View>
+
+      <EditStudentModal
+        visible={showEditModal}
+        student={student}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleUpdate}
+      />
     </ThemedView>
   );
 };
@@ -126,6 +171,19 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 8,
     marginLeft: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 36,
+    minHeight: 36,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionButton: {
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 8,
     alignItems: "center",
     justifyContent: "center",
     minWidth: 36,

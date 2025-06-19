@@ -15,9 +15,9 @@ import {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { AddressType, addressApi } from "@/services/addressApi";
+import { addressApi, AddressType } from "@/services/addressApi";
 import { LessonRequest } from "@/services/scheduleApi";
-import { StudentType, studentApi } from "@/services/studentApi";
+import { studentApi, StudentType } from "@/services/studentApi";
 
 type AddLessonModalProps = {
   visible: boolean;
@@ -35,12 +35,18 @@ const AddLessonModal = ({
   const [firstEndTime, setFirstEndTime] = useState("");
   const [scheduleEndTime, setScheduleEndTime] = useState("");
   const [periodInDays, setPeriodInDays] = useState("7"); // Default to weekly
-  const [selectedAddressId, setSelectedAddressId] = useState("");
-  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-
+  const [selectedAddressId, setSelectedAddressId] = useState("1");
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>(["1"]);
+  const address: AddressType = {
+    id: "1",
+    name: "Default Address",
+    data: "123 Main St, City, Country",
+  }; //TODO use real data
   // State for data loading
-  const [students, setStudents] = useState<StudentType[]>([]);
-  const [addresses, setAddresses] = useState<AddressType[]>([]);
+  const [students, _setStudents] = useState<StudentType[]>([
+    { id: "1", name: "John", surname: "Doe", address },
+  ]);
+  const [addresses, _setAddresses] = useState<AddressType[]>([address]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -61,16 +67,16 @@ const AddLessonModal = ({
   const loadData = async () => {
     setLoading(true);
     try {
-      const [studentsResponse, addressesResponse] = await Promise.all([
+      const [_studentsResponse, _addressesResponse] = await Promise.all([
         studentApi.getStudents(),
         addressApi.getAddresses(),
       ]);
-      if (studentsResponse.success && studentsResponse.data) {
-        setStudents(studentsResponse.data);
-      }
-      if (addressesResponse.success && addressesResponse.data) {
-        setAddresses(addressesResponse.data);
-      }
+      // if (studentsResponse.success && studentsResponse.data) {
+      //   setStudents(studentsResponse.data);
+      // }
+      // if (addressesResponse.success && addressesResponse.data) {
+      //   setAddresses(addressesResponse.data);
+      // }
     } catch (error) {
       console.error("Failed to load data:", error);
       Alert.alert("Error", "Failed to load students and addresses");
@@ -230,7 +236,6 @@ const AddLessonModal = ({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.formContainer}>
-              {" "}
               {/* First Start Time */}
               <View style={styles.inputGroup}>
                 <ThemedText style={styles.label}>First Start Time *</ThemedText>

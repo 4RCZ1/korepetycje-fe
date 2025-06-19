@@ -1,19 +1,10 @@
-import * as ScreenOrientation from "expo-screen-orientation";
-import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Dimensions,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import AddLessonModal from "@/components/Schedule/AddLessonModal";
-import ScheduleContainer from "@/components/Schedule/ScheduleContainer";
+import WeeklySchedule from "@/components/Schedule/WeeklySchedule";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useScheduleApi } from "@/hooks/useScheduleApi";
@@ -21,92 +12,15 @@ import { usePrimaryColor } from "@/hooks/useThemeColor";
 import { LessonRequest, scheduleApi } from "@/services/scheduleApi";
 
 export default function HomeScreen() {
-  const {
-    scheduleData,
-    loading,
-    error,
-    refetch,
-    confirmMeeting,
-    confirmingLessons,
-  } = useScheduleApi();
+  const { refetch } = useScheduleApi();
 
   // Color system hooks
   const primaryColor = usePrimaryColor("500");
-  const primaryLightColor = usePrimaryColor("100");
-
-  // State for screen dimensions that updates on rotation
-  const [screenDimensions, setScreenDimensions] = useState(() => {
-    const { width, height } = Dimensions.get("window");
-    return { width, height };
-  });
-  // State for pull-to-refresh
-  const [refreshing, setRefreshing] = useState(false);
 
   // State for Add Lesson modal
   const [addLessonModalVisible, setAddLessonModalVisible] = useState(false);
 
-  // Calculate dynamic values based on current screen dimensions
-  const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
-  const isLandscape = screenDimensions.width > screenDimensions.height;
-  const columnHeight = isLandscape ? 430 : 600; // Adjust height based on orientation
-
-  useEffect(() => {
-    // Only enable rotation on native platforms, not web
-    const setupOrientation = async () => {
-      if (Platform.OS !== "web") {
-        try {
-          // Enable rotation
-          await ScreenOrientation.unlockAsync();
-        } catch (error) {
-          console.warn("Could not unlock screen orientation:", error);
-        }
-      }
-    };
-
-    setupOrientation();
-
-    // Listen for dimension changes (rotation)
-    const subscription = Dimensions.addEventListener("change", ({ window }) => {
-      setScreenDimensions({ width: window.width, height: window.height });
-    });
-
-    let orientationSubscription: ScreenOrientation.Subscription | null = null;
-
-    if (Platform.OS !== "web") {
-      try {
-        orientationSubscription =
-          ScreenOrientation.addOrientationChangeListener(() => {
-            // Force a re-render by updating dimensions
-            const { width, height } = Dimensions.get("window");
-            setScreenDimensions({ width, height });
-          });
-      } catch (error) {
-        console.warn("Could not add orientation change listener:", error);
-      }
-    }
-
-    return () => {
-      subscription?.remove();
-      if (orientationSubscription && Platform.OS !== "web") {
-        try {
-          ScreenOrientation.removeOrientationChangeListener(
-            orientationSubscription,
-          );
-        } catch (error) {
-          console.warn("Could not remove orientation change listener:", error);
-        }
-      }
-    };
-  }, []);
   // Pull to refresh handler
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await refetch();
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   // Add lesson handler
   const handleAddLesson = async (
@@ -125,44 +39,8 @@ export default function HomeScreen() {
     }
   };
 
-  // Loading state
-  if (loading && !scheduleData) {
-    return (
-      <ParallaxScrollView>
-        <ThemedView style={styles.container}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <ThemedText style={styles.loadingText}>
-              Loading schedule...
-            </ThemedText>
-          </View>
-        </ThemedView>
-      </ParallaxScrollView>
-    );
-  }
-
-  // Error state
-  if (error && !scheduleData) {
-    return (
-      <ParallaxScrollView>
-        <ThemedView style={styles.container}>
-          <View style={styles.errorContainer}>
-            <ThemedText style={styles.errorTitle}>
-              Unable to load schedule
-            </ThemedText>
-            <ThemedText style={styles.errorMessage}>{error}</ThemedText>
-            <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-              <Text style={styles.retryButtonText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        </ThemedView>
-      </ParallaxScrollView>
-    );
-  }
-
   return (
     <ErrorBoundary>
-      {" "}
       <ParallaxScrollView>
         <ThemedView style={styles.container}>
           {/* Header with Add Lesson button */}
@@ -183,49 +61,7 @@ export default function HomeScreen() {
           <ThemedText type={"primary"} style={styles.instruction}>
             Tap pending items (lighter blue) to confirm or reject them
           </ThemedText>
-          {/* Refresh button for manual refresh since ParallaxScrollView doesn't support RefreshControl */}
-          <TouchableOpacity
-            style={[
-              styles.colorDemoButton,
-              {
-                backgroundColor: primaryLightColor,
-                borderColor: primaryColor,
-              },
-            ]}
-            onPress={onRefresh}
-            disabled={refreshing}
-          >
-            {refreshing ? (
-              <ActivityIndicator color="#007AFF" size="small" />
-            ) : (
-              <ThemedText type={"primary"} style={styles.colorDemoButtonText}>
-                🔄 Refresh
-              </ThemedText>
-            )}
-          </TouchableOpacity>
-          {/* Show error banner if there's an error but we have cached data */}
-          {error && scheduleData && (
-            <View style={styles.errorBanner}>
-              <ThemedText style={styles.errorBannerText}>{error}</ThemedText>
-              <TouchableOpacity onPress={() => {}}>
-                <ThemedText style={styles.dismissText}>✕</ThemedText>
-              </TouchableOpacity>
-            </View>
-          )}
-          <ThemedText type={"primary"} style={styles.dimensionInfo}>
-            Screen: {screenDimensions.width.toFixed(0)}x
-            {screenDimensions.height.toFixed(0)}
-            {isLandscape ? " (Landscape)" : " (Portrait)"}
-          </ThemedText>{" "}
-          <ScheduleContainer
-            scheduleData={scheduleData}
-            columnWidth={columnWidth}
-            columnHeight={columnHeight}
-            confirmingLessons={confirmingLessons}
-            confirmMeeting={confirmMeeting}
-            onRefresh={onRefresh}
-            refreshing={refreshing}
-          />
+          <WeeklySchedule />
           {/* Add Lesson Modal */}
           <AddLessonModal
             visible={addLessonModalVisible}

@@ -12,7 +12,10 @@ export interface UseScheduleApiState {
   confirmingLessons: Set<string>;
 }
 
-export function useScheduleApi(): UseScheduleApiState {
+export function useScheduleApi(
+  fetchOnRender: boolean = true,
+  offset: number = 0,
+): UseScheduleApiState {
   const [scheduleData, setScheduleData] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,12 +24,12 @@ export function useScheduleApi(): UseScheduleApiState {
   );
 
   // Fetch schedule data
-  const fetchSchedule = useCallback(async () => {
+  const fetchSchedule = useCallback(async (offset: number = 0) => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await scheduleApi.getWeekSchedule();
+      const data = await scheduleApi.getWeekSchedule(offset);
       setScheduleData(data);
     } catch (err) {
       const apiError = err as ApiClientError;
@@ -62,7 +65,7 @@ export function useScheduleApi(): UseScheduleApiState {
         setError(null);
 
         const result = await scheduleApi.confirmMeeting(lessonId, isConfirmed);
-        if (!result.confirmed) {
+        if (!result?.confirmed) {
           return false;
         }
         // Update local state optimistically
@@ -119,8 +122,9 @@ export function useScheduleApi(): UseScheduleApiState {
 
   // Initial data fetch
   useEffect(() => {
-    fetchSchedule();
-  }, [fetchSchedule]);
+    if (!fetchOnRender) return;
+    fetchSchedule(offset);
+  }, [fetchOnRender, fetchSchedule, offset]);
 
   return {
     scheduleData,

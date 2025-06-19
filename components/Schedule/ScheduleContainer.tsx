@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import * as ScreenOrientation from "expo-screen-orientation";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -19,24 +22,36 @@ import {
 } from "@/hooks/useThemeColor";
 import { LessonEntry, Schedule } from "@/services/scheduleApi";
 
+const getDaysInRange = (startDate: Date, endDate: Date): string[] => {
+  const days: string[] = [];
+  const currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    days.push(currentDate.toISOString().split("T")[0]); // Format as YYYY-MM-DD
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return days;
+};
+
 type ScheduleProps = {
   scheduleData: Schedule | null;
   refreshing: boolean;
   onRefresh: () => void;
-  columnHeight: number;
-  columnWidth: number;
   confirmingLessons: Set<string>;
   confirmMeeting: (lessonId: string, isConfirmed: boolean) => Promise<boolean>;
+  startDate: Date;
+  endDate: Date;
 };
 
 const ScheduleContainer = ({
   scheduleData,
   refreshing,
   onRefresh,
-  columnHeight,
-  columnWidth,
   confirmingLessons,
   confirmMeeting,
+  startDate,
+  endDate,
 }: ScheduleProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
@@ -44,6 +59,15 @@ const ScheduleContainer = ({
     itemIndex: number;
     item: LessonEntry;
   } | null>(null);
+  const [screenDimensions, setScreenDimensions] = useState(() => {
+    const { width, height } = Dimensions.get("window");
+    return { width, height };
+  });
+
+  // Calculate dynamic values based on current screen dimensions
+  const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
+  const isLandscape = screenDimensions.width > screenDimensions.height;
+  const columnHeight = isLandscape ? 430 : 600; // Adjust height based on orientation
 
   // Color system hooks
   const surfaceColor = useThemeColor({}, "surface");
@@ -64,6 +88,58 @@ const ScheduleContainer = ({
     }
   };
 
+  useEffect(() => {
+    // Only enable rotation on native platforms, not web
+    const setupOrientation = async () => {
+      if (Platform.OS !== "web") {
+        try {
+          // Enable rotation
+          await ScreenOrientation.unlockAsync();
+        } catch (error) {
+          console.warn("Could not unlock screen orientation:", error);
+        }
+      }
+    };
+
+    setupOrientation();
+
+    // Listen for dimension changes (rotation)
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
+      setScreenDimensions({ width: window.width, height: window.height });
+    });
+
+    let orientationSubscription: ScreenOrientation.Subscription | null = null;
+
+    if (Platform.OS !== "web") {
+      try {
+        orientationSubscription =
+          ScreenOrientation.addOrientationChangeListener(() => {
+            // Force a re-render by updating dimensions
+            const { width, height } = Dimensions.get("window");
+            setScreenDimensions({ width, height });
+          });
+      } catch (error) {
+        console.warn("Could not add orientation change listener:", error);
+      }
+    }
+
+    return () => {
+      subscription?.remove();
+      if (orientationSubscription && Platform.OS !== "web") {
+        try {
+          ScreenOrientation.removeOrientationChangeListener(
+            orientationSubscription,
+          );
+        } catch (error) {
+          console.warn("Could not remove orientation change listener:", error);
+        }
+      }
+    };
+  }, []);
+
+  const daysInRange = getDaysInRange(startDate, endDate);
+  console.log("Days in Range:", daysInRange);
+
   const handleConfirmation = async (confirmed: boolean) => {
     if (!selectedItem) return;
 
@@ -76,7 +152,6 @@ const ScheduleContainer = ({
         setModalVisible(false);
         setSelectedItem(null);
 
-        // Show success message
         Alert.alert(
           "Success",
           `Meeting has been ${confirmed ? "confirmed" : "rejected"}.`,
@@ -107,7 +182,7 @@ const ScheduleContainer = ({
         }
       >
         <View style={styles.gridContainer}>
-          {Object.keys(scheduleData ?? {}).map((day, index) => (
+          {daysInRange.map((day, index) => (
             <Column
               columnHeight={columnHeight}
               columnWidth={columnWidth}

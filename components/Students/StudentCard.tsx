@@ -9,6 +9,7 @@ import {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { StudentType } from "@/services/studentApi";
 
@@ -66,11 +67,11 @@ const StudentCard = ({ student, onDelete, isDeleting }: StudentCardProps) => {
             {isDeleting ? (
               <ActivityIndicator size="small" color={errorColor} />
             ) : (
-              <ThemedText
-                style={[styles.deleteButtonText, { color: errorColor }]}
-              >
-                Delete
-              </ThemedText>
+              <IconSymbol
+                name="trash.fill"
+                size={18}
+                color={errorColor}
+              />
             )}
           </TouchableOpacity>
         </View>
@@ -123,13 +124,12 @@ const styles = StyleSheet.create({
   deleteButton: {
     borderWidth: 1,
     borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    padding: 8,
     marginLeft: 12,
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 36,
+    minHeight: 36,
   },
   disabledButton: {
     opacity: 0.6,

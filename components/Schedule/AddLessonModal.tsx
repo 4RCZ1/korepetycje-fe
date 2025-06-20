@@ -291,7 +291,7 @@ const AddLessonModal = ({
                 <ThemedText style={styles.helperText}>
                   When to stop repeating lessons
                 </ThemedText>
-              </View>{" "}
+              </View>
               {/* Period in Days */}
               <View style={styles.inputGroup}>
                 <ThemedText style={styles.label}>Period in Days *</ThemedText>

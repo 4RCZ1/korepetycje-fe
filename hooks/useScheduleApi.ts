@@ -9,6 +9,16 @@ export interface UseScheduleApiState {
   error: string | null;
   refetch: () => Promise<void>;
   confirmMeeting: (lessonId: string, isConfirmed: boolean) => Promise<boolean>;
+  deleteLesson: (
+    lessonId: string,
+    deleteFutureLessons: boolean,
+  ) => Promise<boolean>;
+  editLesson: (
+    lessonId: string,
+    startTime: string,
+    endTime: string,
+    editFutureLessons: boolean,
+  ) => Promise<boolean>;
   confirmingLessons: Set<string>;
 }
 
@@ -23,7 +33,6 @@ export function useScheduleApi(
     new Set(),
   );
 
-  // Fetch schedule data
   const fetchSchedule = useCallback(async (offset: number = 0) => {
     try {
       setLoading(true);
@@ -56,7 +65,6 @@ export function useScheduleApi(
     }
   }, []);
 
-  // Confirm or cancel meeting
   const confirmMeeting = useCallback(
     async (lessonId: string, isConfirmed: boolean): Promise<boolean> => {
       try {
@@ -120,6 +128,101 @@ export function useScheduleApi(
     [fetchSchedule],
   );
 
+  const deleteLesson = useCallback(
+    async (
+      lessonId: string,
+      deleteFutureLessons: boolean,
+    ): Promise<boolean> => {
+      try {
+        setError(null);
+
+        const success = await scheduleApi.deleteLesson(
+          lessonId,
+          deleteFutureLessons,
+        );
+        console.log("Lesson deleted successfully:", success);
+
+        if (success) {
+          // Refresh the schedule data after deletion
+          await fetchSchedule(offset);
+        }
+
+        return success;
+      } catch (err) {
+        console.log("Failed to delete lesson:", err);
+        const apiError = err as ApiClientError;
+
+        let errorMessage = "Failed to delete lesson";
+
+        if (apiError.code === "NETWORK_ERROR") {
+          errorMessage = "No internet connection. Lesson not deleted.";
+        } else if (apiError.status === 404) {
+          errorMessage = "Lesson not found. It may have already been deleted.";
+          // Refresh data on not found
+          fetchSchedule(offset);
+        } else if (apiError.status === 403) {
+          errorMessage =
+            "Access denied. You don't have permission to delete this lesson.";
+        }
+
+        setError(errorMessage);
+        console.error("Lesson deletion error:", apiError);
+        return false;
+      }
+    },
+    [fetchSchedule, offset],
+  );
+
+  // Edit lesson
+  const editLesson = useCallback(
+    async (
+      lessonId: string,
+      startTime: string,
+      endTime: string,
+      editFutureLessons: boolean,
+    ): Promise<boolean> => {
+      try {
+        setError(null);
+
+        const success = await scheduleApi.editLesson(lessonId, {
+          startTime,
+          endTime,
+          editFutureLessons,
+        });
+
+        if (success) {
+          // Refresh the schedule data after editing
+          await fetchSchedule(offset);
+        }
+
+        return Boolean(success);
+      } catch (err) {
+        console.log("Failed to edit lesson:", err);
+        const apiError = err as ApiClientError;
+
+        let errorMessage = "Failed to edit lesson";
+
+        if (apiError.code === "NETWORK_ERROR") {
+          errorMessage = "No internet connection. Lesson not updated.";
+        } else if (apiError.status === 404) {
+          errorMessage = "Lesson not found. It may have been deleted.";
+          // Refresh data on not found
+          fetchSchedule(offset);
+        } else if (apiError.status === 403) {
+          errorMessage =
+            "Access denied. You don't have permission to edit this lesson.";
+        } else if (apiError.status === 400) {
+          errorMessage = "Invalid lesson data. Please check the time values.";
+        }
+
+        setError(errorMessage);
+        console.error("Lesson edit error:", apiError);
+        return false;
+      }
+    },
+    [fetchSchedule, offset],
+  );
+
   // Initial data fetch
   useEffect(() => {
     if (!fetchOnRender) return;
@@ -132,6 +235,8 @@ export function useScheduleApi(
     error,
     refetch: fetchSchedule,
     confirmMeeting,
+    deleteLesson,
+    editLesson,
     confirmingLessons,
   };
 }

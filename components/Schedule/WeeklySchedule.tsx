@@ -11,8 +11,14 @@ import { getWeekStartEndDates } from "@/utils/dates";
 
 const WeeklySchedule = () => {
   const [offset, setOffset] = useState(0);
-  const { scheduleData, refetch, confirmMeeting, confirmingLessons } =
-    useScheduleApi(true, offset);
+  const {
+    scheduleData,
+    refetch,
+    confirmMeeting,
+    deleteLesson,
+    editLesson,
+    confirmingLessons,
+  } = useScheduleApi(true, offset);
   const [refreshing, setRefreshing] = useState(false);
   const { startDate, endDate } = useMemo(
     () => getWeekStartEndDates({ weekOffset: offset }),
@@ -50,7 +56,7 @@ const WeeklySchedule = () => {
     <>
       <View style={styles.buttonContainer}>
         <ThemedButton
-          title="Previous Week"
+          icon="chevron.left"
           variant="outline"
           size="medium"
           color="primary"
@@ -59,9 +65,6 @@ const WeeklySchedule = () => {
         <View>
           <ThemedText type={"primary"} style={styles.title}>
             Weekly Schedule
-          </ThemedText>
-          <ThemedText type={"primary"} style={styles.instruction}>
-            Tap pending items (lighter blue) to confirm or reject them
           </ThemedText>
           <ThemedButton
             title="Add Lesson"
@@ -72,7 +75,7 @@ const WeeklySchedule = () => {
           />
         </View>
         <ThemedButton
-          title="Next Week"
+          icon="chevron.right"
           variant="outline"
           size="medium"
           color="primary"
@@ -83,6 +86,8 @@ const WeeklySchedule = () => {
         scheduleData={scheduleData}
         confirmingLessons={confirmingLessons}
         confirmMeeting={confirmMeeting}
+        deleteLesson={deleteLesson}
+        editLesson={editLesson}
         onRefresh={onRefresh}
         refreshing={refreshing}
         startDate={startDate}

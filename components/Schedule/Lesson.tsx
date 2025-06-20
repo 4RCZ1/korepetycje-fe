@@ -183,11 +183,13 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   positionText: {
-    fontSize: 7,
+    fontSize: 11,
+    lineHeight: 13,
     textAlign: "center",
   },
   statusText: {
-    fontSize: 6,
+    fontSize: 9,
+    lineHeight: 11,
     textAlign: "center",
     fontWeight: "bold",
   },

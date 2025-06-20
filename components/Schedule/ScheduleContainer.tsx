@@ -62,7 +62,7 @@ const ScheduleContainer = ({
   // Calculate dynamic values based on current screen dimensions
   const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
   const isLandscape = screenDimensions.width > screenDimensions.height;
-  const columnHeight = isLandscape ? 430 : 600; // Adjust height based on orientation
+  const columnHeight = isLandscape ? 700 : 900; // Adjust height based on orientation
 
   // Color system hooks
   const surfaceColor = useThemeColor({}, "surface");
@@ -206,7 +206,7 @@ const ScheduleContainer = ({
               {selectedItem?.item.description}
             </ThemedText>
             <ThemedText style={styles.modalSubtext}>
-              {selectedItem?.item.startTime}% - {selectedItem?.item.endTime}%
+              {selectedItem?.item.startTime} - {selectedItem?.item.endTime}
             </ThemedText>
 
             <View style={styles.modalButtons}>
@@ -267,7 +267,6 @@ const ScheduleContainer = ({
 const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: "row",
-    height: 450,
   },
   modalOverlay: {
     flex: 1,

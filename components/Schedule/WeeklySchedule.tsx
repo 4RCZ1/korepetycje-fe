@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
+import AddLessonModal from "@/components/Schedule/AddLessonModal";
 import ScheduleContainer from "@/components/Schedule/ScheduleContainer";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedButton from "@/components/ui/ThemedButton";
 import { useScheduleApi } from "@/hooks/useScheduleApi";
+import { LessonRequest, scheduleApi } from "@/services/scheduleApi";
 import { getWeekStartEndDates } from "@/utils/dates";
 
 const WeeklySchedule = () => {
@@ -26,6 +28,24 @@ const WeeklySchedule = () => {
     }
   };
 
+  const [addLessonModalVisible, setAddLessonModalVisible] = useState(false);
+
+  const handleAddLesson = async (
+    lessonRequest: LessonRequest,
+  ): Promise<boolean> => {
+    try {
+      const success = await scheduleApi.planLesson(lessonRequest);
+      if (success) {
+        // Refresh the schedule to show the new lesson
+        await refetch();
+      }
+      return success;
+    } catch (error) {
+      console.error("Failed to add lesson:", error);
+      return false;
+    }
+  };
+
   return (
     <>
       <View style={styles.buttonContainer}>
@@ -43,6 +63,13 @@ const WeeklySchedule = () => {
           <ThemedText type={"primary"} style={styles.instruction}>
             Tap pending items (lighter blue) to confirm or reject them
           </ThemedText>
+          <ThemedButton
+            title="Add Lesson"
+            variant="filled"
+            size="medium"
+            color="primary"
+            onPress={() => setAddLessonModalVisible(true)}
+          />
         </View>
         <ThemedButton
           title="Next Week"
@@ -60,6 +87,11 @@ const WeeklySchedule = () => {
         refreshing={refreshing}
         startDate={startDate}
         endDate={endDate}
+      />
+      <AddLessonModal
+        visible={addLessonModalVisible}
+        onClose={() => setAddLessonModalVisible(false)}
+        onSubmit={handleAddLesson}
       />
     </>
   );

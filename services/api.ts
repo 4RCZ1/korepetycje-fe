@@ -8,6 +8,17 @@ const API_CONFIG = {
   },
 };
 
+// Authentication token management
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
 // Types for API responses
 export interface ApiResponse<T> {
   data: T | null;
@@ -55,12 +66,20 @@ export async function apiRequest<T>(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
+  // Build headers with authentication if available
+  const headers: Record<string, string> = {
+    ...API_CONFIG.headers,
+    ...(options.headers as Record<string, string>),
+  };
+
+  // Add authorization header if token is available
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
   const config: RequestInit = {
     ...options,
-    headers: {
-      ...API_CONFIG.headers,
-      ...options.headers,
-    },
+    headers,
     signal: controller.signal,
   };
 

@@ -38,14 +38,8 @@ const AddLessonModal = ({
   const [periodInDays, setPeriodInDays] = useState("7"); // Default to weekly
   const [selectedAddressId, setSelectedAddressId] = useState("1");
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>(["1"]);
-  const address: AddressType = {
-    id: "1",
-    name: "Default Address",
-    data: "123 Main St, City, Country",
-  }; //TODO use real data
-  // State for data loading
   const [students, setStudents] = useState<StudentType[]>([]);
-  const [addresses, _setAddresses] = useState<AddressType[]>([address]);
+  const [addresses, setAddresses] = useState<AddressType[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -122,16 +116,16 @@ const AddLessonModal = ({
   const loadData = async () => {
     setLoading(true);
     try {
-      const [studentsResponse, _addressesResponse] = await Promise.all([
+      const [studentsResponse, addressesResponse] = await Promise.all([
         studentApi.getStudents(),
         addressApi.getAddresses(),
       ]);
       if (studentsResponse.success && studentsResponse.data) {
         setStudents(studentsResponse.data);
       }
-      // if (addressesResponse.success && addressesResponse.data) {
-      //   setAddresses(addressesResponse.data);
-      // }
+      if (addressesResponse.success && addressesResponse.data) {
+        setAddresses(addressesResponse.data);
+      }
     } catch (error) {
       console.error("Failed to load data:", error);
       alert("Error", "Failed to load students and addresses");

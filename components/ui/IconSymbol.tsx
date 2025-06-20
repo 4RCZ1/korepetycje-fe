@@ -22,6 +22,7 @@ const MAPPING = {
   "chevron.left.forwardslash.chevron.right": "code",
   "chevron.right": "chevron-right",
   "chevron.left": "chevron-left",
+  "rectangle.portrait.and.arrow.right": "logout",
   calendar: "calendar-month",
   "trash.fill": "delete",
   pencil: "edit",

@@ -3,6 +3,7 @@ import React from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import CustomDrawerContent from "@/components/Navigation/CustomDrawerContent";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -13,6 +14,7 @@ export default function TabLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer
+        drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={{
           drawerActiveTintColor: Colors[colorScheme ?? "light"].tint,
           headerShown: true,
@@ -23,7 +25,7 @@ export default function TabLayout() {
         }}
       >
         <Drawer.Screen
-          name="index"
+          name="schedule"
           options={{
             drawerLabel: "Schedule",
             title: "Schedule",

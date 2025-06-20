@@ -98,6 +98,7 @@ export type LessonRequest = {
   periodInDays: number;
   addressId: string;
   studentIds: string[];
+  description: string;
 };
 
 export interface ConfirmMeetingRequest {
@@ -146,11 +147,11 @@ export const scheduleApi = {
 
   async planLesson(lesson: LessonRequest): Promise<boolean> {
     try {
-      const response = await apiRequest<boolean>("/plan-lessons", {
+      const response = await apiRequest<string>("/plan-lessons", {
         method: "POST",
         body: JSON.stringify(lesson),
       });
-      return response;
+      return response === "";
     } catch (error) {
       console.error("Failed to plan lesson:", error);
       return false;

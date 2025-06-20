@@ -42,8 +42,7 @@ const WeeklySchedule = () => {
     try {
       const success = await scheduleApi.planLesson(lessonRequest);
       if (success) {
-        // Refresh the schedule to show the new lesson
-        await refetch();
+        await refetch(offset);
       }
       return success;
     } catch (error) {

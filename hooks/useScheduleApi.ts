@@ -7,7 +7,7 @@ export interface UseScheduleApiState {
   scheduleData: Schedule | null;
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: (offset?: number) => Promise<void>;
   confirmMeeting: (lessonId: string, isConfirmed: boolean) => Promise<boolean>;
   deleteLesson: (
     lessonId: string,

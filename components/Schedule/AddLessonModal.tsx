@@ -38,7 +38,6 @@ const AddLessonModal = ({
   const [periodInDays, setPeriodInDays] = useState("7"); // Default to weekly
   const [selectedAddressId, setSelectedAddressId] = useState("1");
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>(["1"]);
-  const [description, setDescription] = useState("");
   const address: AddressType = {
     id: "1",
     name: "Default Address",
@@ -68,7 +67,6 @@ const AddLessonModal = ({
     setPeriodInDays("7");
     setSelectedAddressId("");
     setSelectedStudentIds([]);
-    setDescription("");
   }, []);
 
   // Colors
@@ -212,7 +210,6 @@ const AddLessonModal = ({
         periodInDays: Number(periodInDays),
         addressId: selectedAddressId,
         studentIds: selectedStudentIds,
-        description: description.trim(),
       };
 
       const success = await onSubmit(lessonRequest);
@@ -334,28 +331,6 @@ const AddLessonModal = ({
                   How often to repeat (e.g., 7 for weekly, 14 for bi-weekly)
                 </ThemedText>
               </View>
-
-              {/* Description */}
-              <View style={styles.inputGroup}>
-                <ThemedText style={styles.label}>Description *</ThemedText>
-                <TextInput
-                  style={[
-                    styles.textArea,
-                    { color: textColor, borderColor: primaryColor },
-                  ]}
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Enter lesson description..."
-                  placeholderTextColor={textColor + "80"}
-                  multiline={true}
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                />
-                <ThemedText style={styles.helperText}>
-                  Brief description of the lesson content or topic
-                </ThemedText>
-              </View>
-
               {/* Address Selection */}
               <View style={styles.inputGroup}>
                 <ThemedText style={styles.label}>Address *</ThemedText>
@@ -492,14 +467,6 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: "transparent",
-  },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "transparent",
-    minHeight: 80,
   },
   pickerContainer: {
     borderWidth: 1,

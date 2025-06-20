@@ -106,7 +106,6 @@ export type LessonRequest = {
   periodInDays: number;
   addressId: string;
   studentIds: string[];
-  description: string;
 };
 
 export interface ConfirmMeetingRequest {

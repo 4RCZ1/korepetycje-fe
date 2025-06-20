@@ -46,7 +46,8 @@ export const Lesson = ({
   const getTextStyle = (confirmed?: boolean | null) => {
     return {
       color: getTextColor(confirmed),
-      fontSize: 9,
+      fontSize: 11,
+      lineHeight: 13,
       textAlign: "center" as const,
       fontWeight: "500" as const,
       marginBottom: 1,
@@ -96,9 +97,9 @@ export const Lesson = ({
   };
 
   const getConfirmationStatus = (confirmed?: boolean | null) => {
-    if (confirmed === true) return "✓ Confirmed";
-    if (confirmed === false) return "✗ Rejected";
-    return "? Pending";
+    if (confirmed === true) return "Confirmed";
+    if (confirmed === false) return "Rejected";
+    return "Pending";
   };
 
   const top = getTopPosition(lesson.startTimestamp, lesson.endTimestamp);
@@ -183,11 +184,13 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   positionText: {
-    fontSize: 7,
+    fontSize: 11,
+    lineHeight: 15,
     textAlign: "center",
   },
   statusText: {
-    fontSize: 6,
+    fontSize: 9,
+    lineHeight: 11,
     textAlign: "center",
     fontWeight: "bold",
   },

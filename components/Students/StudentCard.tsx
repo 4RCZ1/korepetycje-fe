@@ -1,14 +1,9 @@
 import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import ThemedButton from "@/components/ui/ThemedButton";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { StudentType, StudentUpdateRequestType } from "@/services/studentApi";
 import alert from "@/utils/alert";
@@ -37,7 +32,6 @@ const StudentCard = ({
   const backgroundColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
   const primaryColor = useThemeColor({}, "tint");
-  const errorColor = useThemeColor({}, "error", "500");
 
   const handleDelete = () => {
     console.log("Delete student:", student.id);
@@ -82,36 +76,24 @@ const StudentCard = ({
             {student.name} {student.surname}
           </ThemedText>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { borderColor: primaryColor },
-                isUpdating && styles.disabledButton,
-              ]}
-              onPress={() => setShowEditModal(true)}
+            <ThemedButton
+              variant="outline"
+              size="small"
+              color="primary"
+              icon="pencil"
+              loading={isUpdating}
               disabled={isUpdating || isDeleting}
-            >
-              {isUpdating ? (
-                <ActivityIndicator size="small" color={primaryColor} />
-              ) : (
-                <IconSymbol name="pencil" size={18} color={primaryColor} />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { borderColor: errorColor },
-                isDeleting && styles.disabledButton,
-              ]}
-              onPress={handleDelete}
+              onPress={() => setShowEditModal(true)}
+            />
+            <ThemedButton
+              variant="outline"
+              size="small"
+              color="error"
+              icon="trash.fill"
+              loading={isDeleting}
               disabled={isDeleting || isUpdating}
-            >
-              {isDeleting ? (
-                <ActivityIndicator size="small" color={errorColor} />
-              ) : (
-                <IconSymbol name="trash.fill" size={18} color={errorColor} />
-              )}
-            </TouchableOpacity>
+              onPress={handleDelete}
+            />
           </View>
         </View>
 
@@ -180,18 +162,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     gap: 8,
-  },
-  actionButton: {
-    borderWidth: 1,
-    borderRadius: 6,
-    padding: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 36,
-    minHeight: 36,
-  },
-  disabledButton: {
-    opacity: 0.6,
   },
   addressSection: {
     gap: 4,

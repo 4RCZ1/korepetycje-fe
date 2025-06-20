@@ -1,24 +1,20 @@
 import * as ScreenOrientation from "expo-screen-orientation";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   Modal,
   Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from "react-native";
 
 import { Column } from "@/components/Schedule/Column";
+import EditLessonModal from "@/components/Schedule/EditLessonModal";
 import { ThemedText } from "@/components/ThemedText";
-import {
-  useThemeColor,
-  usePrimaryColor,
-  useErrorColor,
-} from "@/hooks/useThemeColor";
+import ThemedButton from "@/components/ui/ThemedButton";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { LessonEntry, Schedule } from "@/services/scheduleApi";
 import alert from "@/utils/alert";
 
@@ -40,6 +36,16 @@ type ScheduleProps = {
   onRefresh: () => void;
   confirmingLessons: Set<string>;
   confirmMeeting: (lessonId: string, isConfirmed: boolean) => Promise<boolean>;
+  deleteLesson: (
+    lessonId: string,
+    deleteFutureLessons: boolean,
+  ) => Promise<boolean>;
+  editLesson: (
+    lessonId: string,
+    startTime: string,
+    endTime: string,
+    editFutureLessons: boolean,
+  ) => Promise<boolean>;
   startDate: Date;
   endDate: Date;
 };
@@ -50,32 +56,39 @@ const ScheduleContainer = ({
   onRefresh,
   confirmingLessons,
   confirmMeeting,
+  deleteLesson,
+  editLesson,
   startDate,
   endDate,
 }: ScheduleProps) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
     date: keyof Schedule;
     itemIndex: number;
     item: LessonEntry;
   } | null>(null);
+  const [deletingLesson, setDeletingLesson] = useState(false);
   const [screenDimensions, setScreenDimensions] = useState(() => {
     const { width, height } = Dimensions.get("window");
     return { width, height };
   });
 
   // Calculate dynamic values based on current screen dimensions
-  const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
+  const containerWidth = screenDimensions.width - 32; // 32 for padding
+  const columnWidth = Math.max(100, containerWidth / 7); // Ensure minimum width of 100
   const isLandscape = screenDimensions.width > screenDimensions.height;
-  const columnHeight = isLandscape ? 430 : 600; // Adjust height based on orientation
+  const columnHeight = isLandscape ? 700 : 900; // Adjust height based on orientation
 
   // Color system hooks
   const surfaceColor = useThemeColor({}, "surface");
-  const primaryColor = usePrimaryColor("500");
-  const primaryDarkColor = usePrimaryColor("700");
-  const errorColor = useErrorColor("500");
-  const errorDarkColor = useErrorColor("700");
-  const borderColor = useThemeColor({}, "border");
+  const confirmedBackgroundColor = useThemeColor({}, "primary", "100");
+  const confirmedTextColor = useThemeColor({}, "primary", "700");
+  const rejectedBackgroundColor = useThemeColor({}, "error", "100");
+  const rejectedTextColor = useThemeColor({}, "error", "700");
+  const pendingBackgroundColor = useThemeColor({}, "warning", "100");
+  const pendingTextColor = useThemeColor({}, "warning", "700");
 
   const handleItemPress = (
     date: string,
@@ -138,7 +151,6 @@ const ScheduleContainer = ({
   }, []);
 
   const daysInRange = getDaysInRange(startDate, endDate);
-  console.log("Days in Range:", daysInRange);
 
   const handleConfirmation = async (confirmed: boolean) => {
     if (!selectedItem) return;
@@ -166,6 +178,71 @@ const ScheduleContainer = ({
         { text: "Retry", onPress: () => handleConfirmation(confirmed) },
       ]);
     }
+  };
+
+  const handleDeleteLesson = async (deleteFutureLessons: boolean) => {
+    if (!selectedItem) return;
+
+    const { item } = selectedItem;
+    setDeletingLesson(true);
+
+    try {
+      const success = await deleteLesson(item.lessonId, deleteFutureLessons);
+
+      if (success) {
+        setDeleteModalVisible(false);
+        setModalVisible(false);
+        setSelectedItem(null);
+
+        alert(
+          "Success",
+          `Lesson${deleteFutureLessons ? " and future lessons" : ""} deleted successfully.`,
+          [{ text: "OK" }],
+        );
+      }
+    } catch (error) {
+      console.log("Failed to delete lesson:", error);
+      alert("Error", "Failed to delete lesson. Please try again.", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Retry",
+          onPress: () => handleDeleteLesson(deleteFutureLessons),
+        },
+      ]);
+    } finally {
+      setDeletingLesson(false);
+    }
+  };
+
+  const handleEditLesson = async (
+    lessonId: string,
+    startTime: string,
+    endTime: string,
+    editFutureLessons: boolean,
+  ) => {
+    try {
+      const success = await editLesson(
+        lessonId,
+        startTime,
+        endTime,
+        editFutureLessons,
+      );
+
+      if (success) {
+        setEditModalVisible(false);
+        setModalVisible(false);
+        setSelectedItem(null);
+      }
+
+      return success;
+    } catch (error) {
+      console.log("Failed to edit lesson:", error);
+      throw error;
+    }
+  };
+
+  const handleOpenEditModal = () => {
+    setEditModalVisible(true);
   };
 
   return (
@@ -209,73 +286,205 @@ const ScheduleContainer = ({
           <View
             style={[styles.modalContent, { backgroundColor: surfaceColor }]}
           >
-            <ThemedText style={styles.modalTitle}>
-              Confirm Schedule Item
-            </ThemedText>
-            <ThemedText style={styles.modalText}>
-              {selectedItem?.item.description}
-            </ThemedText>
-            <ThemedText style={styles.modalSubtext}>
-              {selectedItem?.item.startTime}% - {selectedItem?.item.endTime}%
-            </ThemedText>
+            <ThemedText style={styles.modalTitle}>Lesson Details</ThemedText>
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  {
-                    backgroundColor: primaryColor,
-                    borderColor: primaryDarkColor,
-                  },
-                ]}
+            <View style={styles.lessonDetails}>
+              <ThemedText style={styles.modalText}>
+                {selectedItem?.item.description}
+              </ThemedText>
+
+              {selectedItem?.item.lessonType && (
+                <ThemedText style={styles.modalSubtext}>
+                  Type: {selectedItem.item.lessonType}
+                </ThemedText>
+              )}
+
+              <ThemedText style={styles.modalSubtext}>
+                Time: {selectedItem?.item.startTime} -{" "}
+                {selectedItem?.item.endTime}
+              </ThemedText>
+
+              <ThemedText style={styles.modalSubtext}>
+                Address: {selectedItem?.item.address}
+              </ThemedText>
+
+              {/* Attendances */}
+              {selectedItem?.item.attendances &&
+                selectedItem.item.attendances.length > 0 && (
+                  <View style={styles.attendancesSection}>
+                    <ThemedText style={styles.attendancesTitle}>
+                      Students:
+                    </ThemedText>
+                    {selectedItem.item.attendances.map((attendance, index) => (
+                      <View key={index} style={styles.attendanceItem}>
+                        <ThemedText style={styles.attendanceText}>
+                          {attendance.studentName} {attendance.studentSurname}
+                        </ThemedText>
+                        <ThemedText
+                          style={[
+                            styles.attendanceStatus,
+                            attendance.confirmed === true && {
+                              backgroundColor: confirmedBackgroundColor,
+                              color: confirmedTextColor,
+                            },
+                            attendance.confirmed === false && {
+                              backgroundColor: rejectedBackgroundColor,
+                              color: rejectedTextColor,
+                            },
+                            attendance.confirmed === null && {
+                              backgroundColor: pendingBackgroundColor,
+                              color: pendingTextColor,
+                            },
+                          ]}
+                        >
+                          {attendance.confirmed === true
+                            ? "Confirmed"
+                            : attendance.confirmed === false
+                              ? "Rejected"
+                              : "Pending"}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+            </View>
+
+            <View style={styles.primaryButtons}>
+              <ThemedButton
+                title="Confirm"
+                variant="filled"
+                size="medium"
+                color="primary"
+                loading={
+                  selectedItem
+                    ? confirmingLessons.has(selectedItem.item.lessonId)
+                    : false
+                }
+                disabled={
+                  selectedItem
+                    ? confirmingLessons.has(selectedItem.item.lessonId)
+                    : false
+                }
                 onPress={() => handleConfirmation(true)}
+                style={styles.primaryButton}
+              />
+
+              <ThemedButton
+                title="Reject"
+                variant="filled"
+                size="medium"
+                color="error"
+                loading={
+                  selectedItem
+                    ? confirmingLessons.has(selectedItem.item.lessonId)
+                    : false
+                }
                 disabled={
                   selectedItem
                     ? confirmingLessons.has(selectedItem.item.lessonId)
                     : false
                 }
-              >
-                {selectedItem &&
-                confirmingLessons.has(selectedItem.item.lessonId) ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <ThemedText style={styles.buttonText}>Confirm</ThemedText>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  { backgroundColor: errorColor, borderColor: errorDarkColor },
-                ]}
                 onPress={() => handleConfirmation(false)}
-                disabled={
-                  selectedItem
-                    ? confirmingLessons.has(selectedItem.item.lessonId)
-                    : false
-                }
-              >
-                {selectedItem &&
-                confirmingLessons.has(selectedItem.item.lessonId) ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <ThemedText style={styles.buttonText}>Reject</ThemedText>
-                )}
-              </TouchableOpacity>
+                style={styles.primaryButton}
+              />
+            </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  { backgroundColor: borderColor, borderColor: borderColor },
-                ]}
+            <View style={styles.secondaryButtons}>
+              <ThemedButton
+                title="Edit Lesson"
+                variant="outline"
+                size="small"
+                color="primary"
+                onPress={handleOpenEditModal}
+                style={styles.secondaryButton}
+              />
+
+              <ThemedButton
+                title="Delete Lesson"
+                variant="outline"
+                size="small"
+                color="error"
+                onPress={() => setDeleteModalVisible(true)}
+                style={styles.secondaryButton}
+              />
+
+              <ThemedButton
+                title="Cancel"
+                variant="outline"
+                size="small"
+                color="surface"
                 onPress={() => setModalVisible(false)}
-              >
-                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
-              </TouchableOpacity>
+                style={styles.secondaryButton}
+              />
             </View>
           </View>
         </View>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={deleteModalVisible}
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+          ]}
+        >
+          <View
+            style={[styles.modalContent, { backgroundColor: surfaceColor }]}
+          >
+            <ThemedText style={styles.modalTitle}>Delete Lesson</ThemedText>
+            <ThemedText style={styles.modalText}>
+              Are you sure you want to delete this lesson?
+            </ThemedText>
+            <ThemedText style={styles.modalSubtext}>
+              {selectedItem?.item.description}
+            </ThemedText>
+
+            <View style={styles.deleteButtons}>
+              <ThemedButton
+                title="Delete This Lesson Only"
+                variant="filled"
+                size="medium"
+                color="error"
+                loading={deletingLesson}
+                disabled={deletingLesson}
+                onPress={() => handleDeleteLesson(false)}
+              />
+
+              <ThemedButton
+                title="Delete This + Future Lessons"
+                variant="filled"
+                size="medium"
+                color="error"
+                loading={deletingLesson}
+                disabled={deletingLesson}
+                onPress={() => handleDeleteLesson(true)}
+              />
+
+              <ThemedButton
+                title="Cancel"
+                variant="outline"
+                size="medium"
+                color="surface"
+                onPress={() => setDeleteModalVisible(false)}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Lesson Modal */}
+      <EditLessonModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        selectedItem={selectedItem}
+        editLesson={handleEditLesson}
+      />
     </>
   );
 };
@@ -283,7 +492,6 @@ const ScheduleContainer = ({
 const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: "row",
-    height: 450,
   },
   modalOverlay: {
     flex: 1,
@@ -293,7 +501,7 @@ const styles = StyleSheet.create({
   modalContent: {
     borderRadius: 20,
     padding: 35,
-    alignItems: "center",
+    alignItems: "stretch",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -302,7 +510,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    minWidth: 300,
+    minWidth: 400,
+    maxWidth: 500,
   },
   modalTitle: {
     fontSize: 18,
@@ -318,30 +527,72 @@ const styles = StyleSheet.create({
   modalSubtext: {
     fontSize: 14,
     opacity: 0.7,
-    marginBottom: 20,
+    marginBottom: 8,
     textAlign: "center",
   },
-  modalButtons: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 10,
+  lessonDetails: {
+    width: "100%",
+    marginBottom: 20,
   },
-  modalButton: {
-    borderRadius: 8,
-    padding: 12,
-    minWidth: 80,
-    alignItems: "center",
-    borderWidth: 1,
+  attendancesSection: {
+    marginTop: 15,
+    width: "100%",
   },
-  buttonText: {
-    color: "white",
+  attendancesTitle: {
     fontSize: 14,
     fontWeight: "bold",
+    marginBottom: 8,
+    textAlign: "left",
   },
-  cancelButtonText: {
-    color: "white",
-    fontSize: 14,
+  attendanceItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginBottom: 4,
+    borderRadius: 6,
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+  },
+  attendanceText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  attendanceStatus: {
+    fontSize: 12,
+    fontWeight: "500",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    textAlign: "center",
+  },
+  primaryButtons: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+    marginBottom: 15,
+    width: "100%",
+  },
+  primaryButton: {
+    flex: 1,
+  },
+  secondaryButtons: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+    width: "100%",
+  },
+  secondaryButton: {
+    flex: 1,
+  },
+  deleteButtons: {
+    flexDirection: "column",
+    gap: 10,
+    alignSelf: "stretch",
+  },
+  modalButton: {
+    flex: 1,
   },
 });
 

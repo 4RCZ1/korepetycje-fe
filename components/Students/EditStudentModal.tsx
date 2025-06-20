@@ -11,6 +11,7 @@ import {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import ThemedButton from "@/components/ui/ThemedButton";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { AddressType, addressApi } from "@/services/addressApi";
 import { StudentType, StudentUpdateRequestType } from "@/services/studentApi";
@@ -157,25 +158,27 @@ const EditStudentModal = ({
       <ThemedView style={[styles.container, { backgroundColor }]}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose}>
-            <ThemedText style={[styles.headerButton, { color: primaryColor }]}>
-              Cancel
-            </ThemedText>
-          </TouchableOpacity>
+          <ThemedButton
+            title="Cancel"
+            variant="outline"
+            size="small"
+            color="primary"
+            onPress={handleClose}
+            style={styles.headerButton}
+          />
           <ThemedText style={[styles.title, { color: textColor }]}>
             Edit Student
           </ThemedText>
-          <TouchableOpacity onPress={handleSubmit} disabled={submitting}>
-            {submitting ? (
-              <ActivityIndicator size="small" color={primaryColor} />
-            ) : (
-              <ThemedText
-                style={[styles.headerButton, { color: primaryColor }]}
-              >
-                Save
-              </ThemedText>
-            )}
-          </TouchableOpacity>
+          <ThemedButton
+            title="Save"
+            variant="filled"
+            size="small"
+            color="primary"
+            loading={submitting}
+            disabled={submitting}
+            onPress={handleSubmit}
+            style={styles.headerButton}
+          />
         </View>
 
         {/* Content */}
@@ -356,8 +359,6 @@ const styles = StyleSheet.create({
     borderBottomColor: "#00000010",
   },
   headerButton: {
-    fontSize: 16,
-    fontWeight: "500",
     minWidth: 60,
   },
   title: {

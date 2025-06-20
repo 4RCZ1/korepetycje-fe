@@ -11,8 +11,8 @@ import {
 } from "react-native";
 
 import { Column } from "@/components/Schedule/Column";
+import EditLessonModal from "@/components/Schedule/EditLessonModal";
 import { ThemedText } from "@/components/ThemedText";
-import DateTimePicker from "@/components/ui/DateTimePicker";
 import ThemedButton from "@/components/ui/ThemedButton";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { LessonEntry, Schedule } from "@/services/scheduleApi";
@@ -70,9 +70,6 @@ const ScheduleContainer = ({
     item: LessonEntry;
   } | null>(null);
   const [deletingLesson, setDeletingLesson] = useState(false);
-  const [editingLesson, setEditingLesson] = useState(false);
-  const [editStartDateTime, setEditStartDateTime] = useState(new Date());
-  const [editEndDateTime, setEditEndDateTime] = useState(new Date());
   const [screenDimensions, setScreenDimensions] = useState(() => {
     const { width, height } = Dimensions.get("window");
     return { width, height };
@@ -217,21 +214,17 @@ const ScheduleContainer = ({
     }
   };
 
-  const handleEditLesson = async (editFutureLessons: boolean) => {
-    if (!selectedItem || !editStartDateTime || !editEndDateTime) return;
-
-    const { item } = selectedItem;
-    setEditingLesson(true);
-
+  const handleEditLesson = async (
+    lessonId: string,
+    startTime: string,
+    endTime: string,
+    editFutureLessons: boolean,
+  ) => {
     try {
-      // Convert Date objects to ISO 8601 datetime format
-      const startDateTime = editStartDateTime.toISOString();
-      const endDateTime = editEndDateTime.toISOString();
-
       const success = await editLesson(
-        item.lessonId,
-        startDateTime,
-        endDateTime,
+        lessonId,
+        startTime,
+        endTime,
         editFutureLessons,
       );
 
@@ -239,72 +232,17 @@ const ScheduleContainer = ({
         setEditModalVisible(false);
         setModalVisible(false);
         setSelectedItem(null);
-        setEditStartDateTime(new Date());
-        setEditEndDateTime(new Date());
-
-        alert(
-          "Success",
-          `Lesson${editFutureLessons ? " and future lessons" : ""} updated successfully.`,
-          [{ text: "OK" }],
-        );
       }
+
+      return success;
     } catch (error) {
       console.log("Failed to edit lesson:", error);
-      alert("Error", "Failed to edit lesson. Please try again.", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Retry",
-          onPress: () => handleEditLesson(editFutureLessons),
-        },
-      ]);
-    } finally {
-      setEditingLesson(false);
+      throw error;
     }
   };
 
   const handleOpenEditModal = () => {
-    if (!selectedItem) return;
-
-    // Pre-populate the edit form with current times
-    const { item } = selectedItem;
-    const lessonDate = selectedItem.date; // This should be in YYYY-MM-DD format
-
-    // Create Date objects from the lesson date and times
-    const startDateTime = new Date(`${lessonDate}T${item.startTime}:00`);
-    const endDateTime = new Date(`${lessonDate}T${item.endTime}:00`);
-
-    setEditStartDateTime(startDateTime);
-    setEditEndDateTime(endDateTime);
     setEditModalVisible(true);
-  };
-
-  const handleStartDateTimeChange = (newDateTime: Date) => {
-    setEditStartDateTime(newDateTime);
-
-    // If this is a date change, also update the end date to the same day (keeping the time)
-    if (newDateTime.toDateString() !== editStartDateTime.toDateString()) {
-      const newEndDateTime = new Date(editEndDateTime);
-      newEndDateTime.setFullYear(newDateTime.getFullYear());
-      newEndDateTime.setMonth(newDateTime.getMonth());
-      newEndDateTime.setDate(newDateTime.getDate());
-      setEditEndDateTime(newEndDateTime);
-    }
-
-    // If start time is after or equal to end time, adjust end time to be 1 minute after start time
-    if (newDateTime >= editEndDateTime) {
-      const adjustedEndTime = new Date(newDateTime.getTime() + 60 * 1000); // Add 1 minute
-      setEditEndDateTime(adjustedEndTime);
-    }
-  };
-
-  const handleEndDateTimeChange = (newDateTime: Date) => {
-    setEditEndDateTime(newDateTime);
-
-    // If end time is before start time, adjust start time to be 1 minute before end time
-    if (newDateTime <= editStartDateTime) {
-      const adjustedStartTime = new Date(newDateTime.getTime() - 60 * 1000); // Subtract 1 minute
-      setEditStartDateTime(adjustedStartTime);
-    }
   };
 
   return (
@@ -541,90 +479,12 @@ const ScheduleContainer = ({
       </Modal>
 
       {/* Edit Lesson Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
+      <EditLessonModal
         visible={editModalVisible}
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <View
-          style={[
-            styles.modalOverlay,
-            { backgroundColor: "rgba(0, 0, 0, 0.5)" },
-          ]}
-        >
-          <View
-            style={[styles.modalContent, { backgroundColor: surfaceColor }]}
-          >
-            <ThemedText style={styles.modalTitle}>Edit Lesson Time</ThemedText>
-            <ThemedText style={styles.modalText}>
-              {selectedItem?.item.description}
-            </ThemedText>
-
-            {/* Date/Time Input Section */}
-            <View style={styles.timeInputSection}>
-              <View>
-                <ThemedText style={styles.timeLabel}>Start Date:</ThemedText>
-                <DateTimePicker
-                  value={editStartDateTime}
-                  onChange={handleStartDateTimeChange}
-                  mode="date"
-                />
-              </View>
-
-              <View style={styles.timeInputRow}>
-                <View style={styles.timePickerContainer}>
-                  <ThemedText style={styles.timeLabel}>Start Time:</ThemedText>
-                  <DateTimePicker
-                    value={editStartDateTime}
-                    onChange={handleStartDateTimeChange}
-                    mode="time"
-                  />
-                </View>
-
-                <View style={styles.timePickerContainer}>
-                  <ThemedText style={styles.timeLabel}>End Time:</ThemedText>
-                  <DateTimePicker
-                    value={editEndDateTime}
-                    onChange={handleEndDateTimeChange}
-                    mode="time"
-                  />
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.editButtons}>
-              <ThemedButton
-                title="Update This Lesson Only"
-                variant="filled"
-                size="medium"
-                color="primary"
-                loading={editingLesson}
-                disabled={editingLesson}
-                onPress={() => handleEditLesson(false)}
-              />
-
-              <ThemedButton
-                title="Update This + Future Lessons"
-                variant="filled"
-                size="medium"
-                color="primary"
-                loading={editingLesson}
-                disabled={editingLesson}
-                onPress={() => handleEditLesson(true)}
-              />
-
-              <ThemedButton
-                title="Cancel"
-                variant="outline"
-                size="medium"
-                color="surface"
-                onPress={() => setEditModalVisible(false)}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setEditModalVisible(false)}
+        selectedItem={selectedItem}
+        editLesson={handleEditLesson}
+      />
     </>
   );
 };
@@ -730,26 +590,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 10,
     alignSelf: "stretch",
-  },
-  timeInputSection: {
-    alignSelf: "stretch",
-  },
-  timePickerContainer: {
-    flex: 1,
-    marginBottom: 15,
-  },
-  timeInputRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 15,
-  },
-  timeLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  editButtons: {
-    flexDirection: "column",
-    gap: 10,
   },
   modalButton: {
     flex: 1,

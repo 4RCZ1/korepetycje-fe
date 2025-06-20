@@ -63,8 +63,16 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
       lessonId: entryDTO.lessonId,
       startTimestamp,
       endTimestamp,
-      startTime: startDate.toISOString().substring(11, 16),
-      endTime: endDate.toISOString().substring(11, 16),
+      startTime: startDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
+      endTime: endDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
       description: entryDTO.description,
       lessonType: entryDTO.lessonType,
       fullyConfirmed:

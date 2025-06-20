@@ -44,9 +44,7 @@ const AddLessonModal = ({
     data: "123 Main St, City, Country",
   }; //TODO use real data
   // State for data loading
-  const [students, _setStudents] = useState<StudentType[]>([
-    { id: "1", name: "John", surname: "Doe", address },
-  ]);
+  const [students, setStudents] = useState<StudentType[]>([]);
   const [addresses, _setAddresses] = useState<AddressType[]>([address]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -88,13 +86,13 @@ const AddLessonModal = ({
   const loadData = async () => {
     setLoading(true);
     try {
-      const [_studentsResponse, _addressesResponse] = await Promise.all([
+      const [studentsResponse, _addressesResponse] = await Promise.all([
         studentApi.getStudents(),
         addressApi.getAddresses(),
       ]);
-      // if (studentsResponse.success && studentsResponse.data) {
-      //   setStudents(studentsResponse.data);
-      // }
+      if (studentsResponse.success && studentsResponse.data) {
+        setStudents(studentsResponse.data);
+      }
       // if (addressesResponse.success && addressesResponse.data) {
       //   setAddresses(addressesResponse.data);
       // }

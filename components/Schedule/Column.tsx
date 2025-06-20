@@ -30,7 +30,7 @@ export const Column = ({
   // Color system hooks
   const surfaceColor = useThemeColor({}, "surface");
   const borderColor = useThemeColor({}, "border");
-  const whiteColor = useThemeColor({}, "white", "300");
+  const whiteColor = useThemeColor({}, "white", "700");
 
   const calculatePosition = (yPos: number): number => {
     return (yPos / 100) * columnHeight;
@@ -41,7 +41,13 @@ export const Column = ({
   const daySchedule = scheduleData[date] || [];
 
   return (
-    <View key={date} style={[styles.column, { width: columnWidth }]}>
+    <View
+      key={date}
+      style={[
+        styles.column,
+        { width: columnWidth, borderColor: `${borderColor}80` },
+      ]}
+    >
       <View style={[styles.dayHeader, { backgroundColor: whiteColor }]}>
         <ThemedText style={styles.dayText}>
           {weekdayAbbr[columnIndex]}
@@ -63,7 +69,6 @@ export const Column = ({
               styles.gridLine,
               {
                 top: calculatePosition(percentage),
-                width: columnWidth - 4,
                 backgroundColor: borderColor,
               },
             ]}
@@ -84,23 +89,20 @@ export const Column = ({
           />
         ))}
       </View>
-
-      {/* Column border */}
-      <View style={[styles.columnBorder, { backgroundColor: borderColor }]} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   column: {
-    marginRight: 2,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
   },
   dayHeader: {
     height: 30,
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 4,
-    marginBottom: 4,
   },
   dayText: {
     fontSize: 12,
@@ -114,12 +116,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     height: 1,
     opacity: 0.5,
-  },
-  columnBorder: {
-    position: "absolute",
-    right: 0,
-    top: 30,
-    bottom: 0,
-    width: 1,
+    width: "100%",
   },
 });

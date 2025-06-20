@@ -60,7 +60,8 @@ const ScheduleContainer = ({
   });
 
   // Calculate dynamic values based on current screen dimensions
-  const columnWidth = (screenDimensions.width - 32) / 7; // 32 for padding
+  const containerWidth = screenDimensions.width - 32; // 32 for padding
+  const columnWidth = Math.max(100, containerWidth / 7); // Ensure minimum width of 100
   const isLandscape = screenDimensions.width > screenDimensions.height;
   const columnHeight = isLandscape ? 700 : 900; // Adjust height based on orientation
 

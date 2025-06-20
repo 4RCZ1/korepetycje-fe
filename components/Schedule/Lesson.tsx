@@ -46,7 +46,8 @@ export const Lesson = ({
   const getTextStyle = (confirmed?: boolean | null) => {
     return {
       color: getTextColor(confirmed),
-      fontSize: 9,
+      fontSize: 11,
+      lineHeight: 13,
       textAlign: "center" as const,
       fontWeight: "500" as const,
       marginBottom: 1,
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   },
   positionText: {
     fontSize: 11,
-    lineHeight: 13,
+    lineHeight: 15,
     textAlign: "center",
   },
   statusText: {

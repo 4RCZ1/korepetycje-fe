@@ -23,7 +23,10 @@ const getDaysInRange = (startDate: Date, endDate: Date): string[] => {
   const currentDate = new Date(startDate);
 
   while (currentDate <= endDate) {
-    days.push(currentDate.toISOString().split("T")[0]); // Format as YYYY-MM-DD
+    const dateString = currentDate.toLocaleDateString("en-CA", {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+    days.push(dateString);
     currentDate.setDate(currentDate.getDate() + 1);
   }
 

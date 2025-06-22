@@ -52,6 +52,7 @@ export const Column = ({
         <ThemedText style={styles.dayText}>
           {weekdayAbbr[columnIndex]}
         </ThemedText>
+        <ThemedText style={styles.dateText}>{date}</ThemedText>
       </View>
 
       {/* Schedule container with fixed height for percentage calculations */}
@@ -61,7 +62,6 @@ export const Column = ({
           { height: columnHeight, backgroundColor: surfaceColor },
         ]}
       >
-        {/* Background grid lines for visualization (optional) */}
         {[0, 25, 50, 75, 100].map((percentage) => (
           <View
             key={percentage}
@@ -106,7 +106,12 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 12,
+    lineHeight: 13,
     fontWeight: "bold",
+  },
+  dateText: {
+    fontSize: 10,
+    lineHeight: 11,
   },
   scheduleContainer: {
     position: "relative",

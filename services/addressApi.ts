@@ -23,7 +23,7 @@ export function addressConverter(addressDTO: AddressDTO): AddressType {
 export const addressApi = {
   async getAddresses(): Promise<ApiResponse<AddressType[]>> {
     try {
-      const response = await apiRequest<AddressDTO[]>("/addresses");
+      const response = await apiRequest<AddressDTO[]>("/address");
       const addresses = response.map(addressConverter);
       return { data: addresses, success: true };
     } catch (error) {
@@ -36,7 +36,7 @@ export const addressApi = {
 
   async getAddressById(id: string): Promise<ApiResponse<AddressType>> {
     try {
-      const response = await apiRequest<AddressDTO>(`/addresses/${id}`);
+      const response = await apiRequest<AddressDTO>(`/address/${id}`);
       const address = addressConverter(response);
       return { data: address, success: true };
     } catch (error) {

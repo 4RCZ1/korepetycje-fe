@@ -35,7 +35,6 @@ export interface ResetPasswordResponse {
 }
 
 export interface User {
-  id: string;
   email: string;
   role: string; // "students" or "tutors"
 }
@@ -52,7 +51,6 @@ class AuthApi {
       // Handle successful login with access token
       if (response.accessToken && response.userGroup) {
         const user: User = {
-          id: "user_id", // You might want to get this from another endpoint
           email: loginData.username,
           role: response.userGroup,
         };
@@ -72,7 +70,6 @@ class AuthApi {
           data: {
             token: "",
             user: {
-              id: "",
               email: loginData.username,
               role: "",
             },
@@ -110,7 +107,6 @@ class AuthApi {
 
       if (response.accessToken && response.userGroup) {
         const user: User = {
-          id: "user_id",
           email: changePasswordData.username,
           role: response.userGroup,
         };
@@ -186,9 +182,7 @@ class AuthApi {
       // Note: API documentation doesn't show a token verification endpoint
       // This is a placeholder implementation that would need to be replaced
       const response = {
-        id: "user_id",
         email: "user@example.com",
-        name: "User",
         role: "tutors",
       };
       return { data: response, success: true };

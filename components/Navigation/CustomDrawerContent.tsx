@@ -95,11 +95,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginHorizontal: 8,
   },
-  userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
   userEmail: {
     fontSize: 14,
     marginBottom: 4,

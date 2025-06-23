@@ -104,7 +104,11 @@ const ScheduleContainer = ({
     itemIndex: number,
     item: LessonEntry,
   ) => {
-    if (item.fullyConfirmed === undefined || item.fullyConfirmed === null) {
+    if (
+      item.fullyConfirmed === undefined ||
+      item.fullyConfirmed === null ||
+      isTutor()
+    ) {
       setSelectedItem({ date, itemIndex, item });
       setModalVisible(true);
     }

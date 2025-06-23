@@ -116,7 +116,8 @@ export const Lesson = ({
     height: height,
   };
 
-  const ItemComponent = isPending && !isConfirming ? TouchableOpacity : View;
+  const ItemComponent =
+    (isPending && !isConfirming) || isTutor() ? TouchableOpacity : View;
 
   return (
     <ItemComponent

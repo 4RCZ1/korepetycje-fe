@@ -17,23 +17,26 @@ Notifications.setNotificationHandler({
 export class NotificationService {
   private static readonly LESSON_NOTIFICATION_ID_PREFIX = "lesson_";
   private static readonly NOTIFICATION_CHANNEL_ID = "lesson-reminders";
-  
+
   /**
    * Set up the notification channel (required for Android 13+)
    */
   static async setupNotificationChannel(): Promise<void> {
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync(this.NOTIFICATION_CHANNEL_ID, {
-        name: 'Lesson Reminders',
-        description: 'Notifications for upcoming lessons',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-        sound: 'default',
-        enableVibrate: true,
-        enableLights: true,
-        showBadge: true,
-      });
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync(
+        this.NOTIFICATION_CHANNEL_ID,
+        {
+          name: "Lesson Reminders",
+          description: "Notifications for upcoming lessons",
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#FF231F7C",
+          sound: "default",
+          enableVibrate: true,
+          enableLights: true,
+          showBadge: true,
+        },
+      );
     }
   }
 
@@ -172,8 +175,17 @@ export class NotificationService {
     lessonDate: Date,
   ): Promise<void> {
     try {
+      console.log(lessonDate);
       // Calculate notification time (1 hour before lesson)
-      const notificationTime = new Date(lessonDate.getTime() - 60 * 60 * 1000);
+      const lessonTimeUTC =
+        lessonDate.getTime() + lessonDate.getTimezoneOffset() * 60000;
+      console.log(
+        "lessonTimeUTC",
+        lessonTimeUTC,
+        lessonDate.getTime(),
+        lessonDate.getTimezoneOffset(),
+      );
+      const notificationTime = new Date(lessonTimeUTC - 60 * 60 * 1000);
       const now = new Date();
 
       // Calculate seconds until notification time
@@ -196,8 +208,8 @@ export class NotificationService {
 
       const title = "Upcoming Lesson";
       const body = studentNames
-        ? `Lesson with ${studentNames} starts in 1 hour at ${lesson.startTime}`
-        : `Lesson starts in 1 hour at ${lesson.startTime}`;
+        ? `Zajęcia zaczynają się o ${lesson.startTime}`
+        : `Zajęcia zaczynają się o ${lesson.startTime}`;
 
       const notificationId = `${this.LESSON_NOTIFICATION_ID_PREFIX}${lesson.lessonId}`;
 
@@ -211,7 +223,7 @@ export class NotificationService {
             lessonStartTime: lessonDate.toISOString(),
             type: "lesson_reminder",
           },
-          ...(Platform.OS === 'android' && {
+          ...(Platform.OS === "android" && {
             channelId: this.NOTIFICATION_CHANNEL_ID,
           }),
         },
@@ -221,7 +233,11 @@ export class NotificationService {
           repeats: false,
         },
       });
-
+      console.log(
+        "timessss for notifications",
+        secondsUntilNotification,
+        notificationTime,
+      );
       console.log(
         `Scheduled notification for lesson ${lesson.lessonId} at ${notificationTime.toISOString()}`,
       );

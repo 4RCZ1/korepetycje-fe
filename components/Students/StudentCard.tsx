@@ -85,15 +85,6 @@ const StudentCard = ({
               disabled={isUpdating || isDeleting}
               onPress={() => setShowEditModal(true)}
             />
-            <ThemedButton
-              variant="outline"
-              size="small"
-              color="error"
-              icon="trash.fill"
-              loading={isDeleting}
-              disabled={isDeleting || isUpdating}
-              onPress={handleDelete}
-            />
           </View>
         </View>
 

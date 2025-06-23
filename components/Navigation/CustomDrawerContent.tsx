@@ -26,13 +26,13 @@ export default function CustomDrawerContent(
   const primaryColor = useThemeColor({}, "tint");
 
   const handleLogout = () => {
-    alert("Logout", "Are you sure you want to logout?", [
+    alert("Wyloguj", "Czy na pewno chcesz się wylogować?", [
       {
-        text: "Cancel",
+        text: "Anuluj",
         style: "cancel",
       },
       {
-        text: "Logout",
+        text: "Wyloguj",
         style: "destructive",
         onPress: logout,
       },
@@ -62,7 +62,7 @@ export default function CustomDrawerContent(
         {/* Default Drawer Items */}
         <View style={styles.drawerItems}>
           <DrawerItem
-            label={"Schedule"}
+            label={"Plan Lekcji"}
             icon={({ color }) => (
               <IconSymbol size={28} name="calendar" color={color} />
             )}
@@ -71,7 +71,7 @@ export default function CustomDrawerContent(
 
           {isTutor() && (
             <DrawerItem
-              label={"Students"}
+              label={"Uczniowie"}
               icon={({ color }) => (
                 <IconSymbol size={28} name="person" color={color} />
               )}

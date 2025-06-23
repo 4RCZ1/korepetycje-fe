@@ -97,9 +97,9 @@ export const Lesson = ({
   };
 
   const getConfirmationStatus = (confirmed?: boolean | null) => {
-    if (confirmed === true) return "Confirmed";
-    if (confirmed === false) return "Rejected";
-    return "Pending";
+    if (confirmed === true) return "Potwierdzona";
+    if (confirmed === false) return "Odrzucona";
+    return "Oczekująca";
   };
 
   const top = getTopPosition(lesson.startTimestamp, lesson.endTimestamp);

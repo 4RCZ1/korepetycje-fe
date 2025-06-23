@@ -128,7 +128,7 @@ const AddLessonModal = ({
       }
     } catch (error) {
       console.error("Failed to load data:", error);
-      alert("Error", "Failed to load students and addresses");
+      alert("Błąd", "Nie udało się załadować uczniów i adresów");
     } finally {
       setLoading(false);
     }
@@ -147,19 +147,19 @@ const AddLessonModal = ({
     );
   };
   const validateForm = (): string | null => {
-    if (!firstStartDateTime) return "First start time is required";
-    if (!firstEndDateTime) return "First end time is required";
-    if (!scheduleEndDate) return "Schedule end date is required";
+    if (!firstStartDateTime) return "Czas rozpoczęcia pierwszej lekcji jest wymagany";
+    if (!firstEndDateTime) return "Czas zakończenia pierwszej lekcji jest wymagany";
+    if (!scheduleEndDate) return "Data zakończenia planu jest wymagana";
     if (
       !periodInDays ||
       isNaN(Number(periodInDays)) ||
       Number(periodInDays) <= 0
     ) {
-      return "Valid period in days is required (must be greater than 0)";
+      return "Prawidłowy okres w dniach jest wymagany (musi być większy niż 0)";
     }
-    if (!selectedAddressId) return "Address is required";
+    if (!selectedAddressId) return "Adres jest wymagany";
     if (selectedStudentIds.length === 0)
-      return "At least one student must be selected";
+      return "Przynajmniej jeden uczeń musi być wybrany";
 
     try {
       if (
@@ -167,19 +167,19 @@ const AddLessonModal = ({
         isNaN(firstEndDateTime.getTime()) ||
         isNaN(scheduleEndDate.getTime())
       ) {
-        return "Invalid date format";
+        return "Nieprawidłowy format daty";
       }
 
       if (firstStartDateTime >= firstEndDateTime) {
-        return "Start time must be before end time";
+        return "Czas rozpoczęcia musi być przed czasem zakończenia";
       }
 
       if (scheduleEndDate <= firstStartDateTime) {
-        return "Schedule end date must be after the first lesson start time";
+        return "Data zakończenia planu musi być po czasie rozpoczęcia pierwszej lekcji";
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      return "Invalid date format";
+      return "Nieprawidłowy format daty";
     }
 
     return null;
@@ -188,7 +188,7 @@ const AddLessonModal = ({
   const handleSubmit = async () => {
     const validationError = validateForm();
     if (validationError) {
-      alert("Validation Error", validationError);
+      alert("Błąd walidacji", validationError);
       return;
     }
     setSubmitting(true);
@@ -208,14 +208,14 @@ const AddLessonModal = ({
 
       const success = await onSubmit(lessonRequest);
       if (success) {
-        alert("Success", "Lesson planned successfully");
+        alert("Sukces", "Lekcja została zaplanowana pomyślnie");
         handleClose();
       } else {
-        alert("Error", "Failed to plan lesson");
+        alert("Błąd", "Nie udało się zaplanować lekcji");
       }
     } catch (error) {
       console.error("Failed to submit lesson:", error);
-      alert("Error", "Failed to plan lesson");
+      alert("Błąd", "Nie udało się zaplanować lekcji");
     } finally {
       setSubmitting(false);
     }
@@ -230,7 +230,7 @@ const AddLessonModal = ({
     >
       <ThemedView style={[styles.container, { backgroundColor }]}>
         <View style={[styles.header, { backgroundColor: surfaceColor }]}>
-          <ThemedText style={styles.title}>Add New Lesson</ThemedText>
+          <ThemedText style={styles.title}>Dodaj Nową Lekcję</ThemedText>
           <ThemedButton
             title="✕"
             variant="outline"
@@ -244,7 +244,7 @@ const AddLessonModal = ({
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={primaryColor} />
-            <ThemedText style={styles.loadingText}>Loading data...</ThemedText>
+            <ThemedText style={styles.loadingText}>Ładowanie danych...</ThemedText>
           </View>
         ) : (
           <ScrollView
@@ -253,23 +253,23 @@ const AddLessonModal = ({
           >
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
-                <ThemedText style={styles.sectionTitle}>Date & Time</ThemedText>
+                <ThemedText style={styles.sectionTitle}>Data i Godzina</ThemedText>
 
                 <View style={styles.dateTimeGroup}>
-                  <ThemedText style={styles.label}>Lesson Date</ThemedText>
+                  <ThemedText style={styles.label}>Data Lekcji</ThemedText>
                   <DateTimePicker
                     value={firstStartDateTime}
                     onChange={handleStartDateTimeChange}
                     mode="date"
                   />
                   <ThemedText style={styles.helperText}>
-                    Select the date for the first lesson
+                    Wybierz datę pierwszej lekcji
                   </ThemedText>
                 </View>
 
                 <View style={styles.timeRow}>
                   <View style={styles.timePickerContainer}>
-                    <ThemedText style={styles.label}>Start Time</ThemedText>
+                    <ThemedText style={styles.label}>Godzina Rozpoczęcia</ThemedText>
                     <DateTimePicker
                       value={firstStartDateTime}
                       onChange={handleStartDateTimeChange}
@@ -278,7 +278,7 @@ const AddLessonModal = ({
                   </View>
 
                   <View style={styles.timePickerContainer}>
-                    <ThemedText style={styles.label}>End Time</ThemedText>
+                    <ThemedText style={styles.label}>Godzina Zakończenia</ThemedText>
                     <DateTimePicker
                       value={firstEndDateTime}
                       onChange={handleEndDateTimeChange}
@@ -288,14 +288,13 @@ const AddLessonModal = ({
                 </View>
 
                 <ThemedText style={styles.helperText}>
-                  Lessons cannot span multiple days. End time will be on the
-                  same date.
+                  Lekcje nie mogą obejmować wielu dni. Godzina zakończenia będzie tego samego dnia.
                 </ThemedText>
               </View>
 
               <View style={styles.inputGroup}>
                 <ThemedText style={styles.label}>
-                  Schedule End Date *
+                  Data Zakończenia Planu *
                 </ThemedText>
                 <DateTimePicker
                   value={scheduleEndDate}
@@ -303,13 +302,12 @@ const AddLessonModal = ({
                   mode="date"
                 />
                 <ThemedText style={styles.helperText}>
-                  When to stop repeating lessons (time will be set to end of
-                  day)
+                  Kiedy zakończyć powtarzanie lekcji (godzina zostanie ustawiona na koniec dnia)
                 </ThemedText>
               </View>
               {/* Period in Days */}
               <View style={styles.inputGroup}>
-                <ThemedText style={styles.label}>Period in Days *</ThemedText>
+                <ThemedText style={styles.label}>Okres w Dniach *</ThemedText>
                 <TextInput
                   style={[
                     styles.input,
@@ -322,12 +320,12 @@ const AddLessonModal = ({
                   placeholderTextColor={textColor + "80"}
                 />
                 <ThemedText style={styles.helperText}>
-                  How often to repeat (e.g., 7 for weekly, 14 for bi-weekly)
+                  Jak często powtarzać (np. 7 dla co tydzień, 14 dla co dwa tygodnie)
                 </ThemedText>
               </View>
               {/* Address Selection */}
               <View style={styles.inputGroup}>
-                <ThemedText style={styles.label}>Address *</ThemedText>
+                <ThemedText style={styles.label}>Adres *</ThemedText>
                 <View
                   style={[
                     styles.pickerContainer,
@@ -339,7 +337,7 @@ const AddLessonModal = ({
                     onValueChange={setSelectedAddressId}
                     style={[styles.picker, { color: textColor }]}
                   >
-                    <Picker.Item label="Select an address..." value="" />
+                    <Picker.Item label="Wybierz adres..." value="" />
                     {addresses.map((address) => (
                       <Picker.Item
                         key={address.id}
@@ -353,7 +351,7 @@ const AddLessonModal = ({
               {/* Students Selection */}
               <View style={styles.inputGroup}>
                 <ThemedText style={styles.label}>
-                  Students * (Select at least one)
+                  Uczniowie * (Wybierz co najmniej jednego)
                 </ThemedText>
                 <View style={styles.studentsContainer}>
                   {students.map((student) => (
@@ -390,7 +388,7 @@ const AddLessonModal = ({
               </View>
               {/* Submit Button */}
               <ThemedButton
-                title="Plan Lesson"
+                title="Zaplanuj Lekcję"
                 variant="filled"
                 size="large"
                 color="primary"

@@ -83,7 +83,7 @@ const EditStudentModal = ({
     if (!student) return;
 
     if (!name.trim() || !surname.trim()) {
-      alert("Error", "Please fill in all required fields");
+      alert("Błąd", "Wypełnij wszystkie wymagane pola");
       return;
     }
 
@@ -118,7 +118,7 @@ const EditStudentModal = ({
 
       // Only submit if there are actual changes
       if (Object.keys(updateData).length === 0) {
-        alert("Info", "No changes to save");
+        alert("Informacja", "Brak zmian do zapisania");
         return;
       }
 
@@ -159,7 +159,7 @@ const EditStudentModal = ({
         {/* Header */}
         <View style={styles.header}>
           <ThemedButton
-            title="Cancel"
+            title="Anuluj"
             variant="outline"
             size="small"
             color="primary"
@@ -167,10 +167,10 @@ const EditStudentModal = ({
             style={styles.headerButton}
           />
           <ThemedText style={[styles.title, { color: textColor }]}>
-            Edit Student
+            Edytuj Ucznia
           </ThemedText>
           <ThemedButton
-            title="Save"
+            title="Zapisz"
             variant="filled"
             size="small"
             color="primary"
@@ -187,7 +187,7 @@ const EditStudentModal = ({
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={primaryColor} />
               <ThemedText style={[styles.loadingText, { color: textColor }]}>
-                Loading...
+                Ładowanie...
               </ThemedText>
             </View>
           ) : (
@@ -197,12 +197,12 @@ const EditStudentModal = ({
                 style={[styles.section, { backgroundColor: surfaceColor }]}
               >
                 <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-                  Student Information
+                  Informacje o Uczniu
                 </ThemedText>
 
                 <View style={styles.field}>
                   <ThemedText style={[styles.label, { color: textColor }]}>
-                    First Name *
+                    Imię *
                   </ThemedText>
                   <TextInput
                     style={[
@@ -211,14 +211,14 @@ const EditStudentModal = ({
                     ]}
                     value={name}
                     onChangeText={setName}
-                    placeholder="Enter first name"
+                    placeholder="Wpisz imię"
                     placeholderTextColor={textColor + "60"}
                   />
                 </View>
 
                 <View style={styles.field}>
                   <ThemedText style={[styles.label, { color: textColor }]}>
-                    Last Name *
+                    Nazwisko *
                   </ThemedText>
                   <TextInput
                     style={[
@@ -227,7 +227,7 @@ const EditStudentModal = ({
                     ]}
                     value={surname}
                     onChangeText={setSurname}
-                    placeholder="Enter last name"
+                    placeholder="Wpisz nazwisko"
                     placeholderTextColor={textColor + "60"}
                   />
                 </View>
@@ -238,7 +238,7 @@ const EditStudentModal = ({
                 style={[styles.section, { backgroundColor: surfaceColor }]}
               >
                 <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-                  Address
+                  Adres
                 </ThemedText>
 
                 <View style={styles.addressModeContainer}>
@@ -262,7 +262,7 @@ const EditStudentModal = ({
                         },
                       ]}
                     >
-                      Use Existing
+                      Użyj Istniejący
                     </ThemedText>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -285,14 +285,14 @@ const EditStudentModal = ({
                         },
                       ]}
                     >
-                      Create New
+                      Utwórz Nowy
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.field}>
                   <ThemedText style={[styles.label, { color: textColor }]}>
-                    Current Address: {student.address.name}
+                    Obecny Adres: {student.address.name}
                   </ThemedText>
                   <ThemedText
                     style={[styles.addressData, { color: textColor + "60" }]}
@@ -304,7 +304,7 @@ const EditStudentModal = ({
                 {editMode === "existing" && (
                   <View style={styles.field}>
                     <ThemedText style={[styles.label, { color: textColor }]}>
-                      Select Address
+                      Wybierz Adres
                     </ThemedText>
                     <ScrollView style={styles.addressList} nestedScrollEnabled>
                       {addresses.map((address) => (

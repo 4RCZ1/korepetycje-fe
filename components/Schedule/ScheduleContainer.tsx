@@ -171,17 +171,17 @@ const ScheduleContainer = ({
         setSelectedItem(null);
 
         alert(
-          "Success",
-          `Meeting has been ${confirmed ? "confirmed" : "rejected"}.`,
+          "Sukces",
+          `Spotkanie zostało ${confirmed ? "potwierdzone" : "odrzucone"}.`,
           [{ text: "OK" }],
         );
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Error is already handled in the hook and displayed in the UI
-      alert("Error", "Failed to update meeting status. Please try again.", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Retry", onPress: () => handleConfirmation(confirmed) },
+      alert("Błąd", "Nie udało się zaktualizować statusu spotkania. Spróbuj ponownie.", [
+        { text: "Anuluj", style: "cancel" },
+        { text: "Ponów", onPress: () => handleConfirmation(confirmed) },
       ]);
     }
   };
@@ -201,17 +201,17 @@ const ScheduleContainer = ({
         setSelectedItem(null);
 
         alert(
-          "Success",
-          `Lesson${deleteFutureLessons ? " and future lessons" : ""} deleted successfully.`,
+          "Sukces",
+          `Lekcja${deleteFutureLessons ? " i przyszłe lekcje" : ""} została usunięta pomyślnie.`,
           [{ text: "OK" }],
         );
       }
     } catch (error) {
       console.log("Failed to delete lesson:", error);
-      alert("Error", "Failed to delete lesson. Please try again.", [
-        { text: "Cancel", style: "cancel" },
+      alert("Błąd", "Nie udało się usunąć lekcji. Spróbuj ponownie.", [
+        { text: "Anuluj", style: "cancel" },
         {
-          text: "Retry",
+          text: "Ponów",
           onPress: () => handleDeleteLesson(deleteFutureLessons),
         },
       ]);
@@ -301,7 +301,7 @@ const ScheduleContainer = ({
                 style={[styles.modalContent, { backgroundColor: surfaceColor }]}
               >
                 <ThemedText style={styles.modalTitle}>
-                  Lesson Details
+                  Szczegóły Lekcji
                 </ThemedText>
 
                 <View style={styles.lessonDetails}>
@@ -311,17 +311,17 @@ const ScheduleContainer = ({
 
                   {selectedItem?.item.lessonType && (
                     <ThemedText style={styles.modalSubtext}>
-                      Type: {selectedItem.item.lessonType}
+                      Typ: {selectedItem.item.lessonType}
                     </ThemedText>
                   )}
 
                   <ThemedText style={styles.modalSubtext}>
-                    Time: {selectedItem?.item.startTime} -{" "}
+                    Czas: {selectedItem?.item.startTime} -{" "}
                     {selectedItem?.item.endTime}
                   </ThemedText>
 
                   <ThemedText style={styles.modalSubtext}>
-                    Address: {selectedItem?.item.address}
+                    Adres: {selectedItem?.item.address}
                   </ThemedText>
 
                   {/* Attendances */}
@@ -329,7 +329,7 @@ const ScheduleContainer = ({
                     selectedItem.item.attendances.length > 0 && (
                       <View style={styles.attendancesSection}>
                         <ThemedText style={styles.attendancesTitle}>
-                          Students:
+                          Uczniowie:
                         </ThemedText>
                         {selectedItem.item.attendances.map(
                           (attendance, index) => (
@@ -356,10 +356,10 @@ const ScheduleContainer = ({
                                 ]}
                               >
                                 {attendance.confirmed === true
-                                  ? "Confirmed"
+                                  ? "Potwierdzona"
                                   : attendance.confirmed === false
-                                    ? "Rejected"
-                                    : "Pending"}
+                                    ? "Odrzucona"
+                                    : "Oczekująca"}
                               </ThemedText>
                             </View>
                           ),
@@ -370,7 +370,7 @@ const ScheduleContainer = ({
                 {isTutor() ? (
                   <View style={styles.secondaryButtons}>
                     <ThemedButton
-                      title="Edit Lesson"
+                      title="Edytuj Lekcję"
                       variant="outline"
                       size="small"
                       color="primary"
@@ -379,7 +379,7 @@ const ScheduleContainer = ({
                     />
 
                     <ThemedButton
-                      title="Delete Lesson"
+                      title="Usuń Lekcję"
                       variant="outline"
                       size="small"
                       color="error"
@@ -388,7 +388,7 @@ const ScheduleContainer = ({
                     />
 
                     <ThemedButton
-                      title="Cancel"
+                      title="Anuluj"
                       variant="outline"
                       size="small"
                       color="surface"
@@ -399,7 +399,7 @@ const ScheduleContainer = ({
                 ) : (
                   <View style={styles.primaryButtons}>
                     <ThemedButton
-                      title="Confirm"
+                      title="Potwierdź"
                       variant="filled"
                       size="medium"
                       color="primary"
@@ -418,7 +418,7 @@ const ScheduleContainer = ({
                     />
 
                     <ThemedButton
-                      title="Reject"
+                      title="Odrzuć"
                       variant="filled"
                       size="medium"
                       color="error"
@@ -459,9 +459,9 @@ const ScheduleContainer = ({
           <View
             style={[styles.modalContent, { backgroundColor: surfaceColor }]}
           >
-            <ThemedText style={styles.modalTitle}>Delete Lesson</ThemedText>
+            <ThemedText style={styles.modalTitle}>Usuń Lekcję</ThemedText>
             <ThemedText style={styles.modalText}>
-              Are you sure you want to delete this lesson?
+              Czy na pewno chcesz usunąć tę lekcję?
             </ThemedText>
             <ThemedText style={styles.modalSubtext}>
               {selectedItem?.item.description}
@@ -469,7 +469,7 @@ const ScheduleContainer = ({
 
             <View style={styles.deleteButtons}>
               <ThemedButton
-                title="Delete This Lesson Only"
+                title="Usuń Tylko Tę Lekcję"
                 variant="filled"
                 size="medium"
                 color="error"
@@ -479,7 +479,7 @@ const ScheduleContainer = ({
               />
 
               <ThemedButton
-                title="Delete This + Future Lessons"
+                title="Usuń Tę + Przyszłe Lekcje"
                 variant="filled"
                 size="medium"
                 color="error"
@@ -489,7 +489,7 @@ const ScheduleContainer = ({
               />
 
               <ThemedButton
-                title="Cancel"
+                title="Anuluj"
                 variant="outline"
                 size="medium"
                 color="surface"

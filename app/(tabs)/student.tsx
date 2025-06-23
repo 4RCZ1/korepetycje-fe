@@ -66,13 +66,13 @@ export default function StudentsScreen() {
       <ThemedView style={[styles.container, { backgroundColor }]}>
         <View style={styles.header}>
           <ThemedText style={[styles.title, { color: textColor }]}>
-            Students
+            Uczniowie
           </ThemedText>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={primaryColor} />
           <ThemedText style={[styles.loadingText, { color: textColor }]}>
-            Loading students...
+            Ładowanie uczniów...
           </ThemedText>
         </View>
       </ThemedView>
@@ -83,10 +83,10 @@ export default function StudentsScreen() {
     <ThemedView style={[styles.container, { backgroundColor }]}>
       <View style={styles.header}>
         <ThemedText style={[styles.title, { color: textColor }]}>
-          Students
+          Uczniowie
         </ThemedText>
         <ThemedButton
-          title="Add Student"
+          title="Dodaj Ucznia"
           variant="filled"
           size="medium"
           color="primary"
@@ -105,7 +105,7 @@ export default function StudentsScreen() {
             {error}
           </ThemedText>
           <ThemedButton
-            title="Retry"
+            title="Ponów"
             variant="outline"
             size="small"
             color="error"
@@ -129,13 +129,13 @@ export default function StudentsScreen() {
         {students.length === 0 ? (
           <View style={styles.emptyContainer}>
             <ThemedText style={[styles.emptyTitle, { color: textColor }]}>
-              No Students Yet
+              Nie masz jeszcze uczniów
             </ThemedText>
             <ThemedText style={[styles.emptyText, { color: textColor + "80" }]}>
-              Add your first student to get started
+              Dodaj pierwszego ucznia, aby rozpocząć
             </ThemedText>
             <ThemedButton
-              title="Add Student"
+              title="Dodaj Ucznia"
               variant="filled"
               size="large"
               color="primary"

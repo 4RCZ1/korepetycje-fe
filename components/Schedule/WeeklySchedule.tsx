@@ -65,11 +65,11 @@ const WeeklySchedule = () => {
         />
         <View>
           <ThemedText type={"primary"} style={styles.title}>
-            Weekly Schedule
+            Plan Lekcji
           </ThemedText>
           {isTutor() && (
             <ThemedButton
-              title="Add Lesson"
+              title="Dodaj Lekcję"
               variant="filled"
               size="medium"
               color="primary"

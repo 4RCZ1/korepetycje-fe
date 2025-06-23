@@ -34,6 +34,7 @@ export interface UseAuthState extends AuthState {
   ) => Promise<boolean>;
   clearError: () => void;
   initialize: () => Promise<void>;
+  isTutor: () => boolean;
 }
 
 // Singleton Auth Manager
@@ -72,6 +73,10 @@ class AuthManager {
 
   getState(): AuthState {
     return this.state;
+  }
+
+  isTutor(): boolean {
+    return this.state.user?.role === "tutors";
   }
 
   isInitialized(): boolean {
@@ -304,6 +309,7 @@ export function useAuth(): UseAuthState {
     changePassword: authManager.changePassword.bind(authManager),
     clearError: authManager.clearError.bind(authManager),
     initialize: authManager.initialize.bind(authManager),
+    isTutor: authManager.isTutor.bind(authManager),
   };
 }
 

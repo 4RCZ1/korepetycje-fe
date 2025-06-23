@@ -40,7 +40,10 @@ type ScheduleProps = {
   refreshing: boolean;
   onRefresh: () => void;
   confirmingLessons: Set<string>;
-  confirmMeeting: (lessonId: string, isConfirmed: boolean) => Promise<boolean>;
+  confirmMeeting: (
+    lessonId: string,
+    isConfirmed: boolean,
+  ) => Promise<boolean | string>;
   deleteLesson: (
     lessonId: string,
     deleteFutureLessons: boolean,
@@ -165,6 +168,12 @@ const ScheduleContainer = ({
 
     try {
       const success = await confirmMeeting(item.lessonId, confirmed);
+      if (typeof success === "string") {
+        setModalVisible(false);
+        setSelectedItem(null);
+        alert("Błąd", success);
+        return;
+      }
 
       if (success) {
         setModalVisible(false);
@@ -179,10 +188,14 @@ const ScheduleContainer = ({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Error is already handled in the hook and displayed in the UI
-      alert("Błąd", "Nie udało się zaktualizować statusu spotkania. Spróbuj ponownie.", [
-        { text: "Anuluj", style: "cancel" },
-        { text: "Ponów", onPress: () => handleConfirmation(confirmed) },
-      ]);
+      alert(
+        "Błąd",
+        "Nie udało się zaktualizować statusu spotkania. Spróbuj ponownie.",
+        [
+          { text: "Anuluj", style: "cancel" },
+          { text: "Ponów", onPress: () => handleConfirmation(confirmed) },
+        ],
+      );
     }
   };
 

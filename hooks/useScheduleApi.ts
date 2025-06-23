@@ -9,7 +9,10 @@ export interface UseScheduleApiState {
   loading: boolean;
   error: string | null;
   refetch: (offset?: number) => Promise<void>;
-  confirmMeeting: (lessonId: string, isConfirmed: boolean) => Promise<boolean>;
+  confirmMeeting: (
+    lessonId: string,
+    isConfirmed: boolean,
+  ) => Promise<boolean | string>;
   deleteLesson: (
     lessonId: string,
     deleteFutureLessons: boolean,
@@ -33,50 +36,59 @@ export function useScheduleApi(
   const [confirmingLessons, setConfirmingLessons] = useState<Set<string>>(
     new Set(),
   );
-  const fetchSchedule = useCallback(async (offset: number = 0) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchSchedule = useCallback(
+    async (_offset: number = offset) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const data = await scheduleApi.getWeekSchedule(offset);
-      setScheduleData(data);
+        const data = await scheduleApi.getWeekSchedule(_offset);
+        setScheduleData(data);
 
-      // Schedule notifications for upcoming lessons
-      await NotificationService.scheduleNotificationsForLessons(data);
-    } catch (err) {
-      const apiError = err as ApiClientError;
+        // Schedule notifications for upcoming lessons
+        await NotificationService.scheduleNotificationsForLessons(data);
+      } catch (err) {
+        const apiError = err as ApiClientError;
 
-      // Provide user-friendly error messages
-      let errorMessage = "Failed to load schedule";
+        // Provide user-friendly error messages
+        let errorMessage = "Failed to load schedule";
 
-      if (apiError.code === "NETWORK_ERROR") {
-        errorMessage = "No internet connection. Please check your network.";
-      } else if (apiError.code === "TIMEOUT") {
-        errorMessage = "Request timed out. Please try again.";
-      } else if (apiError.status === 401) {
-        errorMessage = "Authentication required. Please log in.";
-      } else if (apiError.status === 403) {
-        errorMessage = "Access denied. You don't have permission.";
-      } else if (apiError.status >= 500) {
-        errorMessage = "Server error. Please try again later.";
+        if (apiError.code === "NETWORK_ERROR") {
+          errorMessage = "No internet connection. Please check your network.";
+        } else if (apiError.code === "TIMEOUT") {
+          errorMessage = "Request timed out. Please try again.";
+        } else if (apiError.status === 401) {
+          errorMessage = "Authentication required. Please log in.";
+        } else if (apiError.status === 403) {
+          errorMessage = "Access denied. You don't have permission.";
+        } else if (apiError.status >= 500) {
+          errorMessage = "Server error. Please try again later.";
+        }
+
+        setError(errorMessage);
+        console.error("Schedule fetch error:", apiError);
+      } finally {
+        setLoading(false);
       }
-
-      setError(errorMessage);
-      console.error("Schedule fetch error:", apiError);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [offset],
+  );
 
   const confirmMeeting = useCallback(
-    async (lessonId: string, isConfirmed: boolean): Promise<boolean> => {
+    async (
+      lessonId: string,
+      isConfirmed: boolean,
+    ): Promise<boolean | string> => {
       try {
         // Add to confirming set for loading state
         setConfirmingLessons((prev) => new Set(prev).add(lessonId));
         setError(null);
 
         const result = await scheduleApi.confirmMeeting(lessonId, isConfirmed);
-        if (!result?.confirmed) {
+        if (typeof result === "string" && result !== "") {
+          return result;
+        }
+        if (result !== "") {
           return false;
         }
         // Update local state optimistically
@@ -101,6 +113,7 @@ export function useScheduleApi(
 
           return newData;
         });
+        fetchSchedule(); // Refresh data after confirmation
 
         return true;
       } catch (err) {
@@ -147,7 +160,7 @@ export function useScheduleApi(
 
         if (success) {
           // Refresh the schedule data after deletion
-          await fetchSchedule(offset);
+          await fetchSchedule();
         }
 
         return success;
@@ -162,7 +175,7 @@ export function useScheduleApi(
         } else if (apiError.status === 404) {
           errorMessage = "Lesson not found. It may have already been deleted.";
           // Refresh data on not found
-          fetchSchedule(offset);
+          fetchSchedule();
         } else if (apiError.status === 403) {
           errorMessage =
             "Access denied. You don't have permission to delete this lesson.";
@@ -173,7 +186,7 @@ export function useScheduleApi(
         return false;
       }
     },
-    [fetchSchedule, offset],
+    [fetchSchedule],
   );
 
   // Edit lesson
@@ -193,12 +206,8 @@ export function useScheduleApi(
           editFutureLessons,
         });
 
-        if (success) {
-          // Refresh the schedule data after editing
-          await fetchSchedule(offset);
-        }
-
-        return Boolean(success);
+        await fetchSchedule();
+        return success === "";
       } catch (err) {
         console.log("Failed to edit lesson:", err);
         const apiError = err as ApiClientError;
@@ -210,7 +219,7 @@ export function useScheduleApi(
         } else if (apiError.status === 404) {
           errorMessage = "Lesson not found. It may have been deleted.";
           // Refresh data on not found
-          fetchSchedule(offset);
+          fetchSchedule();
         } else if (apiError.status === 403) {
           errorMessage =
             "Access denied. You don't have permission to edit this lesson.";
@@ -223,13 +232,13 @@ export function useScheduleApi(
         return false;
       }
     },
-    [fetchSchedule, offset],
+    [fetchSchedule],
   );
 
   // Initial data fetch
   useEffect(() => {
     if (!fetchOnRender) return;
-    fetchSchedule(offset);
+    fetchSchedule();
   }, [fetchOnRender, fetchSchedule, offset]);
 
   return {

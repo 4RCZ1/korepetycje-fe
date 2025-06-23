@@ -54,7 +54,7 @@ export default function CustomDrawerContent(
               {user.email}
             </ThemedText>
             <ThemedText style={[styles.userRole, { color: primaryColor }]}>
-              {user.role}
+              {isTutor() ? "Korepetytor" : "Uczeń"}
             </ThemedText>
           </ThemedView>
         )}
@@ -86,7 +86,7 @@ export default function CustomDrawerContent(
         style={[styles.logoutSection, { backgroundColor: surfaceColor }]}
       >
         <ThemedButton
-          title="Logout"
+          title="Wyloguj się"
           variant="outline"
           size="medium"
           color="error"

@@ -77,11 +77,11 @@ export function scheduleConverter(scheduleDTO: ScheduleDTO): Schedule {
       lessonType: entryDTO.lessonType,
       fullyConfirmed:
         entryDTO.attendances.every((e) => Boolean(e.confirmed)) ||
-        entryDTO.attendances.every(
+        (entryDTO.attendances.every(
           (e) => e.confirmed === undefined || e.confirmed === null,
         )
           ? null
-          : false,
+          : false),
       attendances: entryDTO.attendances.map((attendance) => ({
         studentName: attendance.studentName,
         studentSurname: attendance.studentSurname,
@@ -175,19 +175,19 @@ export const scheduleApi = {
   async confirmMeeting(
     lessonId: string,
     isConfirmed: boolean,
-  ): Promise<ConfirmMeetingResponse | null> {
+  ): Promise<null | string> {
     try {
-      const response = await apiRequest<ConfirmMeetingResponse>(
-        `/lesson/${lessonId}/confirm`,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            confirmed: isConfirmed,
-          }),
-        },
-      );
+      const response = await apiRequest<string>(`/lesson/${lessonId}/confirm`, {
+        method: "PUT",
+        body: JSON.stringify({
+          confirmed: isConfirmed,
+        }),
+      });
       return response;
     } catch (error) {
+      if (error instanceof ApiClientError && error.status === 400) {
+        return error.message;
+      }
       console.error("Failed to confirm meeting:", error);
       throw error;
     }

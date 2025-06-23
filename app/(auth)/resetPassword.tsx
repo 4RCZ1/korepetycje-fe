@@ -139,7 +139,7 @@ const PasswordScreen = () => {
                 <ThemedText
                   style={[styles.emailDisplay, { color: primaryColor }]}
                 >
-                  Account: {username}
+                  Konto: {username}
                 </ThemedText>
               )}
             </View>

@@ -16,7 +16,7 @@ export type ColumnProps = {
   confirmingLessons: Set<string>;
 };
 
-const weekdayAbbr = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const weekdayAbbr = ["Pon", "Wt", "śr", "Czw", "Pt", "Sob", "Nd"];
 
 export const Column = ({
   date,

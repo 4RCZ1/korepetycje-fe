@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ScrollView, RefreshControl } from "react-native";
 
 import AddLessonModal from "@/components/Schedule/AddLessonModal";
 import ScheduleContainer from "@/components/Schedule/ScheduleContainer";
@@ -54,7 +54,12 @@ const WeeklySchedule = () => {
   };
 
   return (
-    <>
+    <ScrollView
+      contentContainerStyle={styles.scrollViewContent}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View style={styles.buttonContainer}>
         <ThemedButton
           icon="chevron.left"
@@ -101,11 +106,14 @@ const WeeklySchedule = () => {
         onClose={() => setAddLessonModalVisible(false)}
         onSubmit={handleAddLesson}
       />
-    </>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollViewContent: {
+    flexGrow: 1,
+  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",

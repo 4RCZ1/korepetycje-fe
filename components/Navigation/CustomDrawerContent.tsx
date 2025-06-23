@@ -1,13 +1,14 @@
 import {
   DrawerContentScrollView,
-  DrawerItemList,
   type DrawerContentComponentProps,
+  DrawerItem,
 } from "@react-navigation/drawer";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 import ThemedButton from "@/components/ui/ThemedButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -16,7 +17,7 @@ import alert from "@/utils/alert";
 export default function CustomDrawerContent(
   props: DrawerContentComponentProps,
 ) {
-  const { user, logout } = useAuth();
+  const { isTutor, user, logout } = useAuth();
 
   // Colors
   const backgroundColor = useThemeColor({}, "background");
@@ -60,7 +61,23 @@ export default function CustomDrawerContent(
 
         {/* Default Drawer Items */}
         <View style={styles.drawerItems}>
-          <DrawerItemList {...props} />
+          <DrawerItem
+            label={"Schedule"}
+            icon={({ color }) => (
+              <IconSymbol size={28} name="calendar" color={color} />
+            )}
+            onPress={() => props.navigation.navigate("schedule")}
+          />
+
+          {isTutor() && (
+            <DrawerItem
+              label={"Students"}
+              icon={({ color }) => (
+                <IconSymbol size={28} name="person" color={color} />
+              )}
+              onPress={() => props.navigation.navigate("student")}
+            />
+          )}
         </View>
       </DrawerContentScrollView>
 

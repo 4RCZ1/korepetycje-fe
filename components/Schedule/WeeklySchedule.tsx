@@ -5,12 +5,14 @@ import AddLessonModal from "@/components/Schedule/AddLessonModal";
 import ScheduleContainer from "@/components/Schedule/ScheduleContainer";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedButton from "@/components/ui/ThemedButton";
+import { useAuth } from "@/hooks/useAuth";
 import { useScheduleApi } from "@/hooks/useScheduleApi";
 import { LessonRequest, scheduleApi } from "@/services/scheduleApi";
 import { getWeekStartEndDates } from "@/utils/dates";
 
 const WeeklySchedule = () => {
   const [offset, setOffset] = useState(0);
+  const { isTutor } = useAuth();
   const {
     scheduleData,
     refetch,
@@ -65,13 +67,15 @@ const WeeklySchedule = () => {
           <ThemedText type={"primary"} style={styles.title}>
             Weekly Schedule
           </ThemedText>
-          <ThemedButton
-            title="Add Lesson"
-            variant="filled"
-            size="medium"
-            color="primary"
-            onPress={() => setAddLessonModalVisible(true)}
-          />
+          {isTutor() && (
+            <ThemedButton
+              title="Add Lesson"
+              variant="filled"
+              size="medium"
+              color="primary"
+              onPress={() => setAddLessonModalVisible(true)}
+            />
+          )}
         </View>
         <ThemedButton
           icon="chevron.right"

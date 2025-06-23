@@ -7,6 +7,7 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -14,6 +15,7 @@ import { Column } from "@/components/Schedule/Column";
 import EditLessonModal from "@/components/Schedule/EditLessonModal";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedButton from "@/components/ui/ThemedButton";
+import { useAuth } from "@/hooks/useAuth";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { LessonEntry, Schedule } from "@/services/scheduleApi";
 import alert from "@/utils/alert";
@@ -64,6 +66,7 @@ const ScheduleContainer = ({
   startDate,
   endDate,
 }: ScheduleProps) => {
+  const { isTutor } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -248,6 +251,12 @@ const ScheduleContainer = ({
     setEditModalVisible(true);
   };
 
+  const closeEditModal = () => {
+    setEditModalVisible(false);
+    setModalVisible(false);
+    setSelectedItem(null);
+  };
+
   return (
     <>
       <ScrollView
@@ -280,148 +289,158 @@ const ScheduleContainer = ({
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View
-          style={[
-            styles.modalOverlay,
-            { backgroundColor: "rgba(0, 0, 0, 0.5)" },
-          ]}
-        >
+        <TouchableWithoutFeedback onPress={closeEditModal}>
           <View
-            style={[styles.modalContent, { backgroundColor: surfaceColor }]}
+            style={[
+              styles.modalOverlay,
+              { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+            ]}
           >
-            <ThemedText style={styles.modalTitle}>Lesson Details</ThemedText>
-
-            <View style={styles.lessonDetails}>
-              <ThemedText style={styles.modalText}>
-                {selectedItem?.item.description}
-              </ThemedText>
-
-              {selectedItem?.item.lessonType && (
-                <ThemedText style={styles.modalSubtext}>
-                  Type: {selectedItem.item.lessonType}
+            <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+              <View
+                style={[styles.modalContent, { backgroundColor: surfaceColor }]}
+              >
+                <ThemedText style={styles.modalTitle}>
+                  Lesson Details
                 </ThemedText>
-              )}
 
-              <ThemedText style={styles.modalSubtext}>
-                Time: {selectedItem?.item.startTime} -{" "}
-                {selectedItem?.item.endTime}
-              </ThemedText>
+                <View style={styles.lessonDetails}>
+                  <ThemedText style={styles.modalText}>
+                    {selectedItem?.item.description}
+                  </ThemedText>
 
-              <ThemedText style={styles.modalSubtext}>
-                Address: {selectedItem?.item.address}
-              </ThemedText>
-
-              {/* Attendances */}
-              {selectedItem?.item.attendances &&
-                selectedItem.item.attendances.length > 0 && (
-                  <View style={styles.attendancesSection}>
-                    <ThemedText style={styles.attendancesTitle}>
-                      Students:
+                  {selectedItem?.item.lessonType && (
+                    <ThemedText style={styles.modalSubtext}>
+                      Type: {selectedItem.item.lessonType}
                     </ThemedText>
-                    {selectedItem.item.attendances.map((attendance, index) => (
-                      <View key={index} style={styles.attendanceItem}>
-                        <ThemedText style={styles.attendanceText}>
-                          {attendance.studentName} {attendance.studentSurname}
+                  )}
+
+                  <ThemedText style={styles.modalSubtext}>
+                    Time: {selectedItem?.item.startTime} -{" "}
+                    {selectedItem?.item.endTime}
+                  </ThemedText>
+
+                  <ThemedText style={styles.modalSubtext}>
+                    Address: {selectedItem?.item.address}
+                  </ThemedText>
+
+                  {/* Attendances */}
+                  {selectedItem?.item.attendances &&
+                    selectedItem.item.attendances.length > 0 && (
+                      <View style={styles.attendancesSection}>
+                        <ThemedText style={styles.attendancesTitle}>
+                          Students:
                         </ThemedText>
-                        <ThemedText
-                          style={[
-                            styles.attendanceStatus,
-                            attendance.confirmed === true && {
-                              backgroundColor: confirmedBackgroundColor,
-                              color: confirmedTextColor,
-                            },
-                            attendance.confirmed === false && {
-                              backgroundColor: rejectedBackgroundColor,
-                              color: rejectedTextColor,
-                            },
-                            attendance.confirmed === null && {
-                              backgroundColor: pendingBackgroundColor,
-                              color: pendingTextColor,
-                            },
-                          ]}
-                        >
-                          {attendance.confirmed === true
-                            ? "Confirmed"
-                            : attendance.confirmed === false
-                              ? "Rejected"
-                              : "Pending"}
-                        </ThemedText>
+                        {selectedItem.item.attendances.map(
+                          (attendance, index) => (
+                            <View key={index} style={styles.attendanceItem}>
+                              <ThemedText style={styles.attendanceText}>
+                                {attendance.studentName}{" "}
+                                {attendance.studentSurname}
+                              </ThemedText>
+                              <ThemedText
+                                style={[
+                                  styles.attendanceStatus,
+                                  attendance.confirmed === true && {
+                                    backgroundColor: confirmedBackgroundColor,
+                                    color: confirmedTextColor,
+                                  },
+                                  attendance.confirmed === false && {
+                                    backgroundColor: rejectedBackgroundColor,
+                                    color: rejectedTextColor,
+                                  },
+                                  attendance.confirmed === null && {
+                                    backgroundColor: pendingBackgroundColor,
+                                    color: pendingTextColor,
+                                  },
+                                ]}
+                              >
+                                {attendance.confirmed === true
+                                  ? "Confirmed"
+                                  : attendance.confirmed === false
+                                    ? "Rejected"
+                                    : "Pending"}
+                              </ThemedText>
+                            </View>
+                          ),
+                        )}
                       </View>
-                    ))}
+                    )}
+                </View>
+                {isTutor() ? (
+                  <View style={styles.secondaryButtons}>
+                    <ThemedButton
+                      title="Edit Lesson"
+                      variant="outline"
+                      size="small"
+                      color="primary"
+                      onPress={handleOpenEditModal}
+                      style={styles.secondaryButton}
+                    />
+
+                    <ThemedButton
+                      title="Delete Lesson"
+                      variant="outline"
+                      size="small"
+                      color="error"
+                      onPress={() => setDeleteModalVisible(true)}
+                      style={styles.secondaryButton}
+                    />
+
+                    <ThemedButton
+                      title="Cancel"
+                      variant="outline"
+                      size="small"
+                      color="surface"
+                      onPress={() => setModalVisible(false)}
+                      style={styles.secondaryButton}
+                    />
+                  </View>
+                ) : (
+                  <View style={styles.primaryButtons}>
+                    <ThemedButton
+                      title="Confirm"
+                      variant="filled"
+                      size="medium"
+                      color="primary"
+                      loading={
+                        selectedItem
+                          ? confirmingLessons.has(selectedItem.item.lessonId)
+                          : false
+                      }
+                      disabled={
+                        selectedItem
+                          ? confirmingLessons.has(selectedItem.item.lessonId)
+                          : false
+                      }
+                      onPress={() => handleConfirmation(true)}
+                      style={styles.primaryButton}
+                    />
+
+                    <ThemedButton
+                      title="Reject"
+                      variant="filled"
+                      size="medium"
+                      color="error"
+                      loading={
+                        selectedItem
+                          ? confirmingLessons.has(selectedItem.item.lessonId)
+                          : false
+                      }
+                      disabled={
+                        selectedItem
+                          ? confirmingLessons.has(selectedItem.item.lessonId)
+                          : false
+                      }
+                      onPress={() => handleConfirmation(false)}
+                      style={styles.primaryButton}
+                    />
                   </View>
                 )}
-            </View>
-
-            <View style={styles.primaryButtons}>
-              <ThemedButton
-                title="Confirm"
-                variant="filled"
-                size="medium"
-                color="primary"
-                loading={
-                  selectedItem
-                    ? confirmingLessons.has(selectedItem.item.lessonId)
-                    : false
-                }
-                disabled={
-                  selectedItem
-                    ? confirmingLessons.has(selectedItem.item.lessonId)
-                    : false
-                }
-                onPress={() => handleConfirmation(true)}
-                style={styles.primaryButton}
-              />
-
-              <ThemedButton
-                title="Reject"
-                variant="filled"
-                size="medium"
-                color="error"
-                loading={
-                  selectedItem
-                    ? confirmingLessons.has(selectedItem.item.lessonId)
-                    : false
-                }
-                disabled={
-                  selectedItem
-                    ? confirmingLessons.has(selectedItem.item.lessonId)
-                    : false
-                }
-                onPress={() => handleConfirmation(false)}
-                style={styles.primaryButton}
-              />
-            </View>
-
-            <View style={styles.secondaryButtons}>
-              <ThemedButton
-                title="Edit Lesson"
-                variant="outline"
-                size="small"
-                color="primary"
-                onPress={handleOpenEditModal}
-                style={styles.secondaryButton}
-              />
-
-              <ThemedButton
-                title="Delete Lesson"
-                variant="outline"
-                size="small"
-                color="error"
-                onPress={() => setDeleteModalVisible(true)}
-                style={styles.secondaryButton}
-              />
-
-              <ThemedButton
-                title="Cancel"
-                variant="outline"
-                size="small"
-                color="surface"
-                onPress={() => setModalVisible(false)}
-                style={styles.secondaryButton}
-              />
-            </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {/* Delete Confirmation Modal */}

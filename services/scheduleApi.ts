@@ -215,15 +215,12 @@ export const scheduleApi = {
   async editLesson(
     lessonId: string,
     editRequest: EditLessonRequest,
-  ): Promise<EditLessonResponse | null> {
+  ): Promise<string | null> {
     try {
-      const response = await apiRequest<EditLessonResponse>(
-        `/lesson/${lessonId}/rebook`,
-        {
-          method: "POST",
-          body: JSON.stringify(editRequest),
-        },
-      );
+      const response = await apiRequest<string>(`/lesson/${lessonId}/rebook`, {
+        method: "POST",
+        body: JSON.stringify(editRequest),
+      });
       return response;
     } catch (error) {
       console.error("Failed to edit lesson:", error);

@@ -26,7 +26,7 @@ const WeeklySchedule = () => {
     deleteLesson,
     editLesson,
     confirmingLessons,
-    isLoading,
+    loading,
   } = useScheduleApi(true, offset);
   const [refreshing, setRefreshing] = useState(false);
   const { startDate, endDate } = useMemo(
@@ -97,10 +97,10 @@ const WeeklySchedule = () => {
           onPress={() => setOffset(offset + 1)}
         />
       </View>
-      {isLoading ? (
+      {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
-          <ThemedText type="secondary" style={styles.loadingText}>
+          <ThemedText style={styles.loadingText}>
             Ładowanie planu lekcji...
           </ThemedText>
         </View>

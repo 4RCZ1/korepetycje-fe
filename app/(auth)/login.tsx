@@ -112,12 +112,7 @@ const Login = () => {
           >
             <View style={styles.header}>
               <ThemedText style={[styles.title, { color: textColor }]}>
-                Welcome Back
-              </ThemedText>
-              <ThemedText
-                style={[styles.subtitle, { color: textColor + "80" }]}
-              >
-                Sign in to your account
+                Zaloguj się
               </ThemedText>
             </View>
 
@@ -227,6 +222,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
+    lineHeight: 38,
     fontWeight: "bold",
     marginBottom: 8,
     textAlign: "center",

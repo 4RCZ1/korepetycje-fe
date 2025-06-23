@@ -218,9 +218,9 @@ export const scheduleApi = {
   ): Promise<EditLessonResponse | null> {
     try {
       const response = await apiRequest<EditLessonResponse>(
-        `/lesson/${lessonId}`,
+        `/lesson/${lessonId}/rebook`,
         {
-          method: "PATCH",
+          method: "POST",
           body: JSON.stringify(editRequest),
         },
       );

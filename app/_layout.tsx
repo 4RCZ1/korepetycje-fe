@@ -12,10 +12,13 @@ import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationService } from "@/services/notificationService";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, loading } = useAuth();
+  const notifications = useNotifications();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -25,6 +28,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     isMounted.current = true;
+
+    // Initialize notification service
+    NotificationService.setupNotificationResponseListener();
 
     return () => {
       isMounted.current = false;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 import { ApiClientError } from "@/services/api";
+import { NotificationService } from "@/services/notificationService";
 import { scheduleApi, Schedule } from "@/services/scheduleApi";
 
 export interface UseScheduleApiState {
@@ -32,7 +33,6 @@ export function useScheduleApi(
   const [confirmingLessons, setConfirmingLessons] = useState<Set<string>>(
     new Set(),
   );
-
   const fetchSchedule = useCallback(async (offset: number = 0) => {
     try {
       setLoading(true);
@@ -40,6 +40,9 @@ export function useScheduleApi(
 
       const data = await scheduleApi.getWeekSchedule(offset);
       setScheduleData(data);
+
+      // Schedule notifications for upcoming lessons
+      await NotificationService.scheduleNotificationsForLessons(data);
     } catch (err) {
       const apiError = err as ApiClientError;
 

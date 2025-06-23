@@ -89,9 +89,10 @@ export async function apiRequest<T>(
 
     // Handle HTTP errors
     if (!response.ok) {
+      const textResponse = await response.text().catch(() => "");
       const errorData = await response.json().catch(() => ({}));
       throw new ApiClientError(
-        errorData.message || `HTTP Error: ${response.status}`,
+        errorData.message || textResponse || `HTTP Error: ${response.status}`,
         response.status,
         errorData.code,
       );

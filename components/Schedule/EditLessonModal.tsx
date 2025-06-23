@@ -107,20 +107,18 @@ const EditLessonModal = ({
         editFutureLessons,
       );
 
-      if (success) {
-        alert(
-          "Success",
-          `Lesson${editFutureLessons ? " and future lessons" : ""} updated successfully.`,
+      if (success) {        alert(
+          "Sukces",
+          `Lekcja${editFutureLessons ? " i przyszłe lekcje" : ""} została zaktualizowana pomyślnie.`,
           [{ text: "OK" }],
         );
         onClose();
       }
     } catch (error) {
-      console.log("Failed to edit lesson:", error);
-      alert("Error", "Failed to edit lesson. Please try again.", [
-        { text: "Cancel", style: "cancel" },
+      console.log("Failed to edit lesson:", error);      alert("Błąd", "Nie udało się edytować lekcji. Spróbuj ponownie.", [
+        { text: "Anuluj", style: "cancel" },
         {
-          text: "Retry",
+          text: "Ponów",
           onPress: () => handleEditLesson(editFutureLessons),
         },
       ]);
@@ -141,9 +139,8 @@ const EditLessonModal = ({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <ThemedView style={[styles.container, { backgroundColor }]}>
-        <View style={[styles.header, { backgroundColor: surfaceColor }]}>
-          <ThemedText style={styles.title}>Edit Lesson Time</ThemedText>
+      <ThemedView style={[styles.container, { backgroundColor }]}>        <View style={[styles.header, { backgroundColor: surfaceColor }]}>
+          <ThemedText style={styles.title}>Edytuj Czas Lekcji</ThemedText>
           <ThemedButton
             title="✕"
             variant="outline"
@@ -160,37 +157,35 @@ const EditLessonModal = ({
           contentContainerStyle={styles.content}
         >
           <View style={styles.formContainer}>
-            {/* Lesson Description */}
-            <View style={styles.section}>
+            {/* Lesson Description */}            <View style={styles.section}>
               <ThemedText style={styles.sectionTitle}>
-                Lesson Details
+                Szczegóły Lekcji
               </ThemedText>
               <ThemedText style={styles.description}>
                 {selectedItem?.item.description}
               </ThemedText>
             </View>
 
-            {/* Date/Time Input Section */}
-            <View style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>Date & Time</ThemedText>
+            {/* Date/Time Input Section */}            <View style={styles.section}>
+              <ThemedText style={styles.sectionTitle}>Data i Godzina</ThemedText>
 
               {/* Date Picker */}
               <View style={styles.inputGroup}>
-                <ThemedText style={styles.label}>Date</ThemedText>
+                <ThemedText style={styles.label}>Data</ThemedText>
                 <DateTimePicker
                   value={editStartDateTime}
                   onChange={handleStartDateTimeChange}
                   mode="date"
                 />
                 <ThemedText style={styles.helperText}>
-                  Select the date for this lesson
+                  Wybierz datę tej lekcji
                 </ThemedText>
               </View>
 
               {/* Time Pickers Row */}
               <View style={styles.timeRow}>
                 <View style={styles.timePickerContainer}>
-                  <ThemedText style={styles.label}>Start Time</ThemedText>
+                  <ThemedText style={styles.label}>Godzina Rozpoczęcia</ThemedText>
                   <DateTimePicker
                     value={editStartDateTime}
                     onChange={handleStartDateTimeChange}
@@ -199,7 +194,7 @@ const EditLessonModal = ({
                 </View>
 
                 <View style={styles.timePickerContainer}>
-                  <ThemedText style={styles.label}>End Time</ThemedText>
+                  <ThemedText style={styles.label}>Godzina Zakończenia</ThemedText>
                   <DateTimePicker
                     value={editEndDateTime}
                     onChange={handleEndDateTimeChange}
@@ -209,15 +204,13 @@ const EditLessonModal = ({
               </View>
 
               <ThemedText style={styles.helperText}>
-                Lessons cannot span multiple days. End time will be on the same
-                date.
+                Lekcje nie mogą obejmować wielu dni. Godzina zakończenia będzie tego samego dnia.
               </ThemedText>
             </View>
 
-            {/* Action Buttons */}
-            <View style={styles.buttonSection}>
+            {/* Action Buttons */}            <View style={styles.buttonSection}>
               <ThemedButton
-                title="Update This Lesson Only"
+                title="Aktualizuj Tylko Tę Lekcję"
                 variant="filled"
                 size="large"
                 color="primary"
@@ -228,7 +221,7 @@ const EditLessonModal = ({
               />
 
               <ThemedButton
-                title="Update This + Future Lessons"
+                title="Aktualizuj Tę + Przyszłe Lekcje"
                 variant="filled"
                 size="large"
                 color="primary"
@@ -239,7 +232,7 @@ const EditLessonModal = ({
               />
 
               <ThemedButton
-                title="Cancel"
+                title="Anuluj"
                 variant="outline"
                 size="large"
                 color="surface"

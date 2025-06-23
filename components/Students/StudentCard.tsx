@@ -49,7 +49,7 @@ const StudentCard = ({
           onPress: async () => {
             const success = await onDelete(student.id);
             if (!success) {
-              alert("Error", "Failed to delete student");
+              alert("Błąd", "Nie udało się usunąć ucznia");
             }
           },
         },
@@ -63,7 +63,7 @@ const StudentCard = ({
   ) => {
     const success = await onUpdate(studentId, studentData);
     if (!success) {
-      alert("Error", "Failed to update student");
+      alert("Błąd", "Nie udało się zaktualizować ucznia");
     }
     return success;
   };
@@ -85,15 +85,6 @@ const StudentCard = ({
               disabled={isUpdating || isDeleting}
               onPress={() => setShowEditModal(true)}
             />
-            <ThemedButton
-              variant="outline"
-              size="small"
-              color="error"
-              icon="trash.fill"
-              loading={isDeleting}
-              disabled={isDeleting || isUpdating}
-              onPress={handleDelete}
-            />
           </View>
         </View>
 
@@ -101,7 +92,7 @@ const StudentCard = ({
           <ThemedText
             style={[styles.addressLabel, { color: textColor + "80" }]}
           >
-            Address:
+            Adres:
           </ThemedText>
           <ThemedText style={[styles.addressName, { color: primaryColor }]}>
             {student.address.name}

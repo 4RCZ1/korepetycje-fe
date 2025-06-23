@@ -17,23 +17,23 @@ interface PasswordRequirementsProps {
 
 const PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
   {
-    label: "At least 8 characters long",
+    label: "Co najmniej 8 znaków",
     validator: (password) => password.length >= 8,
   },
   {
-    label: "Contains uppercase letter (A-Z)",
+    label: "Zawiera wielką literę (A-Z)",
     validator: (password) => /[A-Z]/.test(password),
   },
   {
-    label: "Contains lowercase letter (a-z)",
+    label: "Zawiera małą literę (a-z)",
     validator: (password) => /[a-z]/.test(password),
   },
   {
-    label: "Contains at least one number (0-9)",
+    label: "Zawiera co najmniej jedną cyfrę (0-9)",
     validator: (password) => /[0-9]/.test(password),
   },
   {
-    label: "Contains special character (!@#$%^&*)",
+    label: "Zawiera znak specjalny (!@#$%^&*)",
     validator: (password) => /[^a-zA-Z0-9]/.test(password),
   },
 ];
@@ -65,7 +65,7 @@ const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({
   return (
     <View style={styles.container}>
       <ThemedText style={[styles.title, { color: textColor }]}>
-        Password Requirements:
+        Wymagania dotyczące hasła:
       </ThemedText>
 
       {PASSWORD_REQUIREMENTS.map((requirement, index) => {
@@ -109,7 +109,7 @@ const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({
               },
             ]}
           >
-            Passwords match
+            Hasła są zgodne
           </ThemedText>
         </View>
       )}

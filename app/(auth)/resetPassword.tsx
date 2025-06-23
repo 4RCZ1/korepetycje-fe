@@ -46,15 +46,15 @@ const PasswordScreen = () => {
   const borderColor = useThemeColor({}, "border");
 
   const validatePasswordForm = (): string | null => {
-    if (!newPassword.trim()) return "New password is required";
-    if (!confirmPassword.trim()) return "Password confirmation is required";
+    if (!newPassword.trim()) return "Nowe hasło jest wymagane";
+    if (!confirmPassword.trim()) return "Potwierdzenie hasła jest wymagane";
 
     if (!validatePassword(newPassword)) {
       return "Password does not meet security requirements";
     }
 
     if (!validatePasswordMatch(newPassword, confirmPassword)) {
-      return "Passwords do not match";
+      return "Hasła nie są zgodne";
     }
 
     return null;
@@ -63,7 +63,7 @@ const PasswordScreen = () => {
   const handleChangePassword = async () => {
     const validationError = validatePasswordForm();
     if (validationError) {
-      alert("Validation Error", validationError);
+      alert("Błąd walidacji", validationError);
       return;
     }
 
@@ -71,15 +71,15 @@ const PasswordScreen = () => {
     try {
       const success = await changePassword(username, newPassword, authSession);
       if (success) {
-        alert("Success", "Password changed successfully");
+        alert("Sukces", "Hasło zostało zmienione pomyślnie");
         // Navigate to the main app after successful password change
         router.replace("/(tabs)/");
       } else {
-        alert("Error", "Failed to change password");
+        alert("Błąd", "Nie udało się zmienić hasła");
       }
     } catch (error) {
       console.error("Change password error:", error);
-      alert("Error", "Failed to change password");
+      alert("Błąd", "Nie udało się zmienić hasła");
     } finally {
       setLoading(false);
     }
@@ -100,9 +100,9 @@ const PasswordScreen = () => {
   const getSubtitle = () => {
     // @ts-ignore
     if (mode === "reset") {
-      return "Enter your email address and we'll send you a link to reset your password";
+      return "Wpisz swój adres email, a wyślemy Ci link do resetowania hasła";
     } else {
-      return "Your password needs to be changed before you can continue. Please enter a new password that meets the security requirements.";
+      return "Twoje hasło musi zostać zmienione przed kontynuowaniem. Wprowadź nowe hasło spełniające wymagania bezpieczeństwa.";
     }
   };
 
@@ -139,7 +139,7 @@ const PasswordScreen = () => {
                 <ThemedText
                   style={[styles.emailDisplay, { color: primaryColor }]}
                 >
-                  Account: {username}
+                  Konto: {username}
                 </ThemedText>
               )}
             </View>
@@ -149,7 +149,7 @@ const PasswordScreen = () => {
             >
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  New Password *
+                  Nowe Hasło *
                 </ThemedText>
                 <View style={styles.passwordContainer}>
                   <TextInput
@@ -161,7 +161,7 @@ const PasswordScreen = () => {
                         color: textColor,
                       },
                     ]}
-                    placeholder="Enter new password"
+                    placeholder="Wpisz nowe hasło"
                     placeholderTextColor={textColor + "60"}
                     value={newPassword}
                     onChangeText={setNewPassword}
@@ -177,7 +177,7 @@ const PasswordScreen = () => {
                     <ThemedText
                       style={[styles.eyeText, { color: primaryColor }]}
                     >
-                      {showNewPassword ? "Hide" : "Show"}
+                      {showNewPassword ? "Ukryj" : "Pokaż"}
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
@@ -185,7 +185,7 @@ const PasswordScreen = () => {
 
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Confirm Password *
+                  Potwierdź Hasło *
                 </ThemedText>
                 <View style={styles.passwordContainer}>
                   <TextInput
@@ -197,7 +197,7 @@ const PasswordScreen = () => {
                         color: textColor,
                       },
                     ]}
-                    placeholder="Confirm new password"
+                    placeholder="Potwierdź nowe hasło"
                     placeholderTextColor={textColor + "60"}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
@@ -213,7 +213,7 @@ const PasswordScreen = () => {
                     <ThemedText
                       style={[styles.eyeText, { color: primaryColor }]}
                     >
-                      {showConfirmPassword ? "Hide" : "Show"}
+                      {showConfirmPassword ? "Ukryj" : "Pokaż"}
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
@@ -228,7 +228,7 @@ const PasswordScreen = () => {
               </View>
 
               <ThemedButton
-                title={loading ? "Changing Password..." : "Change Password"}
+                title={loading ? "Zmiana hasła..." : "Zmień Hasło"}
                 variant="filled"
                 size="large"
                 color="primary"

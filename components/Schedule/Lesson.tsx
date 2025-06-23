@@ -7,6 +7,7 @@ import {
 } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
+import { useAuth } from "@/hooks/useAuth";
 import { usePrimaryColor, useThemeColor } from "@/hooks/useThemeColor";
 import { LessonEntry } from "@/services/scheduleApi";
 
@@ -35,6 +36,7 @@ export const Lesson = ({
   handleItemPress,
   confirmingLessons,
 }: LessonProps) => {
+  const { isTutor } = useAuth();
   // Color system hooks
   const primaryColor = usePrimaryColor("500");
   const primaryDarkColor = usePrimaryColor("700");
@@ -97,9 +99,9 @@ export const Lesson = ({
   };
 
   const getConfirmationStatus = (confirmed?: boolean | null) => {
-    if (confirmed === true) return "Confirmed";
-    if (confirmed === false) return "Rejected";
-    return "Pending";
+    if (confirmed === true) return "Potwierdzona";
+    if (confirmed === false) return "Odrzucona";
+    return "Oczekująca";
   };
 
   const top = getTopPosition(lesson.startTimestamp, lesson.endTimestamp);
@@ -114,7 +116,8 @@ export const Lesson = ({
     height: height,
   };
 
-  const ItemComponent = isPending && !isConfirming ? TouchableOpacity : View;
+  const ItemComponent =
+    (isPending && !isConfirming) || isTutor() ? TouchableOpacity : View;
 
   return (
     <ItemComponent
@@ -125,7 +128,7 @@ export const Lesson = ({
         isConfirming && styles.scheduleItemLoading,
       ]}
       onPress={
-        isPending && !isConfirming
+        (isPending && !isConfirming) || isTutor()
           ? () => handleItemPress(date, lessonIndex, lesson)
           : undefined
       }

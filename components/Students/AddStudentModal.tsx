@@ -106,16 +106,16 @@ const AddStudentModal = ({
   };
 
   const validateForm = (): string | null => {
-    if (!name.trim()) return "Name is required";
-    if (!surname.trim()) return "Surname is required";
-    if (!email.trim()) return "Email is required";
-    if (!phoneNumber.trim()) return "Phone number is required";
+    if (!name.trim()) return "Imię jest wymagane";
+    if (!surname.trim()) return "Nazwisko jest wymagane";
+    if (!email.trim()) return "Email jest wymagany";
+    if (!phoneNumber.trim()) return "Numer telefonu jest wymagany";
 
     if (addressMode === "existing") {
-      if (!selectedAddressId) return "Address is required";
+      if (!selectedAddressId) return "Adres jest wymagany";
     } else {
-      if (!newAddressName.trim()) return "Address name is required";
-      if (!newAddressData.trim()) return "Address data is required";
+      if (!newAddressName.trim()) return "Nazwa adresu jest wymagana";
+      if (!newAddressData.trim()) return "Dane adresu są wymagane";
     }
 
     // Basic email validation
@@ -147,7 +147,7 @@ const AddStudentModal = ({
   const handleSubmit = async () => {
     const validationError = validateForm();
     if (validationError) {
-      alert("Validation Error", validationError);
+      alert("Błąd walidacji", validationError);
       return;
     }
 
@@ -178,14 +178,14 @@ const AddStudentModal = ({
 
       const success = await onSubmit(studentData);
       if (success) {
-        alert("Success", "Student created successfully");
+        alert("Sukces", "Uczeń został utworzony pomyślnie");
         handleClose();
       } else {
-        alert("Error", "Failed to create student");
+        alert("Błąd", "Nie udało się utworzyć ucznia");
       }
     } catch (error) {
       console.error("Failed to submit student:", error);
-      alert("Error", "Failed to create student");
+      alert("Błąd", "Nie udało się utworzyć ucznia");
     } finally {
       setSubmitting(false);
     }
@@ -200,7 +200,7 @@ const AddStudentModal = ({
     >
       <ThemedView style={[styles.container, { backgroundColor }]}>
         <View style={[styles.header, { backgroundColor: surfaceColor }]}>
-          <ThemedText style={styles.title}>Add New Student</ThemedText>
+          <ThemedText style={styles.title}>Dodaj Nowego Ucznia</ThemedText>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Text style={[styles.closeButtonText, { color: primaryColor }]}>
               ✕
@@ -211,7 +211,7 @@ const AddStudentModal = ({
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={primaryColor} />
-            <ThemedText style={styles.loadingText}>Loading data...</ThemedText>
+            <ThemedText style={styles.loadingText}>Ładowanie danych...</ThemedText>
           </View>
         ) : (
           <ScrollView
@@ -221,7 +221,7 @@ const AddStudentModal = ({
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  First Name *
+                  Imię *
                 </ThemedText>
                 <TextInput
                   style={[
@@ -230,13 +230,13 @@ const AddStudentModal = ({
                   ]}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Enter student's first name"
+                  placeholder="Wpisz imię ucznia"
                   placeholderTextColor={textColor + "80"}
                 />
               </View>
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Last Name *
+                  Nazwisko *
                 </ThemedText>
                 <TextInput
                   style={[
@@ -245,7 +245,7 @@ const AddStudentModal = ({
                   ]}
                   value={surname}
                   onChangeText={setSurname}
-                  placeholder="Enter student's last name"
+                  placeholder="Wpisz nazwisko ucznia"
                   placeholderTextColor={textColor + "80"}
                 />
               </View>
@@ -260,7 +260,7 @@ const AddStudentModal = ({
                   ]}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Enter student's email"
+                  placeholder="Wpisz email ucznia"
                   placeholderTextColor={textColor + "80"}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -268,7 +268,7 @@ const AddStudentModal = ({
               </View>
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Phone Number *
+                  Numer Telefonu *
                 </ThemedText>
                 <TextInput
                   style={[
@@ -277,14 +277,14 @@ const AddStudentModal = ({
                   ]}
                   value={phoneNumber}
                   onChangeText={setPhoneNumber}
-                  placeholder="Enter student's phone number"
+                  placeholder="Wpisz numer telefonu ucznia"
                   placeholderTextColor={textColor + "80"}
                   keyboardType="phone-pad"
                 />
               </View>
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Address *
+                  Adres *
                 </ThemedText>
 
                 <View style={styles.addressModeContainer}>
@@ -308,7 +308,7 @@ const AddStudentModal = ({
                         },
                       ]}
                     >
-                      Use Existing
+                      Użyj Istniejący
                     </ThemedText>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -331,7 +331,7 @@ const AddStudentModal = ({
                         },
                       ]}
                     >
-                      Create New
+                      Utwórz Nowy
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
@@ -382,7 +382,7 @@ const AddStudentModal = ({
                   <View style={styles.newAddressContainer}>
                     <View style={styles.inputGroup}>
                       <ThemedText style={[styles.label, { color: textColor }]}>
-                        Address Name *
+                        Nazwa Adresu *
                       </ThemedText>
                       <TextInput
                         style={[
@@ -391,14 +391,14 @@ const AddStudentModal = ({
                         ]}
                         value={newAddressName}
                         onChangeText={setNewAddressName}
-                        placeholder="Enter address name"
+                        placeholder="Wpisz nazwę adresu"
                         placeholderTextColor={textColor + "80"}
                       />
                     </View>
 
                     <View style={styles.inputGroup}>
                       <ThemedText style={[styles.label, { color: textColor }]}>
-                        Address Data *
+                        Dane Adresu *
                       </ThemedText>
                       <TextInput
                         style={[
@@ -407,7 +407,7 @@ const AddStudentModal = ({
                         ]}
                         value={newAddressData}
                         onChangeText={setNewAddressData}
-                        placeholder="Enter address details"
+                        placeholder="Wpisz szczegóły adresu"
                         placeholderTextColor={textColor + "80"}
                         multiline
                         numberOfLines={3}
@@ -417,7 +417,7 @@ const AddStudentModal = ({
                 )}
               </View>{" "}
               <ThemedButton
-                title="Create Student"
+                title="Utwórz Ucznia"
                 variant="filled"
                 size="large"
                 color="primary"

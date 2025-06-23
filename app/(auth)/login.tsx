@@ -34,8 +34,8 @@ const Login = () => {
   const router = useRouter();
 
   const validateForm = (): string | null => {
-    if (!email.trim()) return "Email is required";
-    if (!password.trim()) return "Password is required";
+    if (!email.trim()) return "Email jest wymagany";
+    if (!password.trim()) return "Hasło jest wymagane";
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,7 +44,7 @@ const Login = () => {
     }
 
     if (password.length < 6) {
-      return "Password must be at least 6 characters long";
+      return "Hasło musi mieć co najmniej 6 znaków";
     }
 
     return null;
@@ -53,7 +53,7 @@ const Login = () => {
   const handleLogin = async () => {
     const validationError = validateForm();
     if (validationError) {
-      alert("Validation Error", validationError);
+      alert("Błąd walidacji", validationError);
       return;
     }
 
@@ -76,11 +76,11 @@ const Login = () => {
           });
         }, 100);
       } else {
-        alert("Error", "Invalid email or password. Please try again.");
+        alert("Błąd", "Nieprawidłowy email lub hasło. Spróbuj ponownie.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Error", "An error occurred during login. Please try again.");
+      alert("Błąd", "Wystąpił błąd podczas logowania. Spróbuj ponownie.");
     } finally {
       setLoading(false);
     }
@@ -112,12 +112,7 @@ const Login = () => {
           >
             <View style={styles.header}>
               <ThemedText style={[styles.title, { color: textColor }]}>
-                Welcome Back
-              </ThemedText>
-              <ThemedText
-                style={[styles.subtitle, { color: textColor + "80" }]}
-              >
-                Sign in to your account
+                Zaloguj się
               </ThemedText>
             </View>
 
@@ -127,7 +122,7 @@ const Login = () => {
             >
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Email Address *
+                  Adres Email *
                 </ThemedText>
                 <TextInput
                   style={[
@@ -140,7 +135,7 @@ const Login = () => {
                   ]}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Enter your email"
+                  placeholder="Wpisz swój email"
                   placeholderTextColor={textColor + "60"}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -151,7 +146,7 @@ const Login = () => {
 
               <View style={styles.inputGroup}>
                 <ThemedText style={[styles.label, { color: textColor }]}>
-                  Password *
+                  Hasło *
                 </ThemedText>
                 <View style={styles.passwordContainer}>
                   <TextInput
@@ -165,7 +160,7 @@ const Login = () => {
                     ]}
                     value={password}
                     onChangeText={setPassword}
-                    placeholder="Enter your password"
+                    placeholder="Wpisz swoje hasło"
                     placeholderTextColor={textColor + "60"}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
@@ -183,14 +178,14 @@ const Login = () => {
                         { color: primaryColor },
                       ]}
                     >
-                      {showPassword ? "Hide" : "Show"}
+                      {showPassword ? "Ukryj" : "Pokaż"}
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
               </View>
 
               <ThemedButton
-                title={loading ? "Signing In..." : "Sign In"}
+                title={loading ? "Logowanie..." : "Zaloguj się"}
                 variant="filled"
                 size="large"
                 color="primary"
@@ -227,6 +222,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
+    lineHeight: 38,
     fontWeight: "bold",
     marginBottom: 8,
     textAlign: "center",

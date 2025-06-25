@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 
 import { setAuthToken } from "@/services/api";
@@ -10,6 +9,7 @@ import {
   ResetPasswordRequest,
   User,
 } from "@/services/authApi";
+import { deleteItem, getItem, setItem } from "@/utils/storage";
 
 // Storage keys
 const TOKEN_KEY = "auth_token";
@@ -89,8 +89,8 @@ class AuthManager {
     try {
       this.setState({ loading: true });
       const [storedToken, storedUser] = await Promise.all([
-        AsyncStorage.getItem(TOKEN_KEY),
-        AsyncStorage.getItem(USER_KEY),
+        getItem(TOKEN_KEY),
+        getItem(USER_KEY),
       ]);
 
       if (storedToken && storedUser) {
@@ -124,8 +124,8 @@ class AuthManager {
   private async storeAuth(token: string, user: User) {
     try {
       await Promise.all([
-        AsyncStorage.setItem(TOKEN_KEY, token),
-        AsyncStorage.setItem(USER_KEY, JSON.stringify(user)),
+        setItem(TOKEN_KEY, token),
+        setItem(USER_KEY, JSON.stringify(user)),
       ]);
     } catch (error) {
       console.error("Error storing auth:", error);
@@ -134,10 +134,7 @@ class AuthManager {
 
   private async clearStoredAuth() {
     try {
-      await Promise.all([
-        AsyncStorage.removeItem(TOKEN_KEY),
-        AsyncStorage.removeItem(USER_KEY),
-      ]);
+      await Promise.all([deleteItem(TOKEN_KEY), deleteItem(USER_KEY)]);
       setAuthToken(null);
       this.setState({
         token: null,

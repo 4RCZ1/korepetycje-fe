@@ -79,12 +79,6 @@ export default function CustomDrawerContent(
             />
           )}
         </View>
-        <View style={styles.drawerItems}>
-          <DrawerItem
-            label={"Usuń Moje Dane"}
-            onPress={() => props.navigation.navigate("data-removal")}
-          />
-        </View>
       </DrawerContentScrollView>
       {/* Logout Section */}
       <ThemedView

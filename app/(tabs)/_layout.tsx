@@ -44,6 +44,16 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Drawer.Screen
+          name="resources"
+          options={{
+            drawerLabel: "Resources",
+            title: "Resources",
+            drawerIcon: ({ color }) => (
+              <IconSymbol size={28} name="folder" color={color} />
+            ),
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );

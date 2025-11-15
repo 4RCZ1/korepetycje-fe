@@ -10,24 +10,21 @@ import {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ThemedButton from "@/components/ui/ThemedButton";
-import { useAuth } from "@/hooks/useAuth";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import alert from "@/utils/alert";
 
 const DataRemovalScreen = () => {
-  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Colors
   const backgroundColor = useThemeColor({}, "background");
   const surfaceColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
   const borderColor = useThemeColor({}, "border");
+  const FORMSPREE_ID = "xzzygane";
 
   const handleSubmit = async () => {
-    // Validation
     if (!email.trim()) {
       alert("Błąd", "Proszę podać adres email.", [{ text: "OK" }]);
       return;
@@ -38,17 +35,15 @@ const DataRemovalScreen = () => {
       return;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert("Błąd", "Proszę podać poprawny adres email.", [{ text: "OK" }]);
       return;
     }
 
-    // Confirmation
     alert(
       "Potwierdzenie",
-      "Czy na pewno chcesz złożyć wniosek o usunięcie danych? Ta akcja jest nieodwracalna.",
+      "Czy na pewno chcesz złożyć wniosek o usunięcie danych?",
       [
         {
           text: "Anuluj",
@@ -60,9 +55,8 @@ const DataRemovalScreen = () => {
           onPress: async () => {
             setLoading(true);
             try {
-              // TODO: Replace with actual API endpoint
               const response = await fetch(
-                "https://your-api.com/data-removal-request",
+                `https://formspree.io/f/${FORMSPREE_ID}`,
                 {
                   method: "POST",
                   headers: {
@@ -70,9 +64,20 @@ const DataRemovalScreen = () => {
                   },
                   body: JSON.stringify({
                     email: email.trim(),
-                    reason: reason.trim(),
-                    userId: user?.email,
-                    timestamp: new Date().toISOString(),
+                    _subject: "Wniosek o usunięcie danych osobowych - RODO",
+                    message: `
+WNIOSEK O USUNIĘCIE DANYCH OSOBOWYCH
+
+Adres email użytkownika: ${email.trim()}
+
+Powód usunięcia danych:
+${reason.trim()}
+
+Data złożenia wniosku: ${new Date().toLocaleString("pl-PL")}
+
+---
+Zgodnie z RODO użytkownik prosi o usunięcie swoich danych osobowych z systemu.
+                    `,
                   }),
                 },
               );
@@ -80,20 +85,25 @@ const DataRemovalScreen = () => {
               if (response.ok) {
                 alert(
                   "Sukces",
-                  "Twój wniosek o usunięcie danych został przesłany. Skontaktujemy się z Tobą w ciągu 30 dni.",
-                  [{ text: "OK" }],
+                  "Twój wniosek został przesłany. Skontaktujemy się z Tobą w ciągu 30 dni.",
+                  [
+                    {
+                      text: "OK",
+                      onPress: () => {
+                        setEmail("");
+                        setReason("");
+                      },
+                    },
+                  ],
                 );
-                // Clear form
-                setEmail("");
-                setReason("");
               } else {
                 throw new Error("Request failed");
               }
             } catch (error) {
-              console.error("Failed to submit data removal request:", error);
+              console.error("Error:", error);
               alert(
                 "Błąd",
-                "Nie udało się przesłać wniosku. Spróbuj ponownie później lub skontaktuj się z nami bezpośrednio.",
+                "Nie udało się przesłać wniosku. Spróbuj ponownie później lub skontaktuj się z nami na: k.mularczyk22@gmail.com",
                 [{ text: "OK" }],
               );
             } finally {
@@ -111,7 +121,6 @@ const DataRemovalScreen = () => {
       style={[styles.container, { backgroundColor }]}
     >
       <ThemedView style={[styles.content, { backgroundColor: surfaceColor }]}>
-        {/* Header */}
         <View style={styles.header}>
           <ThemedText type="title" style={styles.title}>
             Usuń Moje Dane
@@ -122,19 +131,13 @@ const DataRemovalScreen = () => {
           </ThemedText>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
-          {/* Email Input */}
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Adres Email *</ThemedText>
             <TextInput
               style={[
                 styles.input,
-                {
-                  backgroundColor,
-                  color: textColor,
-                  borderColor,
-                },
+                { backgroundColor, color: textColor, borderColor },
               ]}
               placeholder="twoj@email.com"
               placeholderTextColor={`${textColor}80`}
@@ -146,7 +149,6 @@ const DataRemovalScreen = () => {
             />
           </View>
 
-          {/* Reason Input */}
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>
               Powód Usunięcia Danych *
@@ -155,11 +157,7 @@ const DataRemovalScreen = () => {
               style={[
                 styles.input,
                 styles.textArea,
-                {
-                  backgroundColor,
-                  color: textColor,
-                  borderColor,
-                },
+                { backgroundColor, color: textColor, borderColor },
               ]}
               placeholder="Opisz powód złożenia wniosku..."
               placeholderTextColor={`${textColor}80`}
@@ -172,7 +170,6 @@ const DataRemovalScreen = () => {
             />
           </View>
 
-          {/* Info Box */}
           <ThemedView style={[styles.infoBox, { backgroundColor }]}>
             <ThemedText style={styles.infoText}>
               ℹ️ Po przesłaniu wniosku skontaktujemy się z Tobą w ciągu 30 dni w
@@ -180,7 +177,6 @@ const DataRemovalScreen = () => {
             </ThemedText>
           </ThemedView>
 
-          {/* Submit Button */}
           {loading ? (
             <View style={styles.loaderContainer}>
               <ActivityIndicator size="large" color="#0000ff" />

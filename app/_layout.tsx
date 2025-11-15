@@ -47,6 +47,7 @@ export default function RootLayout() {
     if (
       pathname.startsWith("/login") ||
       pathname.startsWith("/resetPassword") ||
+      pathname.startsWith("/data-removal") ||
       pathname === "/" // Temporary state during navigation
     ) {
       return;
@@ -69,6 +70,14 @@ export default function RootLayout() {
     <ErrorBoundary>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
+          <Stack.Screen
+            name="data-removal"
+            options={{
+              headerShown: true,
+              title: "Usuń Moje Dane",
+              presentation: "card",
+            }}
+          />
           {isAuthenticated && (
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           )}

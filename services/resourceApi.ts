@@ -35,12 +35,10 @@ export async function uploadFileToS3(
     const fileBlob = await fetch(fileUri).then((res) => res.blob());
 
     // Upload to S3 using presigned URL
+    // Note: Don't include Content-Type header unless it was specified when generating the presigned URL
     const response = await fetch(presignedUrl, {
       method: "PUT",
       body: fileBlob,
-      headers: {
-        "Content-Type": fileType,
-      },
     });
 
     return response.ok;

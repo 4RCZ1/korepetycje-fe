@@ -151,7 +151,7 @@ const ResourceCard = ({
           {isDeleting ? (
             <ActivityIndicator size="small" color={errorColor} />
           ) : (
-            <IconSymbol name="trash" size={20} color={errorColor} />
+            <IconSymbol name="trash.fill" size={20} color={errorColor} />
           )}
         </TouchableOpacity>
       </View>

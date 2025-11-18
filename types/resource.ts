@@ -1,7 +1,6 @@
 export interface ResourceType {
   id: string;
   name: string;
-  filePath: string;
   uploadDate?: string;
   fileSize?: number;
   fileType?: string;

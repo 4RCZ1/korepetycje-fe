@@ -22,7 +22,8 @@ const DataRemovalScreen = () => {
   const surfaceColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
   const borderColor = useThemeColor({}, "border");
-  const FORMSPREE_ID = "xzzygane";
+  const tintColor = useThemeColor({}, "tint");
+  const FORMSPREE_ID = process.env.EXPO_PUBLIC_FORMSPREE_ID;
 
   const handleSubmit = async () => {
     if (!email.trim()) {
@@ -36,7 +37,7 @@ const DataRemovalScreen = () => {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email.trim())) {
       alert("Błąd", "Proszę podać poprawny adres email.", [{ text: "OK" }]);
       return;
     }
@@ -103,7 +104,7 @@ Zgodnie z RODO użytkownik prosi o usunięcie swoich danych osobowych z systemu.
               console.error("Error:", error);
               alert(
                 "Błąd",
-                "Nie udało się przesłać wniosku. Spróbuj ponownie później lub skontaktuj się z nami na: k.mularczyk22@gmail.com",
+                `Nie udało się przesłać wniosku. Spróbuj ponownie później lub skontaktuj się z nami na: ${process.env.EXPO_PUBLIC_CONTACT_EMAIL}`,
                 [{ text: "OK" }],
               );
             } finally {
@@ -179,7 +180,7 @@ Zgodnie z RODO użytkownik prosi o usunięcie swoich danych osobowych z systemu.
 
           {loading ? (
             <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="#0000ff" />
+              <ActivityIndicator size="large" color={tintColor} />
               <ThemedText style={styles.loadingText}>
                 Wysyłanie wniosku...
               </ThemedText>

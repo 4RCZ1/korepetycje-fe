@@ -198,7 +198,12 @@ const Login = () => {
                 onPress={handleLogin}
                 style={styles.loginButton}
               />
-              <View style={styles.dataRemovalContainer}>
+              <View
+                style={[
+                  styles.dataRemovalContainer,
+                  { borderTopColor: borderColor },
+                ]}
+              >
                 <TouchableOpacity onPress={handleDataRemoval}>
                   <ThemedText
                     style={[
@@ -323,7 +328,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "#00000010",
     alignItems: "center",
   },
   dataRemovalText: {

@@ -44,7 +44,7 @@ export async function uploadFileToS3(
     return response.ok;
   } catch (error) {
     console.error("Error uploading file to S3:", error);
-    throw new Error(`S3 upload failure: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`S3 upload failure: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

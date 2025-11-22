@@ -80,7 +80,6 @@ export default function CustomDrawerContent(
           )}
         </View>
       </DrawerContentScrollView>
-
       {/* Logout Section */}
       <ThemedView
         style={[styles.logoutSection, { backgroundColor: surfaceColor }]}

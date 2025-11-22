@@ -33,6 +33,10 @@ const Login = () => {
 
   const router = useRouter();
 
+  const handleDataRemoval = () => {
+    router.push("/data-removal");
+  };
+
   const validateForm = (): string | null => {
     if (!email.trim()) return "Email jest wymagany";
     if (!password.trim()) return "Hasło jest wymagane";
@@ -194,6 +198,23 @@ const Login = () => {
                 onPress={handleLogin}
                 style={styles.loginButton}
               />
+              <View
+                style={[
+                  styles.dataRemovalContainer,
+                  { borderTopColor: borderColor },
+                ]}
+              >
+                <TouchableOpacity onPress={handleDataRemoval}>
+                  <ThemedText
+                    style={[
+                      styles.dataRemovalText,
+                      { color: textColor + "80" },
+                    ]}
+                  >
+                    Usuń Moje Dane
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
             </ThemedView>
           </ScrollView>
         </ThemedView>
@@ -302,6 +323,16 @@ const styles = StyleSheet.create({
   registerLink: {
     fontSize: 14,
     fontWeight: "600",
+  },
+  dataRemovalContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    alignItems: "center",
+  },
+  dataRemovalText: {
+    fontSize: 14,
+    textDecorationLine: "underline",
   },
 });
 

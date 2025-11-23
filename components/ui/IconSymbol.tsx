@@ -27,6 +27,8 @@ const MAPPING = {
   "trash.fill": "delete",
   pencil: "edit",
   "person.2": "group",
+  xmark: "close",
+  checkmark: "check",
 } as IconMapping;
 
 /**

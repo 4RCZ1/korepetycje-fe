@@ -32,3 +32,30 @@ export type Assignment = ResourceAssignment | StudentGroupAssignment;
 export interface StudentWithAssignments extends StudentType {
   assignedTo: Assignment[];
 }
+
+// Reverse assignments: from resources to students
+
+export interface DirectStudentAssignment {
+  type: AssignmentType.DIRECT;
+  assignmentTargets: StudentType[];
+}
+
+export interface StudentGroupStudentAssignment {
+  type: AssignmentType.STUDENT_GROUP;
+  name: string;
+  assignmentTargets: StudentType[];
+}
+
+export type StudentAssignment = DirectStudentAssignment | StudentGroupStudentAssignment;
+
+export interface ResourceGroupStudentAssignment {
+  type: AssignmentType.RESOURCE_GROUP;
+  name: string;
+  assignedTo: StudentAssignment[];
+}
+
+export type ReverseAssignment = StudentAssignment | ResourceGroupStudentAssignment;
+
+export interface ResourceWithAssignments extends ResourceType {
+  assignedTo: ReverseAssignment[];
+}

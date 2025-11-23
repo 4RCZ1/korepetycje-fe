@@ -1,3 +1,5 @@
+import { MaterialIcons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
 import React, { useState } from "react";
 import {
   Modal,
@@ -8,7 +10,6 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import * as DocumentPicker from "expo-document-picker";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -16,7 +17,6 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import ThemedButton from "@/components/ui/ThemedButton";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import alert from "@/utils/alert";
-import { MaterialIcons } from "@expo/vector-icons";
 import { getFileIcon, formatFileSize } from "@/utils/fileHelpers";
 
 type UploadResourceModalProps = {
@@ -133,11 +133,7 @@ const UploadResourceModal = ({
                 onPress={handlePickDocument}
                 disabled={uploading}
               >
-                <MaterialIcons
-                  name="folder"
-                  size={32}
-                  color={primaryColor}
-                />
+                <MaterialIcons name="folder" size={32} color={primaryColor} />
                 <ThemedText
                   style={[styles.pickerButtonText, { color: primaryColor }]}
                 >
@@ -218,10 +214,9 @@ const UploadResourceModal = ({
               <ThemedText
                 style={[styles.instructionsText, { color: textColor + "80" }]}
               >
-                • Wybierz plik z urządzenia{"\n"}
-                • Obsługiwane są wszystkie typy plików{"\n"}
-                • Plik zostanie przesłany do chmury{"\n"}
-                • Po przesłaniu będzie dostępny w liście zasobów
+                • Wybierz plik z urządzenia{"\n"}• Obsługiwane są wszystkie typy
+                plików{"\n"}• Plik zostanie przesłany do chmury{"\n"}• Po
+                przesłaniu będzie dostępny w liście zasobów
               </ThemedText>
             </View>
 

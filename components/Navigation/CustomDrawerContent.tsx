@@ -88,6 +88,16 @@ export default function CustomDrawerContent(
               onPress={() => props.navigation.navigate("resources")}
             />
           )}
+
+          {isTutor() && (
+            <DrawerItem
+              label={"Grupy"}
+              icon={({ color }) => (
+                <IconSymbol size={28} name="person.2" color={color} />
+              )}
+              onPress={() => props.navigation.navigate("groups")}
+            />
+          )}
         </View>
       </DrawerContentScrollView>
       {/* Logout Section */}

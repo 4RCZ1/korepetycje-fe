@@ -107,7 +107,8 @@ const EditLessonModal = ({
         editFutureLessons,
       );
 
-      if (success) {        alert(
+      if (success) {
+        alert(
           "Sukces",
           `Lekcja${editFutureLessons ? " i przyszłe lekcje" : ""} została zaktualizowana pomyślnie.`,
           [{ text: "OK" }],
@@ -115,7 +116,8 @@ const EditLessonModal = ({
         onClose();
       }
     } catch (error) {
-      console.log("Failed to edit lesson:", error);      alert("Błąd", "Nie udało się edytować lekcji. Spróbuj ponownie.", [
+      console.log("Failed to edit lesson:", error);
+      alert("Błąd", "Nie udało się edytować lekcji. Spróbuj ponownie.", [
         { text: "Anuluj", style: "cancel" },
         {
           text: "Ponów",
@@ -139,7 +141,8 @@ const EditLessonModal = ({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <ThemedView style={[styles.container, { backgroundColor }]}>        <View style={[styles.header, { backgroundColor: surfaceColor }]}>
+      <ThemedView style={[styles.container, { backgroundColor }]}>
+        <View style={[styles.header, { backgroundColor: surfaceColor }]}>
           <ThemedText style={styles.title}>Edytuj Czas Lekcji</ThemedText>
           <ThemedButton
             title="✕"
@@ -150,14 +153,14 @@ const EditLessonModal = ({
             style={styles.closeButton}
           />
         </View>
-
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
         >
           <View style={styles.formContainer}>
-            {/* Lesson Description */}            <View style={styles.section}>
+            {/* Lesson Description */}
+            <View style={styles.section}>
               <ThemedText style={styles.sectionTitle}>
                 Szczegóły Lekcji
               </ThemedText>
@@ -165,9 +168,11 @@ const EditLessonModal = ({
                 {selectedItem?.item.description}
               </ThemedText>
             </View>
-
-            {/* Date/Time Input Section */}            <View style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>Data i Godzina</ThemedText>
+            {/* Date/Time Input Section */}
+            <View style={styles.section}>
+              <ThemedText style={styles.sectionTitle}>
+                Data i Godzina
+              </ThemedText>
 
               {/* Date Picker */}
               <View style={styles.inputGroup}>
@@ -185,7 +190,9 @@ const EditLessonModal = ({
               {/* Time Pickers Row */}
               <View style={styles.timeRow}>
                 <View style={styles.timePickerContainer}>
-                  <ThemedText style={styles.label}>Godzina Rozpoczęcia</ThemedText>
+                  <ThemedText style={styles.label}>
+                    Godzina Rozpoczęcia
+                  </ThemedText>
                   <DateTimePicker
                     value={editStartDateTime}
                     onChange={handleStartDateTimeChange}
@@ -194,7 +201,9 @@ const EditLessonModal = ({
                 </View>
 
                 <View style={styles.timePickerContainer}>
-                  <ThemedText style={styles.label}>Godzina Zakończenia</ThemedText>
+                  <ThemedText style={styles.label}>
+                    Godzina Zakończenia
+                  </ThemedText>
                   <DateTimePicker
                     value={editEndDateTime}
                     onChange={handleEndDateTimeChange}
@@ -204,11 +213,12 @@ const EditLessonModal = ({
               </View>
 
               <ThemedText style={styles.helperText}>
-                Lekcje nie mogą obejmować wielu dni. Godzina zakończenia będzie tego samego dnia.
+                Lekcje nie mogą obejmować wielu dni. Godzina zakończenia będzie
+                tego samego dnia.
               </ThemedText>
             </View>
-
-            {/* Action Buttons */}            <View style={styles.buttonSection}>
+            {/* Action Buttons */}
+            <View style={styles.buttonSection}>
               <ThemedButton
                 title="Aktualizuj Tylko Tę Lekcję"
                 variant="filled"

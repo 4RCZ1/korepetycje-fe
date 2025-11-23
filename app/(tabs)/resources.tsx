@@ -1,3 +1,4 @@
+import * as DocumentPicker from "expo-document-picker";
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -6,7 +7,6 @@ import {
   RefreshControl,
   View,
 } from "react-native";
-import * as DocumentPicker from "expo-document-picker";
 
 import ResourceCard from "@/components/Resources/ResourceCard";
 import UploadResourceModal from "@/components/Resources/UploadResourceModal";

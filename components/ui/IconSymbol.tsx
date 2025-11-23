@@ -26,6 +26,7 @@ const MAPPING = {
   calendar: "calendar-month",
   "trash.fill": "delete",
   pencil: "edit",
+  "person.2": "group",
 } as IconMapping;
 
 /**

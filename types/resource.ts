@@ -25,3 +25,9 @@ export interface ResourceListResponse {
   data?: ResourceType[];
   message?: string;
 }
+
+export interface ResourceGroupType {
+  id: string;
+  name: string;
+  resources: ResourceType[];
+}

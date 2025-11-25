@@ -46,7 +46,7 @@ export const resourceGroupApiMock = {
   ): Promise<ResourceGroupType> {
     await new Promise((resolve) => setTimeout(resolve, 500));
     const newGroup: ResourceGroupType = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
       name,
       resources,
     };

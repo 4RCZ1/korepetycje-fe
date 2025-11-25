@@ -1,11 +1,10 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Linking,
 } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -13,25 +12,22 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import ThemedButton from "@/components/ui/ThemedButton";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { ResourceType } from "@/types/resource";
+import { ResourceGroupType } from "@/types/resource";
 import alert from "@/utils/alert";
-import { getFileIcon, formatFileSize } from "@/utils/fileHelpers";
 
-type ResourceCardProps = {
-  resource: ResourceType;
-  onDelete: (resourceId: string) => Promise<boolean>;
-  onDownload: (resourceId: string) => Promise<string | null>;
+type ResourceGroupCardProps = {
+  group: ResourceGroupType;
+  onDelete: (groupId: string) => Promise<boolean>;
+  onEdit: (group: ResourceGroupType) => void;
   isDeleting?: boolean;
 };
 
-const ResourceCard = ({
-  resource,
+const ResourceGroupCard = ({
+  group,
   onDelete,
-  onDownload,
+  onEdit,
   isDeleting = false,
-}: ResourceCardProps) => {
-  const [downloading, setDownloading] = useState(false);
-
+}: ResourceGroupCardProps) => {
   // Colors
   const surfaceColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
@@ -39,54 +35,21 @@ const ResourceCard = ({
   const errorColor = useThemeColor({}, "error", "500");
 
   const handleDelete = () => {
-    alert("Usuń Zasób", `Czy na pewno chcesz usunąć "${resource.name}"?`, [
+    alert("Usuń Grupę", `Czy na pewno chcesz usunąć grupę "${group.name}"?`, [
       { text: "Anuluj", style: "cancel" },
       {
         text: "Usuń",
         style: "destructive",
         onPress: async () => {
-          const success = await onDelete(resource.id);
+          const success = await onDelete(group.id);
           if (success) {
-            alert("Sukces", "Zasób został usunięty");
+            alert("Sukces", "Grupa została usunięta");
           } else {
-            alert("Błąd", "Nie udało się usunąć zasobu");
+            alert("Błąd", "Nie udało się usunąć grupy");
           }
         },
       },
     ]);
-  };
-
-  const handleDownload = async () => {
-    setDownloading(true);
-    try {
-      const downloadUrl = await onDownload(resource.id);
-      if (downloadUrl) {
-        // Open the download URL in the browser
-        const supported = await Linking.canOpenURL(downloadUrl);
-        if (supported) {
-          await Linking.openURL(downloadUrl);
-        } else {
-          alert("Błąd", "Nie można otworzyć URL pobierania");
-        }
-      } else {
-        alert("Błąd", "Nie udało się pobrać URL pobierania");
-      }
-    } catch (error) {
-      console.error("Error downloading resource:", error);
-      alert("Błąd", "Nie udało się pobrać zasobu");
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pl-PL", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   return (
@@ -98,48 +61,36 @@ const ResourceCard = ({
     >
       <View style={styles.header}>
         <View style={styles.iconContainer}>
-          <MaterialIcons
-            name={getFileIcon(resource.fileType, resource.name)}
-            size={32}
-            color={primaryColor}
-          />
+          <MaterialIcons name="folder" size={32} color={primaryColor} />
         </View>
         <View style={styles.infoContainer}>
           <ThemedText style={[styles.name, { color: textColor }]}>
-            {resource.name}
+            {group.name}
           </ThemedText>
           <View style={styles.metaContainer}>
-            {resource.fileSize && (
-              <ThemedText style={[styles.meta, { color: textColor + "80" }]}>
-                {formatFileSize(resource.fileSize)}
-              </ThemedText>
-            )}
-            {resource.uploadDate && (
-              <ThemedText style={[styles.meta, { color: textColor + "80" }]}>
-                • {formatDate(resource.uploadDate)}
-              </ThemedText>
-            )}
+            <ThemedText style={[styles.meta, { color: textColor + "80" }]}>
+              {group.resources.length} zasobów
+            </ThemedText>
           </View>
         </View>
       </View>
 
       <View style={styles.actions}>
         <ThemedButton
-          title="Pobierz"
+          title="Edytuj"
           variant="outline"
           size="small"
           color="primary"
-          onPress={handleDownload}
-          loading={downloading}
-          disabled={downloading || isDeleting}
+          onPress={() => onEdit(group)}
+          disabled={isDeleting}
           style={styles.actionButton}
         />
         <TouchableOpacity
           onPress={handleDelete}
-          disabled={isDeleting || downloading}
+          disabled={isDeleting}
           style={[
             styles.deleteButton,
-            (isDeleting || downloading) && styles.deleteButtonDisabled,
+            isDeleting && styles.deleteButtonDisabled,
           ]}
         >
           {isDeleting ? (
@@ -212,4 +163,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ResourceCard;
+export default ResourceGroupCard;

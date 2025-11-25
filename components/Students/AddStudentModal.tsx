@@ -211,7 +211,9 @@ const AddStudentModal = ({
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={primaryColor} />
-            <ThemedText style={styles.loadingText}>Ładowanie danych...</ThemedText>
+            <ThemedText style={styles.loadingText}>
+              Ładowanie danych...
+            </ThemedText>
           </View>
         ) : (
           <ScrollView

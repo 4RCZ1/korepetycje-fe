@@ -147,8 +147,10 @@ const AddLessonModal = ({
     );
   };
   const validateForm = (): string | null => {
-    if (!firstStartDateTime) return "Czas rozpoczęcia pierwszej lekcji jest wymagany";
-    if (!firstEndDateTime) return "Czas zakończenia pierwszej lekcji jest wymagany";
+    if (!firstStartDateTime)
+      return "Czas rozpoczęcia pierwszej lekcji jest wymagany";
+    if (!firstEndDateTime)
+      return "Czas zakończenia pierwszej lekcji jest wymagany";
     if (!scheduleEndDate) return "Data zakończenia planu jest wymagana";
     if (
       !periodInDays ||
@@ -244,7 +246,9 @@ const AddLessonModal = ({
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={primaryColor} />
-            <ThemedText style={styles.loadingText}>Ładowanie danych...</ThemedText>
+            <ThemedText style={styles.loadingText}>
+              Ładowanie danych...
+            </ThemedText>
           </View>
         ) : (
           <ScrollView
@@ -253,7 +257,9 @@ const AddLessonModal = ({
           >
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
-                <ThemedText style={styles.sectionTitle}>Data i Godzina</ThemedText>
+                <ThemedText style={styles.sectionTitle}>
+                  Data i Godzina
+                </ThemedText>
 
                 <View style={styles.dateTimeGroup}>
                   <ThemedText style={styles.label}>Data Lekcji</ThemedText>
@@ -269,7 +275,9 @@ const AddLessonModal = ({
 
                 <View style={styles.timeRow}>
                   <View style={styles.timePickerContainer}>
-                    <ThemedText style={styles.label}>Godzina Rozpoczęcia</ThemedText>
+                    <ThemedText style={styles.label}>
+                      Godzina Rozpoczęcia
+                    </ThemedText>
                     <DateTimePicker
                       value={firstStartDateTime}
                       onChange={handleStartDateTimeChange}
@@ -278,7 +286,9 @@ const AddLessonModal = ({
                   </View>
 
                   <View style={styles.timePickerContainer}>
-                    <ThemedText style={styles.label}>Godzina Zakończenia</ThemedText>
+                    <ThemedText style={styles.label}>
+                      Godzina Zakończenia
+                    </ThemedText>
                     <DateTimePicker
                       value={firstEndDateTime}
                       onChange={handleEndDateTimeChange}
@@ -288,7 +298,8 @@ const AddLessonModal = ({
                 </View>
 
                 <ThemedText style={styles.helperText}>
-                  Lekcje nie mogą obejmować wielu dni. Godzina zakończenia będzie tego samego dnia.
+                  Lekcje nie mogą obejmować wielu dni. Godzina zakończenia
+                  będzie tego samego dnia.
                 </ThemedText>
               </View>
 
@@ -302,7 +313,8 @@ const AddLessonModal = ({
                   mode="date"
                 />
                 <ThemedText style={styles.helperText}>
-                  Kiedy zakończyć powtarzanie lekcji (godzina zostanie ustawiona na koniec dnia)
+                  Kiedy zakończyć powtarzanie lekcji (godzina zostanie ustawiona
+                  na koniec dnia)
                 </ThemedText>
               </View>
               {/* Period in Days */}
@@ -320,7 +332,8 @@ const AddLessonModal = ({
                   placeholderTextColor={textColor + "80"}
                 />
                 <ThemedText style={styles.helperText}>
-                  Jak często powtarzać (np. 7 dla co tydzień, 14 dla co dwa tygodnie)
+                  Jak często powtarzać (np. 7 dla co tydzień, 14 dla co dwa
+                  tygodnie)
                 </ThemedText>
               </View>
               {/* Address Selection */}

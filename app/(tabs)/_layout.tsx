@@ -54,6 +54,16 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Drawer.Screen
+          name="groups"
+          options={{
+            drawerLabel: "Groups",
+            title: "Groups",
+            drawerIcon: ({ color }) => (
+              <IconSymbol size={28} name="person.2" color={color} />
+            ),
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );

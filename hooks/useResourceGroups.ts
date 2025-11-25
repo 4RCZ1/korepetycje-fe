@@ -25,8 +25,8 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
         );
         setGroups(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch groups");
-        Alert.alert("Error", "Failed to load resource groups");
+        setError(err instanceof Error ? err.message : "Nie udało się załadować grup");
+        Alert.alert("Błąd", "Nie udało się załadować grup zasobów");
       } finally {
         setIsLoading(false);
       }
@@ -45,7 +45,7 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
       await fetchGroups();
       return true;
     } catch (err) {
-      Alert.alert("Error", "Failed to create group");
+      Alert.alert("Błąd", "Nie udało się utworzyć grupy");
       return false;
     } finally {
       setIsLoading(false);
@@ -63,7 +63,7 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
       await fetchGroups();
       return true;
     } catch (err) {
-      Alert.alert("Error", "Failed to update group");
+      Alert.alert("Błąd", "Nie udało się zaktualizować grupy");
       return false;
     } finally {
       setIsLoading(false);
@@ -77,7 +77,7 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
       await fetchGroups();
       return true;
     } catch (err) {
-      Alert.alert("Error", "Failed to delete group");
+      Alert.alert("Błąd", "Nie udało się usunąć grupy");
       return false;
     } finally {
       setIsLoading(false);

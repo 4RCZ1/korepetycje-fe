@@ -45,7 +45,6 @@ export default function ResourceGroupModal({
   const { resources, loading: loadingResources } = useResourceApi();
 
   // Colors
-  const backgroundColor = useThemeColor({}, "background");
   const surfaceColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
   const primaryColor = useThemeColor({}, "tint");

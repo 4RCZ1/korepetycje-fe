@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { Alert } from "react-native";
 
 import {
   resourceGroupApi,
   ResourceGroupFilters,
 } from "@/services/resourceGroupApi";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
+import alert from "@/utils/alert";
 
 export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
   const [groups, setGroups] = useState<ResourceGroupType[]>([]);
@@ -25,8 +25,10 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
         );
         setGroups(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Nie udało się załadować grup");
-        Alert.alert("Błąd", "Nie udało się załadować grup zasobów");
+        setError(
+          err instanceof Error ? err.message : "Nie udało się załadować grup",
+        );
+        alert("Błąd", "Nie udało się załadować grup zasobów");
       } finally {
         setIsLoading(false);
       }
@@ -45,7 +47,7 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
       await fetchGroups();
       return true;
     } catch (err) {
-      Alert.alert("Błąd", "Nie udało się utworzyć grupy");
+      alert("Błąd", "Nie udało się utworzyć grupy");
       return false;
     } finally {
       setIsLoading(false);
@@ -63,7 +65,7 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
       await fetchGroups();
       return true;
     } catch (err) {
-      Alert.alert("Błąd", "Nie udało się zaktualizować grupy");
+      alert("Błąd", "Nie udało się zaktualizować grupy");
       return false;
     } finally {
       setIsLoading(false);
@@ -77,7 +79,7 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
       await fetchGroups();
       return true;
     } catch (err) {
-      Alert.alert("Błąd", "Nie udało się usunąć grupy");
+      alert("Błąd", "Nie udało się usunąć grupy");
       return false;
     } finally {
       setIsLoading(false);

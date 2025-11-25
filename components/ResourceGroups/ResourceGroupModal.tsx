@@ -197,7 +197,7 @@ export default function ResourceGroupModal({
             />
             <ThemedButton
               title="Zapisz"
-              variant="primary"
+              variant="filled"
               onPress={handleSubmit}
               loading={submitting}
               disabled={!name.trim() || submitting}

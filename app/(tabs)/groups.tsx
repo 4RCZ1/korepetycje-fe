@@ -9,20 +9,32 @@ import {
 import ResourceGroupList from "@/components/ResourceGroups/ResourceGroupList";
 import ResourceGroupModal from "@/components/ResourceGroups/ResourceGroupModal";
 import StudentGroupList from "@/components/StudentGroups/StudentGroupList";
+import StudentGroupModal from "@/components/StudentGroups/StudentGroupModal";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ThemedButton from "@/components/ui/ThemedButton";
 import { useResourceGroups } from "@/hooks/useResourceGroups";
+import { useStudentGroups } from "@/hooks/useStudentGroups";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
+import { StudentGroupType } from "@/types/studentGroup";
+import { StudentType } from "@/services/studentApi";
 
 export default function GroupsScreen() {
   const [activeTab, setActiveTab] = useState<
     "resourceGroups" | "studentGroups"
   >("resourceGroups");
+  
+  // Resource Groups State
   const [isGroupModalVisible, setIsGroupModalVisible] = useState(false);
   const [editingGroup, setEditingGroup] = useState<
     ResourceGroupType | undefined
+  >(undefined);
+
+  // Student Groups State
+  const [isStudentGroupModalVisible, setIsStudentGroupModalVisible] = useState(false);
+  const [editingStudentGroup, setEditingStudentGroup] = useState<
+    StudentGroupType | undefined
   >(undefined);
 
   const {
@@ -35,6 +47,16 @@ export default function GroupsScreen() {
     deleteGroup,
   } = useResourceGroups();
 
+  const {
+    groups: studentGroups,
+    isLoading: loadingStudentGroups,
+    error: errorStudentGroups,
+    refreshGroups: refreshStudentGroups,
+    addGroup: addStudentGroup,
+    updateGroup: updateStudentGroup,
+    deleteGroup: deleteStudentGroup,
+  } = useStudentGroups();
+
   // Colors
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -45,10 +67,12 @@ export default function GroupsScreen() {
   const handleRefresh = async () => {
     if (activeTab === "resourceGroups") {
       await refreshGroups();
+    } else {
+      await refreshStudentGroups();
     }
-    // Add refresh logic for student groups later
   };
 
+  // Resource Group Handlers
   const handleGroupSubmit = async (
     name: string,
     selectedResources: ResourceType[],
@@ -70,7 +94,32 @@ export default function GroupsScreen() {
     setIsGroupModalVisible(true);
   };
 
-  if (loadingGroups && groups.length === 0 && activeTab === "resourceGroups") {
+  // Student Group Handlers
+  const handleStudentGroupSubmit = async (
+    name: string,
+    selectedStudents: StudentType[],
+  ) => {
+    if (editingStudentGroup) {
+      return await updateStudentGroup(editingStudentGroup.id, name, selectedStudents);
+    } else {
+      return await addStudentGroup(name, selectedStudents);
+    }
+  };
+
+  const openCreateStudentGroupModal = () => {
+    setEditingStudentGroup(undefined);
+    setIsStudentGroupModalVisible(true);
+  };
+
+  const openEditStudentGroupModal = (group: StudentGroupType) => {
+    setEditingStudentGroup(group);
+    setIsStudentGroupModalVisible(true);
+  };
+
+  const isLoading = activeTab === "resourceGroups" ? loadingGroups : loadingStudentGroups;
+  const isEmpty = activeTab === "resourceGroups" ? groups.length === 0 : studentGroups.length === 0;
+
+  if (isLoading && isEmpty) {
     return (
       <ThemedView style={[styles.container, { backgroundColor }]}>
         <View style={styles.header}>
@@ -94,15 +143,13 @@ export default function GroupsScreen() {
         <ThemedText style={[styles.title, { color: textColor }]}>
           Grupy
         </ThemedText>
-        {activeTab === "resourceGroups" && (
-          <ThemedButton
-            title="Nowa Grupa"
-            variant="filled"
-            size="medium"
-            color="primary"
-            onPress={openCreateGroupModal}
-          />
-        )}
+        <ThemedButton
+          title="Nowa Grupa"
+          variant="filled"
+          size="medium"
+          color="primary"
+          onPress={activeTab === "resourceGroups" ? openCreateGroupModal : openCreateStudentGroupModal}
+        />
       </View>
 
       <View style={[styles.tabsContainer, { borderBottomColor: borderColor }]}>
@@ -170,6 +217,26 @@ export default function GroupsScreen() {
         </View>
       )}
 
+      {errorStudentGroups && activeTab === "studentGroups" && (
+        <View
+          style={[
+            styles.errorContainer,
+            { backgroundColor: errorColor + "20" },
+          ]}
+        >
+          <ThemedText style={[styles.errorText, { color: errorColor }]}>
+            {errorStudentGroups}
+          </ThemedText>
+          <ThemedButton
+            title="Ponów"
+            variant="outline"
+            size="small"
+            color="error"
+            onPress={handleRefresh}
+          />
+        </View>
+      )}
+
       {activeTab === "resourceGroups" ? (
         <ResourceGroupList
           groups={groups}
@@ -179,7 +246,13 @@ export default function GroupsScreen() {
           onRefresh={handleRefresh}
         />
       ) : (
-        <StudentGroupList />
+        <StudentGroupList 
+          groups={studentGroups}
+          onDelete={deleteStudentGroup}
+          onEdit={openEditStudentGroupModal}
+          refreshing={loadingStudentGroups}
+          onRefresh={handleRefresh}
+        />
       )}
 
       <ResourceGroupModal
@@ -188,6 +261,14 @@ export default function GroupsScreen() {
         onSubmit={handleGroupSubmit}
         initialGroup={editingGroup}
         title={editingGroup ? "Edytuj Grupę" : "Nowa Grupa"}
+      />
+
+      <StudentGroupModal
+        visible={isStudentGroupModalVisible}
+        onClose={() => setIsStudentGroupModalVisible(false)}
+        onSubmit={handleStudentGroupSubmit}
+        initialGroup={editingStudentGroup}
+        title={editingStudentGroup ? "Edytuj Grupę Uczniów" : "Nowa Grupa Uczniów"}
       />
     </ThemedView>
   );

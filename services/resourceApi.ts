@@ -4,11 +4,14 @@ import {
   ResourceUrlDto,
   ResourceType,
 } from "@/types/resource";
+import { resourceApiMock } from "./mock/resourceApi";
+
+const USE_MOCK_API = process.env.EXPO_PUBLIC_USE_MOCK_API === "true";
 
 /**
  * Begin upload process - get presigned URL from backend
  */
-export async function beginUpload(
+async function beginUploadReal(
   filename: string,
 ): Promise<ResourceUrlDto> {
   const requestBody: ResourceUploadRequestType = { filename };
@@ -22,10 +25,12 @@ export async function beginUpload(
   return response;
 }
 
+export const beginUpload = USE_MOCK_API ? resourceApiMock.beginUpload : beginUploadReal;
+
 /**
  * Upload file directly to S3 using presigned URL
  */
-export async function uploadFileToS3(
+async function uploadFileToS3Real(
   presignedUrl: string,
   fileUri: string,
   fileType: string,
@@ -48,10 +53,12 @@ export async function uploadFileToS3(
   }
 }
 
+export const uploadFileToS3 = USE_MOCK_API ? resourceApiMock.uploadFileToS3 : uploadFileToS3Real;
+
 /**
  * Get download URL for a resource
  */
-export async function getDownloadUrl(
+async function getDownloadUrlReal(
   resourceGuid: string,
 ): Promise<ResourceUrlDto> {
   const response = await apiRequest<ResourceUrlDto>(
@@ -63,10 +70,12 @@ export async function getDownloadUrl(
   return response;
 }
 
+export const getDownloadUrl = USE_MOCK_API ? resourceApiMock.getDownloadUrl : getDownloadUrlReal;
+
 /**
  * Get all resources (mock implementation - adjust based on actual backend)
  */
-export async function getResources(): Promise<ResourceType[]> {
+async function getResourcesReal(): Promise<ResourceType[]> {
   try {
     const response = await apiRequest<ResourceType[]>(
       "/resource/list",
@@ -82,10 +91,12 @@ export async function getResources(): Promise<ResourceType[]> {
   }
 }
 
+export const getResources = USE_MOCK_API ? resourceApiMock.getResources : getResourcesReal;
+
 /**
  * Delete a resource (mock implementation - adjust based on actual backend)
  */
-export async function deleteResource(resourceId: string): Promise<boolean> {
+async function deleteResourceReal(resourceId: string): Promise<boolean> {
   try {
     await apiRequest(
       `/resource/${resourceId}`,
@@ -99,6 +110,8 @@ export async function deleteResource(resourceId: string): Promise<boolean> {
     throw error;
   }
 }
+
+export const deleteResource = USE_MOCK_API ? resourceApiMock.deleteResource : deleteResourceReal;
 
 export const resourceApi = {
   beginUpload,

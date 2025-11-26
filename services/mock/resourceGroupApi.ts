@@ -1,19 +1,7 @@
 import { ResourceGroupType, ResourceType } from "@/types/resource";
 
 import { ResourceGroupFilters } from "../resourceGroupApi";
-
-let mockResourceGroups: ResourceGroupType[] = [
-  {
-    id: "1",
-    name: "Materiały startowe",
-    resources: [],
-  },
-  {
-    id: "2",
-    name: "Egzaminy ósmoklasisty",
-    resources: [],
-  },
-];
+import { mockDatabase } from "./mockDatabase";
 
 export const resourceGroupApiMock = {
   async getResourceGroups(
@@ -22,7 +10,7 @@ export const resourceGroupApiMock = {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    let filteredGroups = [...mockResourceGroups];
+    let filteredGroups = [...mockDatabase.resourceGroups];
 
     if (filters?.resourceId) {
       filteredGroups = filteredGroups.filter((group) =>
@@ -50,7 +38,7 @@ export const resourceGroupApiMock = {
       name,
       resources,
     };
-    mockResourceGroups.push(newGroup);
+    mockDatabase.resourceGroups.push(newGroup);
     return newGroup;
   },
 
@@ -60,21 +48,22 @@ export const resourceGroupApiMock = {
     resources: ResourceType[],
   ): Promise<ResourceGroupType> {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const index = mockResourceGroups.findIndex((g) => g.id === id);
+    const index = mockDatabase.resourceGroups.findIndex((g) => g.id === id);
     if (index === -1) throw new Error("Group not found");
 
     const updatedGroup = {
-      ...mockResourceGroups[index],
+      ...mockDatabase.resourceGroups[index],
       name,
       resources,
     };
-    mockResourceGroups[index] = updatedGroup;
+    mockDatabase.resourceGroups[index] = updatedGroup;
     return updatedGroup;
   },
 
   async deleteResourceGroup(id: string): Promise<boolean> {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    mockResourceGroups = mockResourceGroups.filter((g) => g.id !== id);
-    return true;
+    const initialLength = mockDatabase.resourceGroups.length;
+    mockDatabase.resourceGroups = mockDatabase.resourceGroups.filter((g) => g.id !== id);
+    return mockDatabase.resourceGroups.length < initialLength;
   },
 };

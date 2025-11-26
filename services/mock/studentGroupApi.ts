@@ -1,19 +1,7 @@
 import { StudentGroupType } from "@/types/studentGroup";
 import { StudentType } from "@/services/studentApi";
 import { StudentGroupFilters } from "../studentGroupApi";
-
-let mockStudentGroups: StudentGroupType[] = [
-  {
-    id: "1",
-    name: "Klasa 3A",
-    students: [],
-  },
-  {
-    id: "2",
-    name: "Grupa zaawansowana",
-    students: [],
-  },
-];
+import { mockDatabase } from "./mockDatabase";
 
 export const studentGroupApiMock = {
   async getStudentGroups(
@@ -21,7 +9,7 @@ export const studentGroupApiMock = {
   ): Promise<StudentGroupType[]> {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    let filteredGroups = [...mockStudentGroups];
+    let filteredGroups = [...mockDatabase.studentGroups];
 
     if (filters?.studentId) {
        filteredGroups = filteredGroups.filter((group) =>
@@ -42,7 +30,7 @@ export const studentGroupApiMock = {
       name,
       students,
     };
-    mockStudentGroups.push(newGroup);
+    mockDatabase.studentGroups.push(newGroup);
     return newGroup;
   },
 
@@ -52,21 +40,22 @@ export const studentGroupApiMock = {
     students: StudentType[],
   ): Promise<StudentGroupType> {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const index = mockStudentGroups.findIndex((g) => g.id === id);
+    const index = mockDatabase.studentGroups.findIndex((g) => g.id === id);
     if (index === -1) throw new Error("Group not found");
 
     const updatedGroup = {
-      ...mockStudentGroups[index],
+      ...mockDatabase.studentGroups[index],
       name,
       students,
     };
-    mockStudentGroups[index] = updatedGroup;
+    mockDatabase.studentGroups[index] = updatedGroup;
     return updatedGroup;
   },
 
   async deleteStudentGroup(id: string): Promise<boolean> {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    mockStudentGroups = mockStudentGroups.filter((g) => g.id !== id);
-    return true;
+    const initialLength = mockDatabase.studentGroups.length;
+    mockDatabase.studentGroups = mockDatabase.studentGroups.filter((g) => g.id !== id);
+    return mockDatabase.studentGroups.length < initialLength;
   },
 };

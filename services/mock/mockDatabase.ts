@@ -1,6 +1,6 @@
 import { StudentType } from "@/services/studentApi";
-import { StudentGroupType } from "@/types/studentGroup";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
+import { StudentGroupType } from "@/types/studentGroup";
 
 // Initial Mock Data
 
@@ -50,7 +50,12 @@ const initialResources: ResourceType[] = [
     name: "Fizyka - Wzory.docx",
     uploadDate: new Date().toISOString(),
     fileSize: 1024 * 500, // 500 KB
-    fileType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    fileType:
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  },
+  {
+    id: "r3",
+    name: "Fizyka - Wzory 2.docx",
   },
 ];
 

@@ -39,10 +39,10 @@ const StudentGroupList = ({
       data={groups}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
-        <StudentGroupCard 
-          group={item} 
-          onDelete={onDelete || (async () => false)} 
-          onEdit={onEdit || (() => {})} 
+        <StudentGroupCard
+          group={item}
+          onDelete={onDelete || (async () => false)}
+          onEdit={onEdit || (() => {})}
         />
       )}
       contentContainerStyle={styles.listContent}

@@ -4,6 +4,9 @@ import {
   AddressType,
 } from "@/services/addressApi";
 import { ApiClientError, ApiResponse, apiRequest } from "@/services/api";
+import { studentApiMock } from "./mock/studentApi";
+
+const USE_MOCK_API = process.env.EXPO_PUBLIC_USE_MOCK_API === "true";
 
 type StudentDTO = {
   externalId: string;
@@ -116,7 +119,7 @@ export function studentConverter(studentDTO: StudentDTO): StudentType {
   };
 }
 
-export const studentApi = {
+const realApi = {
   async getStudents(): Promise<ApiResponse<StudentType[]>> {
     try {
       const response = await apiRequest<StudentDTO[]>("/student");
@@ -194,3 +197,5 @@ export const studentApi = {
     }
   },
 };
+
+export const studentApi = USE_MOCK_API ? studentApiMock : realApi;

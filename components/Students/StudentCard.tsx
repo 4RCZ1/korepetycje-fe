@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 
+import AssignResourceModal from "@/components/Assignments/AssignResourceModal";
+import ViewAssignmentsModal from "@/components/Assignments/ViewAssignmentsModal";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ThemedButton from "@/components/ui/ThemedButton";
@@ -29,11 +31,14 @@ const StudentCard = ({
   isUpdating,
 }: StudentCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showViewAssignmentsModal, setShowViewAssignmentsModal] =
+    useState(false);
   const backgroundColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
   const primaryColor = useThemeColor({}, "tint");
 
-  const handleDelete = () => {
+  const _handleDelete = () => {
     console.log("Delete student:", student.id);
     alert(
       "Delete Student",
@@ -101,6 +106,27 @@ const StudentCard = ({
             {student.address.data}
           </ThemedText>
         </View>
+
+        <View style={styles.assignmentActions}>
+          <ThemedButton
+            title="Przypisz zasoby"
+            variant="outline"
+            size="small"
+            color="primary"
+            onPress={() => setShowAssignModal(true)}
+            disabled={isDeleting}
+            style={styles.assignButton}
+          />
+          <ThemedButton
+            title="Zobacz zasoby"
+            variant="outline"
+            size="small"
+            color="primary"
+            onPress={() => setShowViewAssignmentsModal(true)}
+            disabled={isDeleting}
+            style={styles.assignButton}
+          />
+        </View>
       </View>
 
       <EditStudentModal
@@ -108,6 +134,20 @@ const StudentCard = ({
         student={student}
         onClose={() => setShowEditModal(false)}
         onSubmit={handleUpdate}
+      />
+
+      <AssignResourceModal
+        visible={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        preSelectedStudents={[student]}
+        mode="studentToResource"
+        title={`Przypisz do: ${student.name} ${student.surname}`}
+      />
+
+      <ViewAssignmentsModal
+        visible={showViewAssignmentsModal}
+        onClose={() => setShowViewAssignmentsModal(false)}
+        viewMode={{ type: "student", student }}
       />
     </ThemedView>
   );
@@ -167,6 +207,14 @@ const styles = StyleSheet.create({
   },
   addressData: {
     fontSize: 14,
+  },
+  assignmentActions: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+  },
+  assignButton: {
+    flex: 1,
   },
 });
 

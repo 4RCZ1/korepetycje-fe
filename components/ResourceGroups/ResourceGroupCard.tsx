@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 
+import AssignResourceModal from "@/components/Assignments/AssignResourceModal";
+import ViewAssignmentsModal from "@/components/Assignments/ViewAssignmentsModal";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -28,6 +30,10 @@ const ResourceGroupCard = ({
   onEdit,
   isDeleting = false,
 }: ResourceGroupCardProps) => {
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showViewAssignmentsModal, setShowViewAssignmentsModal] =
+    useState(false);
+
   // Colors
   const surfaceColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
@@ -85,13 +91,26 @@ const ResourceGroupCard = ({
           disabled={isDeleting}
           style={styles.actionButton}
         />
+        <ThemedButton
+          title="Przypisz"
+          variant="outline"
+          size="small"
+          color="primary"
+          onPress={() => setShowAssignModal(true)}
+          disabled={isDeleting}
+          style={styles.actionButton}
+        />
+        <TouchableOpacity
+          onPress={() => setShowViewAssignmentsModal(true)}
+          disabled={isDeleting}
+          style={[styles.infoButton, isDeleting && styles.buttonDisabled]}
+        >
+          <MaterialIcons name="people" size={20} color={primaryColor} />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={handleDelete}
           disabled={isDeleting}
-          style={[
-            styles.deleteButton,
-            isDeleting && styles.deleteButtonDisabled,
-          ]}
+          style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
         >
           {isDeleting ? (
             <ActivityIndicator size="small" color={errorColor} />
@@ -100,6 +119,20 @@ const ResourceGroupCard = ({
           )}
         </TouchableOpacity>
       </View>
+
+      <AssignResourceModal
+        visible={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        preSelectedResourceGroups={[group]}
+        mode="resourceToStudent"
+        title={`Przypisz: ${group.name}`}
+      />
+
+      <ViewAssignmentsModal
+        visible={showViewAssignmentsModal}
+        onClose={() => setShowViewAssignmentsModal(false)}
+        viewMode={{ type: "resourceGroup", resourceGroup: group }}
+      />
     </ThemedView>
   );
 };
@@ -153,12 +186,18 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
+  infoButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#00000010",
+    marginRight: 8,
+  },
   deleteButton: {
     padding: 8,
     borderRadius: 8,
     backgroundColor: "#ff000015",
   },
-  deleteButtonDisabled: {
+  buttonDisabled: {
     opacity: 0.5,
   },
 });

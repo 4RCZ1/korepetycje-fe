@@ -1,3 +1,4 @@
+import { AssignmentRecord } from "@/services/assignmentApi";
 import { StudentType } from "@/services/studentApi";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
 import { StudentGroupType } from "@/types/studentGroup";
@@ -75,10 +76,21 @@ const initialResourceGroups: ResourceGroupType[] = [
   },
 ];
 
+// Initial assignments: resource r1 directly assigned to student s1
+const initialAssignments: AssignmentRecord[] = [
+  {
+    id: "a1",
+    resourceId: "r1",
+    studentId: "s1",
+    createdAt: new Date().toISOString(),
+  },
+];
+
 // Central Mock Database
 export const mockDatabase = {
   students: [...initialStudents],
   studentGroups: [...initialStudentGroups],
   resourceGroups: [...initialResourceGroups],
   resources: [...initialResources],
+  assignments: [...initialAssignments],
 };

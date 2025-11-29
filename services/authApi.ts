@@ -1,4 +1,5 @@
 import { ApiResponse, apiRequest } from "./api";
+import { authApiMock } from "./mock/authApi";
 
 // Types based on API documentation
 export interface LoginRequest {
@@ -198,5 +199,7 @@ class AuthApi {
   }
 }
 
-// Export singleton instance
-export const authApi = new AuthApi();
+const USE_MOCK_API = process.env.EXPO_PUBLIC_USE_MOCK_API === "true";
+
+// Export singleton instance (use mock in mock mode)
+export const authApi = USE_MOCK_API ? authApiMock : new AuthApi();

@@ -198,5 +198,10 @@ class AuthApi {
   }
 }
 
-// Export singleton instance
-export const authApi = new AuthApi();
+const USE_MOCK_API = process.env.EXPO_PUBLIC_USE_MOCK_API === "true";
+
+// For mock mode, import and use mock API
+const mockAuthApi = USE_MOCK_API ? require("./mock/authApi").authApiMock : null;
+
+// Export singleton instance (use mock in mock mode)
+export const authApi = USE_MOCK_API ? mockAuthApi : new AuthApi();

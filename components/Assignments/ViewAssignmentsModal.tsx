@@ -71,6 +71,17 @@ export default function ViewAssignmentsModal({
   const borderColor = useThemeColor({}, "border");
   const errorColor = useThemeColor({}, "error", "500");
 
+  // Extract stable values from viewMode for dependency tracking
+  const viewModeType = viewMode.type;
+  const viewModeId =
+    viewMode.type === "resource"
+      ? viewMode.resource.id
+      : viewMode.type === "resourceGroup"
+        ? viewMode.resourceGroup.id
+        : viewMode.type === "student"
+          ? viewMode.student.id
+          : viewMode.studentGroup.id;
+
   const fetchAssignments = useCallback(async () => {
     setLoading(true);
     try {
@@ -92,8 +103,11 @@ export default function ViewAssignmentsModal({
     } finally {
       setLoading(false);
     }
+    // Use stable values for dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    viewMode,
+    viewModeType,
+    viewModeId,
     getResourceAssignments,
     getResourceGroupAssignments,
     getStudentAssignments,

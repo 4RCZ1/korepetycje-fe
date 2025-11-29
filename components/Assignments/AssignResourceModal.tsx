@@ -109,14 +109,9 @@ export default function AssignResourceModal({
         setActiveTab("resources");
       }
     }
-  }, [
-    visible,
-    preSelectedResources,
-    preSelectedResourceGroups,
-    preSelectedStudents,
-    preSelectedStudentGroups,
-    mode,
-  ]);
+    // Only run when visible changes - the preSelected arrays should be stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, mode]);
 
   const handleSubmit = async () => {
     setSubmitting(true);

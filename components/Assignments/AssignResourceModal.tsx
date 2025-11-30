@@ -22,6 +22,7 @@ import { useStudentApi } from "@/hooks/useStudentApi";
 import { useStudentGroups } from "@/hooks/useStudentGroups";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { StudentType } from "@/services/studentApi";
+import { AssignmentType } from "@/types/assignment";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
 import { StudentGroupType } from "@/types/studentGroup";
 import { getFileIcon } from "@/utils/fileHelpers";
@@ -69,11 +70,26 @@ export default function AssignResourceModal({
     Set<string>
   >(new Set());
 
+  // Track initial assignments to detect deletions
+  const [initialResources, setInitialResources] = useState<Set<string>>(
+    new Set(),
+  );
+  const [initialResourceGroups, setInitialResourceGroups] = useState<
+    Set<string>
+  >(new Set());
+  const [initialStudents, setInitialStudents] = useState<Set<string>>(
+    new Set(),
+  );
+  const [initialStudentGroups, setInitialStudentGroups] = useState<Set<string>>(
+    new Set(),
+  );
+
   const [activeTab, setActiveTab] = useState<
     "students" | "studentGroups" | "resources" | "resourceGroups"
   >(mode === "resourceToStudent" ? "students" : "resources");
 
   const [submitting, setSubmitting] = useState(false);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
 
   // API hooks
   const { resources, loading: loadingResources } = useResourceApi();
@@ -82,7 +98,14 @@ export default function AssignResourceModal({
   const { students, loading: loadingStudents } = useStudentApi();
   const { groups: studentGroups, isLoading: loadingStudentGroups } =
     useStudentGroups();
-  const { createAssignments } = useAssignments();
+  const {
+    createAssignments,
+    deleteAssignmentsBulk,
+    getResourceAssignments,
+    getResourceGroupAssignments,
+    getStudentAssignments,
+    getStudentGroupAssignments,
+  } = useAssignments();
 
   // Colors
   const surfaceColor = useThemeColor({}, "surface");
@@ -108,25 +131,255 @@ export default function AssignResourceModal({
       } else {
         setActiveTab("resources");
       }
+
+      // Load existing assignments
+      loadExistingAssignments();
     }
     // Only run when visible changes - the preSelected arrays should be stable
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, mode]);
 
+  // Load existing assignments based on mode and pre-selected items
+  const loadExistingAssignments = async () => {
+    setLoadingAssignments(true);
+    try {
+      if (mode === "resourceToStudent") {
+        // Load assignments for pre-selected resources/resource groups
+        const assignedStudentIds = new Set<string>();
+        const assignedStudentGroupIds = new Set<string>();
+
+        for (const resource of preSelectedResources) {
+          const assignments = await getResourceAssignments(resource.id);
+          if (assignments && assignments.assignedTo) {
+            assignments.assignedTo.forEach((assignment) => {
+              if (
+                assignment.type === AssignmentType.DIRECT ||
+                assignment.type === AssignmentType.STUDENT_GROUP
+              ) {
+                // Both DirectStudentAssignment and StudentGroupStudentAssignment have assignmentTargets
+                assignment.assignmentTargets.forEach((s: StudentType) =>
+                  assignedStudentIds.add(s.id),
+                );
+                // For student group assignments, we need to track the group itself
+                // The name property contains the group identifier
+                if (assignment.type === AssignmentType.STUDENT_GROUP) {
+                  // We need to find the matching student group by name
+                  const matchingGroup = studentGroups?.find(
+                    (sg) => sg.name === assignment.name,
+                  );
+                  if (matchingGroup) {
+                    assignedStudentGroupIds.add(matchingGroup.id);
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        for (const resourceGroup of preSelectedResourceGroups) {
+          const assignments = await getResourceGroupAssignments(
+            resourceGroup.id,
+          );
+          if (assignments && assignments.assignedTo) {
+            assignments.assignedTo.forEach((assignment) => {
+              if (
+                assignment.type === AssignmentType.DIRECT ||
+                assignment.type === AssignmentType.STUDENT_GROUP
+              ) {
+                // Both DirectStudentAssignment and StudentGroupStudentAssignment have assignmentTargets
+                assignment.assignmentTargets.forEach((s: StudentType) =>
+                  assignedStudentIds.add(s.id),
+                );
+                // For student group assignments, track the group
+                if (assignment.type === AssignmentType.STUDENT_GROUP) {
+                  const matchingGroup = studentGroups?.find(
+                    (sg) => sg.name === assignment.name,
+                  );
+                  if (matchingGroup) {
+                    assignedStudentGroupIds.add(matchingGroup.id);
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Update selections with existing assignments
+        setSelectedStudents(
+          (prev) => new Set([...prev, ...assignedStudentIds]),
+        );
+        setSelectedStudentGroups(
+          (prev) => new Set([...prev, ...assignedStudentGroupIds]),
+        );
+
+        // Store initial state
+        setInitialStudents(assignedStudentIds);
+        setInitialStudentGroups(assignedStudentGroupIds);
+      } else {
+        // mode === "studentToResource"
+        // Load assignments for pre-selected students/student groups
+        const assignedResourceIds = new Set<string>();
+        const assignedResourceGroupIds = new Set<string>();
+
+        for (const student of preSelectedStudents) {
+          const assignments = await getStudentAssignments(student.id);
+          if (assignments && assignments.assignedTo) {
+            assignments.assignedTo.forEach((assignment) => {
+              if (
+                assignment.type === AssignmentType.DIRECT ||
+                assignment.type === AssignmentType.RESOURCE_GROUP
+              ) {
+                // Both DirectAssignment and ResourceGroupAssignment have assignmentTargets
+                assignment.assignmentTargets.forEach((r: ResourceType) =>
+                  assignedResourceIds.add(r.id),
+                );
+                // For resource group assignments, track the group
+                if (assignment.type === AssignmentType.RESOURCE_GROUP) {
+                  const matchingGroup = resourceGroups?.find(
+                    (rg) => rg.name === assignment.name,
+                  );
+                  if (matchingGroup) {
+                    assignedResourceGroupIds.add(matchingGroup.id);
+                  }
+                }
+              }
+              // Note: STUDENT_GROUP type doesn't apply here as we're looking at individual student assignments
+            });
+          }
+        }
+
+        for (const studentGroup of preSelectedStudentGroups) {
+          const assignments = await getStudentGroupAssignments(studentGroup.id);
+          if (assignments && assignments.assignedTo) {
+            assignments.assignedTo.forEach((assignment) => {
+              if (
+                assignment.type === AssignmentType.DIRECT ||
+                assignment.type === AssignmentType.RESOURCE_GROUP
+              ) {
+                // Both DirectAssignment and ResourceGroupAssignment have assignmentTargets
+                assignment.assignmentTargets.forEach((r: ResourceType) =>
+                  assignedResourceIds.add(r.id),
+                );
+                // For resource group assignments, track the group
+                if (assignment.type === AssignmentType.RESOURCE_GROUP) {
+                  const matchingGroup = resourceGroups?.find(
+                    (rg) => rg.name === assignment.name,
+                  );
+                  if (matchingGroup) {
+                    assignedResourceGroupIds.add(matchingGroup.id);
+                  }
+                }
+              }
+            });
+          }
+        }
+
+        // Update selections with existing assignments
+        setSelectedResources(
+          (prev) => new Set([...prev, ...assignedResourceIds]),
+        );
+        setSelectedResourceGroups(
+          (prev) => new Set([...prev, ...assignedResourceGroupIds]),
+        );
+
+        // Store initial state
+        setInitialResources(assignedResourceIds);
+        setInitialResourceGroups(assignedResourceGroupIds);
+      }
+    } finally {
+      setLoadingAssignments(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const success = await createAssignments({
-        resourceIds: Array.from(selectedResources),
-        resourceGroupIds: Array.from(selectedResourceGroups),
-        studentIds: Array.from(selectedStudents),
-        studentGroupIds: Array.from(selectedStudentGroups),
-      });
+      // Calculate what needs to be added (new selections)
+      const resourcesToAdd = Array.from(selectedResources).filter(
+        (id) => !initialResources.has(id),
+      );
+      const resourceGroupsToAdd = Array.from(selectedResourceGroups).filter(
+        (id) => !initialResourceGroups.has(id),
+      );
+      const studentsToAdd = Array.from(selectedStudents).filter(
+        (id) => !initialStudents.has(id),
+      );
+      const studentGroupsToAdd = Array.from(selectedStudentGroups).filter(
+        (id) => !initialStudentGroups.has(id),
+      );
 
-      if (success) {
-        onSuccess?.();
-        onClose();
+      // Calculate what needs to be deleted (deselected items)
+      const resourcesToDelete = Array.from(initialResources).filter(
+        (id) => !selectedResources.has(id),
+      );
+      const resourceGroupsToDelete = Array.from(initialResourceGroups).filter(
+        (id) => !selectedResourceGroups.has(id),
+      );
+      const studentsToDelete = Array.from(initialStudents).filter(
+        (id) => !selectedStudents.has(id),
+      );
+      const studentGroupsToDelete = Array.from(initialStudentGroups).filter(
+        (id) => !selectedStudentGroups.has(id),
+      );
+
+      // Delete deselected assignments
+      const hasItemsToDelete =
+        resourcesToDelete.length > 0 ||
+        resourceGroupsToDelete.length > 0 ||
+        studentsToDelete.length > 0 ||
+        studentGroupsToDelete.length > 0;
+
+      if (hasItemsToDelete) {
+        if (mode === "resourceToStudent") {
+          // When deleting, use pre-selected resources with deselected students
+          await deleteAssignmentsBulk({
+            resourceIds: preSelectedResources.map((r) => r.id),
+            resourceGroupIds: preSelectedResourceGroups.map((rg) => rg.id),
+            studentIds: studentsToDelete,
+            studentGroupIds: studentGroupsToDelete,
+          });
+        } else {
+          // mode === "studentToResource"
+          // When deleting, use pre-selected students with deselected resources
+          await deleteAssignmentsBulk({
+            resourceIds: resourcesToDelete,
+            resourceGroupIds: resourceGroupsToDelete,
+            studentIds: preSelectedStudents.map((s) => s.id),
+            studentGroupIds: preSelectedStudentGroups.map((sg) => sg.id),
+          });
+        }
       }
+
+      // Create new assignments
+      const hasItemsToAdd =
+        resourcesToAdd.length > 0 ||
+        resourceGroupsToAdd.length > 0 ||
+        studentsToAdd.length > 0 ||
+        studentGroupsToAdd.length > 0;
+
+      if (hasItemsToAdd) {
+        if (mode === "resourceToStudent") {
+          // Add new students to pre-selected resources
+          await createAssignments({
+            resourceIds: preSelectedResources.map((r) => r.id),
+            resourceGroupIds: preSelectedResourceGroups.map((rg) => rg.id),
+            studentIds: studentsToAdd,
+            studentGroupIds: studentGroupsToAdd,
+          });
+        } else {
+          // mode === "studentToResource"
+          // Add new resources to pre-selected students
+          await createAssignments({
+            resourceIds: resourcesToAdd,
+            resourceGroupIds: resourceGroupsToAdd,
+            studentIds: preSelectedStudents.map((s) => s.id),
+            studentGroupIds: preSelectedStudentGroups.map((sg) => sg.id),
+          });
+        }
+      }
+
+      onSuccess?.();
+      onClose();
     } finally {
       setSubmitting(false);
     }
@@ -192,7 +445,8 @@ export default function AssignResourceModal({
     loadingResources ||
     loadingResourceGroups ||
     loadingStudents ||
-    loadingStudentGroups;
+    loadingStudentGroups ||
+    loadingAssignments;
 
   const modalTitle =
     title ||

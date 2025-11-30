@@ -5,6 +5,7 @@ import { LoginRequest, LoginResponse, User } from "../authApi";
 // Mock auth API for testing purposes
 export const authApiMock = {
   async login(loginData: LoginRequest): Promise<ApiResponse<LoginResponse>> {
+    console.log('[authApiMock.login]', JSON.stringify(loginData, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Accept any credentials in mock mode
@@ -13,13 +14,15 @@ export const authApiMock = {
       role: "tutors", // Default to tutor role for testing
     };
 
-    return {
+    const response = {
       data: {
         token: "mock-token-" + Date.now(),
         user,
       },
       success: true,
     };
+    console.log('[authApiMock.login] Response:', JSON.stringify(response, null, 2));
+    return response;
   },
 
   async logout(): Promise<ApiResponse<{ message: string }>> {
@@ -28,11 +31,14 @@ export const authApiMock = {
   },
 
   async verifyToken(): Promise<ApiResponse<User>> {
+    console.log('[authApiMock.verifyToken]', JSON.stringify({}, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 200));
-    return {
+    const response = {
       data: { email: "test@example.com", role: "tutors" },
       success: true,
     };
+    console.log('[authApiMock.verifyToken] Response:', JSON.stringify(response, null, 2));
+    return response;
   },
 
   async resetPassword(): Promise<ApiResponse<{ message: string }>> {

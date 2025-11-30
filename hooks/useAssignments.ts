@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import {
   assignmentApi,
   CreateAssignmentRequest,
+  DeleteAssignmentRequest,
   ResourceAssignmentsResponse,
   ResourceGroupAssignmentsResponse,
   StudentAssignmentsResponse,
@@ -64,6 +65,26 @@ export function useAssignments() {
       setError(null);
       try {
         await assignmentApi.deleteAssignments(assignmentIds);
+        return true;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Nie udało się usunąć przypisań";
+        setError(message);
+        alert("Błąd", message);
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const deleteAssignmentsBulk = useCallback(
+    async (request: DeleteAssignmentRequest): Promise<boolean> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await assignmentApi.deleteAssignmentsBulk(request);
         return true;
       } catch (err) {
         const message =
@@ -174,6 +195,7 @@ export function useAssignments() {
     createAssignments,
     deleteAssignment,
     deleteAssignments,
+    deleteAssignmentsBulk,
     getResourceAssignments,
     getResourceGroupAssignments,
     getStudentAssignments,

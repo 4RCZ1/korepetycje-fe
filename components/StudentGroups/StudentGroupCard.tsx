@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import AssignResourceModal from "@/components/Assignments/AssignResourceModal";
 import ViewAssignmentsModal from "@/components/Assignments/ViewAssignmentsModal";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -30,9 +29,9 @@ const StudentGroupCard = ({
   onEdit,
   isDeleting = false,
 }: StudentGroupCardProps) => {
-  const [showAssignModal, setShowAssignModal] = useState(false);
   const [showViewAssignmentsModal, setShowViewAssignmentsModal] =
     useState(false);
+  const [refetchAssignments, setRefetchAssignments] = useState<(() => Promise<void>) | null>(null);
 
   // Colors
   const surfaceColor = useThemeColor({}, "surface");
@@ -91,15 +90,6 @@ const StudentGroupCard = ({
           disabled={isDeleting}
           style={styles.actionButton}
         />
-        <ThemedButton
-          title="Przypisz"
-          variant="outline"
-          size="small"
-          color="primary"
-          onPress={() => setShowAssignModal(true)}
-          disabled={isDeleting}
-          style={styles.actionButton}
-        />
         <TouchableOpacity
           onPress={() => setShowViewAssignmentsModal(true)}
           disabled={isDeleting}
@@ -120,18 +110,11 @@ const StudentGroupCard = ({
         </TouchableOpacity>
       </View>
 
-      <AssignResourceModal
-        visible={showAssignModal}
-        onClose={() => setShowAssignModal(false)}
-        preSelectedStudentGroups={[group]}
-        mode="studentToResource"
-        title={`Przypisz do: ${group.name}`}
-      />
-
       <ViewAssignmentsModal
         visible={showViewAssignmentsModal}
         onClose={() => setShowViewAssignmentsModal(false)}
         viewMode={{ type: "studentGroup", studentGroup: group }}
+        onRefetch={(refetchFn) => setRefetchAssignments(() => refetchFn)}
       />
     </ThemedView>
   );

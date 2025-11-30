@@ -1,3 +1,8 @@
+import {
+  ReverseAssignment,
+  ResourceAssignment,
+  Assignment,
+} from "@/types/assignment";
 import { ResourceType, ResourceGroupType } from "@/types/resource";
 import { StudentGroupType } from "@/types/studentGroup";
 
@@ -41,43 +46,34 @@ export interface AssignmentDetails {
 // Response types for viewing assignments
 export interface ResourceAssignmentsResponse {
   resourceId: string;
-  assignments: {
-    directStudents: StudentType[];
-    studentGroups: { group: StudentGroupType; students: StudentType[] }[];
-  };
+  assignedTo: ReverseAssignment[];
 }
 
 export interface ResourceGroupAssignmentsResponse {
   resourceGroupId: string;
-  assignments: {
-    directStudents: StudentType[];
-    studentGroups: { group: StudentGroupType; students: StudentType[] }[];
-  };
+  assignedTo: ReverseAssignment[];
 }
 
 export interface StudentAssignmentsResponse {
   studentId: string;
-  assignments: {
-    directResources: ResourceType[];
-    resourceGroups: ResourceGroupType[];
-    inheritedFromGroups: {
-      group: StudentGroupType;
-      resources: ResourceType[];
-      resourceGroups: ResourceGroupType[];
-    }[];
-  };
+  assignedTo: Assignment[];
 }
 
 export interface StudentGroupAssignmentsResponse {
   studentGroupId: string;
-  assignments: {
-    directResources: ResourceType[];
-    resourceGroups: ResourceGroupType[];
-  };
+  assignedTo: ResourceAssignment[];
 }
 
 // Create assignment request
 export interface CreateAssignmentRequest {
+  resourceIds?: string[];
+  resourceGroupIds?: string[];
+  studentIds?: string[];
+  studentGroupIds?: string[];
+}
+
+// Delete assignment request (same format as create for bulk operations)
+export interface DeleteAssignmentRequest {
   resourceIds?: string[];
   resourceGroupIds?: string[];
   studentIds?: string[];
@@ -107,6 +103,17 @@ const realApi = {
     await apiRequest("/assignment/bulk-delete", {
       method: "POST",
       body: JSON.stringify({ ids: assignmentIds }),
+    });
+    return true;
+  },
+
+  // Delete assignments by combination (matching create format)
+  async deleteAssignmentsBulk(
+    request: DeleteAssignmentRequest,
+  ): Promise<boolean> {
+    await apiRequest("/assignment/bulk-delete-by-combination", {
+      method: "POST",
+      body: JSON.stringify(request),
     });
     return true;
   },

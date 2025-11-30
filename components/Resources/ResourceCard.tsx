@@ -36,6 +36,9 @@ const ResourceCard = ({
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showViewAssignmentsModal, setShowViewAssignmentsModal] =
     useState(false);
+  const [refetchAssignments, setRefetchAssignments] = useState<
+    (() => Promise<void>) | null
+  >(null);
 
   // Colors
   const surfaceColor = useThemeColor({}, "surface");
@@ -174,6 +177,12 @@ const ResourceCard = ({
       <AssignResourceModal
         visible={showAssignModal}
         onClose={() => setShowAssignModal(false)}
+        onSuccess={async () => {
+          // Refetch assignments after successful creation
+          if (refetchAssignments) {
+            await refetchAssignments();
+          }
+        }}
         preSelectedResources={[resource]}
         mode="resourceToStudent"
         title={`Przypisz: ${resource.name}`}
@@ -183,6 +192,7 @@ const ResourceCard = ({
         visible={showViewAssignmentsModal}
         onClose={() => setShowViewAssignmentsModal(false)}
         viewMode={{ type: "resource", resource }}
+        onRefetch={(refetchFn) => setRefetchAssignments(() => refetchFn)}
       />
     </ThemedView>
   );

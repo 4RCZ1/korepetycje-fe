@@ -3,8 +3,11 @@ import { mockDatabase } from "./mockDatabase";
 
 export const resourceApiMock = {
   async beginUpload(filename: string): Promise<ResourceUrlDto> {
+    console.log('[resourceApiMock.beginUpload]', JSON.stringify({ filename }, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
-    return { url: "https://mock-s3-url.com/upload/" + filename };
+    const response = { url: "https://mock-s3-url.com/upload/" + filename };
+    console.log('[resourceApiMock.beginUpload] Response:', JSON.stringify(response, null, 2));
+    return response;
   },
 
   async uploadFileToS3(
@@ -12,6 +15,7 @@ export const resourceApiMock = {
     fileUri: string,
     fileType: string,
   ): Promise<boolean> {
+    console.log('[resourceApiMock.uploadFileToS3]', JSON.stringify({ presignedUrl, fileUri, fileType }, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 1000));
     
     // Extract filename from the mock URL or generate one
@@ -30,16 +34,23 @@ export const resourceApiMock = {
   },
 
   async getDownloadUrl(resourceGuid: string): Promise<ResourceUrlDto> {
+    console.log('[resourceApiMock.getDownloadUrl]', JSON.stringify({ resourceGuid }, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 200));
-    return { url: `https://mock-s3-url.com/download/${resourceGuid}` };
+    const response = { url: `https://mock-s3-url.com/download/${resourceGuid}` };
+    console.log('[resourceApiMock.getDownloadUrl] Response:', JSON.stringify(response, null, 2));
+    return response;
   },
 
   async getResources(): Promise<ResourceType[]> {
+    console.log('[resourceApiMock.getResources]', JSON.stringify({}, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
-    return [...mockDatabase.resources];
+    const response = [...mockDatabase.resources];
+    console.log('[resourceApiMock.getResources] Response:', JSON.stringify(response, null, 2));
+    return response;
   },
 
   async deleteResource(resourceId: string): Promise<boolean> {
+    console.log('[resourceApiMock.deleteResource]', JSON.stringify({ resourceId }, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
     const initialLength = mockDatabase.resources.length;
     mockDatabase.resources = mockDatabase.resources.filter((r) => r.id !== resourceId);

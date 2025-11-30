@@ -1,10 +1,4 @@
-import {
-  AssignmentType,
-  ReverseAssignment,
-  ResourceAssignment,
-  Assignment,
-} from "@/types/assignment";
-
+import { StudentType } from "../studentApi";
 import {
   AssignmentRecord,
   CreateAssignmentRequest,
@@ -14,6 +8,7 @@ import {
   StudentGroupAssignmentsResponse,
 } from "../assignmentApi";
 import { mockDatabase } from "./mockDatabase";
+import { ResourceType } from "@/types/resource";
 
 export const assignmentApiMock = {
   // Create assignments between resources/resource groups and students/student groups
@@ -179,7 +174,7 @@ export const assignmentApiMock = {
     return mockDatabase.assignments.length < initialLength;
   },
 
-  // Get assignments for a specific resource
+  // Get assignments for a specific resource - returns flat list of students
   async getResourceAssignments(
     resourceId: string,
   ): Promise<ResourceAssignmentsResponse> {
@@ -189,42 +184,15 @@ export const assignmentApiMock = {
     );
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const assignedTo: ReverseAssignment[] = [];
-
-    // Find all assignments for this resource
+    // Find all direct student assignments for this resource
     const directStudentAssignments = mockDatabase.assignments.filter(
       (a) => a.resourceId === resourceId && a.studentId,
     );
 
-    const studentGroupAssignments = mockDatabase.assignments.filter(
-      (a) => a.resourceId === resourceId && a.studentGroupId,
-    );
-
-    // Direct students
-    const directStudents = directStudentAssignments
+    // Get flat list of students
+    const assignedTo: StudentType[] = directStudentAssignments
       .map((a) => mockDatabase.students.find((s) => s.id === a.studentId))
-      .filter((s) => s !== undefined);
-
-    if (directStudents.length > 0) {
-      assignedTo.push({
-        type: AssignmentType.DIRECT,
-        assignmentTargets: directStudents,
-      });
-    }
-
-    // Student groups
-    studentGroupAssignments.forEach((a) => {
-      const group = mockDatabase.studentGroups.find(
-        (g) => g.id === a.studentGroupId,
-      );
-      if (group) {
-        assignedTo.push({
-          type: AssignmentType.STUDENT_GROUP,
-          name: group.name,
-          assignmentTargets: group.students,
-        });
-      }
-    });
+      .filter((s): s is StudentType => s !== undefined);
 
     const response = { resourceId, assignedTo };
     console.log(
@@ -234,7 +202,7 @@ export const assignmentApiMock = {
     return response;
   },
 
-  // Get assignments for a specific resource group
+  // Get assignments for a specific resource group - returns flat list of students
   async getResourceGroupAssignments(
     resourceGroupId: string,
   ): Promise<ResourceGroupAssignmentsResponse> {
@@ -244,42 +212,15 @@ export const assignmentApiMock = {
     );
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const assignedTo: ReverseAssignment[] = [];
-
-    // Find all assignments for this resource group
+    // Find all direct student assignments for this resource group
     const directStudentAssignments = mockDatabase.assignments.filter(
       (a) => a.resourceGroupId === resourceGroupId && a.studentId,
     );
 
-    const studentGroupAssignments = mockDatabase.assignments.filter(
-      (a) => a.resourceGroupId === resourceGroupId && a.studentGroupId,
-    );
-
-    // Direct students
-    const directStudents = directStudentAssignments
+    // Get flat list of students
+    const assignedTo: StudentType[] = directStudentAssignments
       .map((a) => mockDatabase.students.find((s) => s.id === a.studentId))
-      .filter((s) => s !== undefined);
-
-    if (directStudents.length > 0) {
-      assignedTo.push({
-        type: AssignmentType.DIRECT,
-        assignmentTargets: directStudents,
-      });
-    }
-
-    // Student groups
-    studentGroupAssignments.forEach((a) => {
-      const group = mockDatabase.studentGroups.find(
-        (g) => g.id === a.studentGroupId,
-      );
-      if (group) {
-        assignedTo.push({
-          type: AssignmentType.STUDENT_GROUP,
-          name: group.name,
-          assignmentTargets: group.students,
-        });
-      }
-    });
+      .filter((s): s is StudentType => s !== undefined);
 
     const response = { resourceGroupId, assignedTo };
     console.log(
@@ -289,7 +230,7 @@ export const assignmentApiMock = {
     return response;
   },
 
-  // Get assignments for a specific student
+  // Get assignments for a specific student - returns flat list of resources
   async getStudentAssignments(
     studentId: string,
   ): Promise<StudentAssignmentsResponse> {
@@ -299,91 +240,15 @@ export const assignmentApiMock = {
     );
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const assignedTo: Assignment[] = [];
-
     // Direct resource assignments
     const directResourceAssignments = mockDatabase.assignments.filter(
       (a) => a.studentId === studentId && a.resourceId,
     );
-    const directResources = directResourceAssignments
+
+    // Get flat list of resources
+    const assignedTo: ResourceType[] = directResourceAssignments
       .map((a) => mockDatabase.resources.find((r) => r.id === a.resourceId))
-      .filter((r) => r !== undefined);
-
-    if (directResources.length > 0) {
-      assignedTo.push({
-        type: AssignmentType.DIRECT,
-        assignmentTargets: directResources,
-      });
-    }
-
-    // Direct resource group assignments
-    const directResourceGroupAssignments = mockDatabase.assignments.filter(
-      (a) => a.studentId === studentId && a.resourceGroupId,
-    );
-    directResourceGroupAssignments.forEach((a) => {
-      const group = mockDatabase.resourceGroups.find(
-        (rg) => rg.id === a.resourceGroupId,
-      );
-      if (group) {
-        assignedTo.push({
-          type: AssignmentType.RESOURCE_GROUP,
-          name: group.name,
-          assignmentTargets: group.resources,
-        });
-      }
-    });
-
-    // Find student groups this student belongs to
-    const studentGroupsForStudent = mockDatabase.studentGroups.filter((g) =>
-      g.students.some((s) => s.id === studentId),
-    );
-
-    // Get resources inherited from student groups
-    studentGroupsForStudent.forEach((group) => {
-      // Get direct resources assigned to this student group
-      const groupResourceAssignments = mockDatabase.assignments.filter(
-        (a) => a.studentGroupId === group.id && a.resourceId,
-      );
-
-      // Get resource groups assigned to this student group
-      const groupResourceGroupAssignments = mockDatabase.assignments.filter(
-        (a) => a.studentGroupId === group.id && a.resourceGroupId,
-      );
-
-      const inheritedAssignments: ResourceAssignment[] = [];
-
-      const resources = groupResourceAssignments
-        .map((a) => mockDatabase.resources.find((r) => r.id === a.resourceId))
-        .filter((r) => r !== undefined);
-
-      if (resources.length > 0) {
-        inheritedAssignments.push({
-          type: AssignmentType.DIRECT,
-          assignmentTargets: resources,
-        });
-      }
-
-      groupResourceGroupAssignments.forEach((a) => {
-        const rg = mockDatabase.resourceGroups.find(
-          (rg) => rg.id === a.resourceGroupId,
-        );
-        if (rg) {
-          inheritedAssignments.push({
-            type: AssignmentType.RESOURCE_GROUP,
-            name: rg.name,
-            assignmentTargets: rg.resources,
-          });
-        }
-      });
-
-      if (inheritedAssignments.length > 0) {
-        assignedTo.push({
-          type: AssignmentType.STUDENT_GROUP,
-          name: group.name,
-          assignedTo: inheritedAssignments,
-        });
-      }
-    });
+      .filter((r): r is ResourceType => r !== undefined);
 
     const response = { studentId, assignedTo };
     console.log(
@@ -393,7 +258,7 @@ export const assignmentApiMock = {
     return response;
   },
 
-  // Get assignments for a specific student group
+  // Get assignments for a specific student group - returns flat list of resources
   async getStudentGroupAssignments(
     studentGroupId: string,
   ): Promise<StudentGroupAssignmentsResponse> {
@@ -403,39 +268,15 @@ export const assignmentApiMock = {
     );
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const assignedTo: ResourceAssignment[] = [];
-
     // Direct resource assignments to this student group
     const directResourceAssignments = mockDatabase.assignments.filter(
       (a) => a.studentGroupId === studentGroupId && a.resourceId,
     );
-    const directResources = directResourceAssignments
+
+    // Get flat list of resources
+    const assignedTo: ResourceType[] = directResourceAssignments
       .map((a) => mockDatabase.resources.find((r) => r.id === a.resourceId))
-      .filter((r) => r !== undefined);
-
-    if (directResources.length > 0) {
-      assignedTo.push({
-        type: AssignmentType.DIRECT,
-        assignmentTargets: directResources,
-      });
-    }
-
-    // Direct resource group assignments to this student group
-    const directResourceGroupAssignments = mockDatabase.assignments.filter(
-      (a) => a.studentGroupId === studentGroupId && a.resourceGroupId,
-    );
-    directResourceGroupAssignments.forEach((a) => {
-      const group = mockDatabase.resourceGroups.find(
-        (rg) => rg.id === a.resourceGroupId,
-      );
-      if (group) {
-        assignedTo.push({
-          type: AssignmentType.RESOURCE_GROUP,
-          name: group.name,
-          assignmentTargets: group.resources,
-        });
-      }
-    });
+      .filter((r): r is ResourceType => r !== undefined);
 
     const response = { studentGroupId, assignedTo };
     console.log(

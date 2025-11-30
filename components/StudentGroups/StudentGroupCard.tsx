@@ -31,7 +31,9 @@ const StudentGroupCard = ({
 }: StudentGroupCardProps) => {
   const [showViewAssignmentsModal, setShowViewAssignmentsModal] =
     useState(false);
-  const [refetchAssignments, setRefetchAssignments] = useState<(() => Promise<void>) | null>(null);
+  const [refetchAssignments, setRefetchAssignments] = useState<
+    (() => Promise<void>) | null
+  >(null);
 
   // Colors
   const surfaceColor = useThemeColor({}, "surface");

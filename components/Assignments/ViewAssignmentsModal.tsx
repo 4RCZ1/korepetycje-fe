@@ -24,7 +24,6 @@ import {
   StudentGroupAssignmentsResponse,
 } from "@/services/assignmentApi";
 import { StudentType } from "@/services/studentApi";
-import { AssignmentType } from "@/types/assignment";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
 import { StudentGroupType } from "@/types/studentGroup";
 import { getFileIcon } from "@/utils/fileHelpers";
@@ -72,7 +71,6 @@ export default function ViewAssignmentsModal({
   const textColor = useThemeColor({}, "text");
   const primaryColor = useThemeColor({}, "tint");
   const borderColor = useThemeColor({}, "border");
-  const errorColor = useThemeColor({}, "error", "500");
 
   // Extract stable values from viewMode for dependency tracking
   const viewModeType = viewMode.type;
@@ -162,400 +160,109 @@ export default function ViewAssignmentsModal({
   const renderResourceAssignments = () => {
     if (!resourceAssignments || !resourceAssignments.assignedTo) return null;
 
-    return resourceAssignments.assignedTo.map((assignment, index) => {
-      if (assignment.type === AssignmentType.DIRECT) {
-        return (
-          <View key={`direct-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Uczniowie (bezpośrednio)
+    return (
+      <View style={styles.section}>
+        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+          Przypisani uczniowie
+        </ThemedText>
+        {resourceAssignments.assignedTo.map((student) => (
+          <View
+            key={student.id}
+            style={[styles.assignmentItem, { borderColor }]}
+          >
+            <MaterialIcons name="person" size={20} color={primaryColor} />
+            <ThemedText style={[styles.assignmentText, { color: textColor }]}>
+              {student.name} {student.surname}
             </ThemedText>
-            {assignment.assignmentTargets.map((student) => (
-              <View
-                key={student.id}
-                style={[styles.assignmentItem, { borderColor }]}
-              >
-                <MaterialIcons name="person" size={20} color={primaryColor} />
-                <ThemedText
-                  style={[styles.assignmentText, { color: textColor }]}
-                >
-                  {student.name} {student.surname}
-                </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.sourceTag,
-                    {
-                      backgroundColor: primaryColor + "20",
-                      color: primaryColor,
-                    },
-                  ]}
-                >
-                  Bezpośrednio
-                </ThemedText>
-              </View>
-            ))}
           </View>
-        );
-      } else if (assignment.type === AssignmentType.STUDENT_GROUP) {
-        return (
-          <View key={`group-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Grupa: {assignment.name}
-            </ThemedText>
-            {assignment.assignmentTargets.map((student) => (
-              <View
-                key={student.id}
-                style={[styles.assignmentItem, { borderColor }]}
-              >
-                <MaterialIcons name="person" size={20} color={errorColor} />
-                <ThemedText
-                  style={[styles.assignmentText, { color: textColor }]}
-                >
-                  {student.name} {student.surname}
-                </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.sourceTag,
-                    { backgroundColor: errorColor + "20", color: errorColor },
-                  ]}
-                >
-                  {assignment.name}
-                </ThemedText>
-              </View>
-            ))}
-          </View>
-        );
-      }
-      return null;
-    });
+        ))}
+      </View>
+    );
   };
 
   const renderResourceGroupAssignments = () => {
     if (!resourceGroupAssignments || !resourceGroupAssignments.assignedTo)
       return null;
 
-    return resourceGroupAssignments.assignedTo.map((assignment, index) => {
-      if (assignment.type === AssignmentType.DIRECT) {
-        return (
-          <View key={`direct-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Uczniowie (bezpośrednio)
+    return (
+      <View style={styles.section}>
+        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+          Przypisani uczniowie
+        </ThemedText>
+        {resourceGroupAssignments.assignedTo.map((student) => (
+          <View
+            key={student.id}
+            style={[styles.assignmentItem, { borderColor }]}
+          >
+            <MaterialIcons name="person" size={20} color={primaryColor} />
+            <ThemedText style={[styles.assignmentText, { color: textColor }]}>
+              {student.name} {student.surname}
             </ThemedText>
-            {assignment.assignmentTargets.map((student) => (
-              <View
-                key={student.id}
-                style={[styles.assignmentItem, { borderColor }]}
-              >
-                <MaterialIcons name="person" size={20} color={primaryColor} />
-                <ThemedText
-                  style={[styles.assignmentText, { color: textColor }]}
-                >
-                  {student.name} {student.surname}
-                </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.sourceTag,
-                    {
-                      backgroundColor: primaryColor + "20",
-                      color: primaryColor,
-                    },
-                  ]}
-                >
-                  Bezpośrednio
-                </ThemedText>
-              </View>
-            ))}
           </View>
-        );
-      } else if (assignment.type === AssignmentType.STUDENT_GROUP) {
-        return (
-          <View key={`group-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Grupa: {assignment.name}
-            </ThemedText>
-            {assignment.assignmentTargets.map((student) => (
-              <View
-                key={student.id}
-                style={[styles.assignmentItem, { borderColor }]}
-              >
-                <MaterialIcons name="person" size={20} color={errorColor} />
-                <ThemedText
-                  style={[styles.assignmentText, { color: textColor }]}
-                >
-                  {student.name} {student.surname}
-                </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.sourceTag,
-                    { backgroundColor: errorColor + "20", color: errorColor },
-                  ]}
-                >
-                  {assignment.name}
-                </ThemedText>
-              </View>
-            ))}
-          </View>
-        );
-      }
-      return null;
-    });
+        ))}
+      </View>
+    );
   };
 
   const renderStudentAssignments = () => {
     if (!studentAssignments || !studentAssignments.assignedTo) return null;
 
-    return studentAssignments.assignedTo.map((assignment, index) => {
-      if (assignment.type === AssignmentType.DIRECT) {
-        return (
-          <View key={`direct-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Zasoby (bezpośrednio)
+    return (
+      <View style={styles.section}>
+        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+          Przypisane zasoby
+        </ThemedText>
+        {studentAssignments.assignedTo.map((resource) => (
+          <View
+            key={resource.id}
+            style={[styles.assignmentItem, { borderColor }]}
+          >
+            <MaterialIcons
+              name={getFileIcon(resource.fileType, resource.name)}
+              size={20}
+              color={primaryColor}
+            />
+            <ThemedText
+              style={[styles.assignmentText, { color: textColor }]}
+              numberOfLines={1}
+            >
+              {resource.name}
             </ThemedText>
-            {assignment.assignmentTargets.map((resource) => (
-              <View
-                key={resource.id}
-                style={[styles.assignmentItem, { borderColor }]}
-              >
-                <MaterialIcons
-                  name={getFileIcon(resource.fileType, resource.name)}
-                  size={20}
-                  color={primaryColor}
-                />
-                <ThemedText
-                  style={[styles.assignmentText, { color: textColor }]}
-                  numberOfLines={1}
-                >
-                  {resource.name}
-                </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.sourceTag,
-                    {
-                      backgroundColor: primaryColor + "20",
-                      color: primaryColor,
-                    },
-                  ]}
-                >
-                  Bezpośrednio
-                </ThemedText>
-              </View>
-            ))}
           </View>
-        );
-      } else if (assignment.type === AssignmentType.RESOURCE_GROUP) {
-        return (
-          <View key={`rg-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Grupa zasobów: {assignment.name}
-            </ThemedText>
-            {assignment.assignmentTargets.map((resource) => (
-              <View
-                key={resource.id}
-                style={[styles.assignmentItem, { borderColor }]}
-              >
-                <MaterialIcons
-                  name={getFileIcon(resource.fileType, resource.name)}
-                  size={20}
-                  color={primaryColor}
-                />
-                <ThemedText
-                  style={[styles.assignmentText, { color: textColor }]}
-                  numberOfLines={1}
-                >
-                  {resource.name}
-                </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.sourceTag,
-                    {
-                      backgroundColor: primaryColor + "20",
-                      color: primaryColor,
-                    },
-                  ]}
-                >
-                  {assignment.name}
-                </ThemedText>
-              </View>
-            ))}
-          </View>
-        );
-      } else if (assignment.type === AssignmentType.STUDENT_GROUP) {
-        // Inherited from student group
-        return (
-          <View key={`sg-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Odziedziczone z grupy: {assignment.name}
-            </ThemedText>
-            {assignment.assignedTo.map((nestedAssignment, nestedIndex) => {
-              if (nestedAssignment.type === AssignmentType.DIRECT) {
-                return (
-                  <View key={`nested-direct-${nestedIndex}`}>
-                    {nestedAssignment.assignmentTargets.map((resource) => (
-                      <View
-                        key={resource.id}
-                        style={[
-                          styles.nestedItem,
-                          { borderColor: borderColor + "50" },
-                        ]}
-                      >
-                        <MaterialIcons
-                          name={getFileIcon(resource.fileType, resource.name)}
-                          size={18}
-                          color={errorColor}
-                        />
-                        <ThemedText
-                          style={[
-                            styles.nestedText,
-                            { color: textColor + "80" },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {resource.name}
-                        </ThemedText>
-                        <ThemedText
-                          style={[
-                            styles.sourceTag,
-                            {
-                              backgroundColor: errorColor + "20",
-                              color: errorColor,
-                              fontSize: 9,
-                            },
-                          ]}
-                        >
-                          {assignment.name}
-                        </ThemedText>
-                      </View>
-                    ))}
-                  </View>
-                );
-              } else if (
-                nestedAssignment.type === AssignmentType.RESOURCE_GROUP
-              ) {
-                return (
-                  <View key={`nested-rg-${nestedIndex}`}>
-                    <View
-                      style={[
-                        styles.nestedItem,
-                        { borderColor: borderColor + "50" },
-                      ]}
-                    >
-                      <MaterialIcons
-                        name="folder"
-                        size={18}
-                        color={errorColor}
-                      />
-                      <ThemedText
-                        style={[styles.nestedText, { color: textColor + "80" }]}
-                      >
-                        {nestedAssignment.name} (
-                        {nestedAssignment.assignmentTargets.length} zasobów)
-                      </ThemedText>
-                      <ThemedText
-                        style={[
-                          styles.sourceTag,
-                          {
-                            backgroundColor: errorColor + "20",
-                            color: errorColor,
-                            fontSize: 9,
-                          },
-                        ]}
-                      >
-                        {assignment.name}
-                      </ThemedText>
-                    </View>
-                  </View>
-                );
-              }
-              return null;
-            })}
-          </View>
-        );
-      }
-      return null;
-    });
+        ))}
+      </View>
+    );
   };
 
   const renderStudentGroupAssignments = () => {
     if (!studentGroupAssignments || !studentGroupAssignments.assignedTo)
       return null;
 
-    return studentGroupAssignments.assignedTo.map((assignment, index) => {
-      if (assignment.type === AssignmentType.DIRECT) {
-        return (
-          <View key={`direct-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Zasoby (bezpośrednio)
+    return (
+      <View style={styles.section}>
+        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+          Przypisane zasoby
+        </ThemedText>
+        {studentGroupAssignments.assignedTo.map((resource) => (
+          <View
+            key={resource.id}
+            style={[styles.assignmentItem, { borderColor }]}
+          >
+            <MaterialIcons
+              name={getFileIcon(resource.fileType, resource.name)}
+              size={20}
+              color={primaryColor}
+            />
+            <ThemedText
+              style={[styles.assignmentText, { color: textColor }]}
+              numberOfLines={1}
+            >
+              {resource.name}
             </ThemedText>
-            {assignment.assignmentTargets.map((resource) => (
-              <View
-                key={resource.id}
-                style={[styles.assignmentItem, { borderColor }]}
-              >
-                <MaterialIcons
-                  name={getFileIcon(resource.fileType, resource.name)}
-                  size={20}
-                  color={primaryColor}
-                />
-                <ThemedText
-                  style={[styles.assignmentText, { color: textColor }]}
-                  numberOfLines={1}
-                >
-                  {resource.name}
-                </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.sourceTag,
-                    {
-                      backgroundColor: primaryColor + "20",
-                      color: primaryColor,
-                    },
-                  ]}
-                >
-                  Bezpośrednio
-                </ThemedText>
-              </View>
-            ))}
           </View>
-        );
-      } else if (assignment.type === AssignmentType.RESOURCE_GROUP) {
-        return (
-          <View key={`rg-${index}`} style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Grupa zasobów: {assignment.name}
-            </ThemedText>
-            {assignment.assignmentTargets.map((resource) => (
-              <View
-                key={resource.id}
-                style={[styles.assignmentItem, { borderColor }]}
-              >
-                <MaterialIcons
-                  name={getFileIcon(resource.fileType, resource.name)}
-                  size={20}
-                  color={primaryColor}
-                />
-                <ThemedText
-                  style={[styles.assignmentText, { color: textColor }]}
-                  numberOfLines={1}
-                >
-                  {resource.name}
-                </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.sourceTag,
-                    {
-                      backgroundColor: primaryColor + "20",
-                      color: primaryColor,
-                    },
-                  ]}
-                >
-                  {assignment.name}
-                </ThemedText>
-              </View>
-            ))}
-          </View>
-        );
-      }
-      return null;
-    });
+        ))}
+      </View>
+    );
   };
 
   return (
@@ -683,9 +390,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 8,
   },
-  groupSection: {
-    marginBottom: 12,
-  },
   assignmentItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -698,26 +402,6 @@ const styles = StyleSheet.create({
   assignmentText: {
     flex: 1,
     fontSize: 14,
-  },
-  sourceTag: {
-    fontSize: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    fontWeight: "600",
-  },
-  nestedItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    marginLeft: 24,
-    borderLeftWidth: 2,
-    gap: 8,
-    marginBottom: 4,
-  },
-  nestedText: {
-    flex: 1,
-    fontSize: 13,
   },
   footer: {
     flexDirection: "row",

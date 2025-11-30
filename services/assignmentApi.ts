@@ -1,8 +1,3 @@
-import {
-  ReverseAssignment,
-  ResourceAssignment,
-  Assignment,
-} from "@/types/assignment";
 import { ResourceType, ResourceGroupType } from "@/types/resource";
 import { StudentGroupType } from "@/types/studentGroup";
 
@@ -43,25 +38,25 @@ export interface AssignmentDetails {
   createdAt: string;
 }
 
-// Response types for viewing assignments
+// Response types for viewing assignments - simplified flat lists for MVP
 export interface ResourceAssignmentsResponse {
   resourceId: string;
-  assignedTo: ReverseAssignment[];
+  assignedTo: StudentType[];
 }
 
 export interface ResourceGroupAssignmentsResponse {
   resourceGroupId: string;
-  assignedTo: ReverseAssignment[];
+  assignedTo: StudentType[];
 }
 
 export interface StudentAssignmentsResponse {
   studentId: string;
-  assignedTo: Assignment[];
+  assignedTo: ResourceType[];
 }
 
 export interface StudentGroupAssignmentsResponse {
   studentGroupId: string;
-  assignedTo: ResourceAssignment[];
+  assignedTo: ResourceType[];
 }
 
 // Create assignment request

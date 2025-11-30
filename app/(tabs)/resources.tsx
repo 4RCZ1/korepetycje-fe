@@ -13,11 +13,14 @@ import UploadResourceModal from "@/components/Resources/UploadResourceModal";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ThemedButton from "@/components/ui/ThemedButton";
+import { useAuth } from "@/hooks/useAuth";
 import { useResourceApi } from "@/hooks/useResourceApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 
 export default function ResourcesScreen() {
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
+  const { isTutor } = useAuth();
+  const viewMode = isTutor() ? "tutor" : "student";
 
   const {
     resources,
@@ -78,15 +81,17 @@ export default function ResourcesScreen() {
     <ThemedView style={[styles.container, { backgroundColor }]}>
       <View style={styles.header}>
         <ThemedText style={[styles.title, { color: textColor }]}>
-          Zasoby
+          {isTutor() ? "Zasoby" : "Moje Zasoby"}
         </ThemedText>
-        <ThemedButton
-          title="Prześlij"
-          variant="filled"
-          size="medium"
-          color="primary"
-          onPress={() => setIsUploadModalVisible(true)}
-        />
+        {isTutor() && (
+          <ThemedButton
+            title="Prześlij"
+            variant="filled"
+            size="medium"
+            color="primary"
+            onPress={() => setIsUploadModalVisible(true)}
+          />
+        )}
       </View>
 
       {error && (
@@ -124,19 +129,25 @@ export default function ResourcesScreen() {
         {resources.length === 0 ? (
           <View style={styles.emptyContainer}>
             <ThemedText style={[styles.emptyTitle, { color: textColor }]}>
-              Nie masz jeszcze zasobów
+              {isTutor()
+                ? "Nie masz jeszcze zasobów"
+                : "Nie masz żadnych przypisanych zasobów"}
             </ThemedText>
             <ThemedText style={[styles.emptyText, { color: textColor + "80" }]}>
-              Prześlij pierwszy plik, aby rozpocząć
+              {isTutor()
+                ? "Prześlij pierwszy plik, aby rozpocząć"
+                : "Twój korepetytor jeszcze nie przypisał Ci żadnych materiałów"}
             </ThemedText>
-            <ThemedButton
-              title="Prześlij Zasób"
-              variant="filled"
-              size="large"
-              color="primary"
-              onPress={() => setIsUploadModalVisible(true)}
-              style={styles.emptyButton}
-            />
+            {isTutor() && (
+              <ThemedButton
+                title="Prześlij Zasób"
+                variant="filled"
+                size="large"
+                color="primary"
+                onPress={() => setIsUploadModalVisible(true)}
+                style={styles.emptyButton}
+              />
+            )}
           </View>
         ) : (
           <View style={styles.resourcesContainer}>
@@ -144,20 +155,23 @@ export default function ResourcesScreen() {
               <ResourceCard
                 key={resource.id}
                 resource={resource}
-                onDelete={handleDeleteResource}
+                onDelete={isTutor() ? handleDeleteResource : undefined}
                 onDownload={handleDownloadResource}
                 isDeleting={deletingResources.has(resource.id)}
+                viewMode={viewMode}
               />
             ))}
           </View>
         )}
       </ScrollView>
 
-      <UploadResourceModal
-        visible={isUploadModalVisible}
-        onClose={() => setIsUploadModalVisible(false)}
-        onSubmit={handleUploadResource}
-      />
+      {isTutor() && (
+        <UploadResourceModal
+          visible={isUploadModalVisible}
+          onClose={() => setIsUploadModalVisible(false)}
+          onSubmit={handleUploadResource}
+        />
+      )}
     </ThemedView>
   );
 }

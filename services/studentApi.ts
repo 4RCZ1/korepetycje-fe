@@ -8,7 +8,7 @@ import { studentApiMock } from "./mock/studentApi";
 
 const USE_MOCK_API = process.env.EXPO_PUBLIC_USE_MOCK_API === "true";
 
-type StudentDTO = {
+export type StudentDTO = {
   externalId: string;
   email: string;
   phoneNumber: string;

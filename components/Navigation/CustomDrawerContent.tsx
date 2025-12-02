@@ -89,6 +89,16 @@ export default function CustomDrawerContent(
             />
           )}
 
+          {!isTutor() && (
+            <DrawerItem
+              label={"Moje Zasoby"}
+              icon={({ color }) => (
+                <IconSymbol size={28} name="folder" color={color} />
+              )}
+              onPress={() => props.navigation.navigate("resources")}
+            />
+          )}
+
           {isTutor() && (
             <DrawerItem
               label={"Grupy"}

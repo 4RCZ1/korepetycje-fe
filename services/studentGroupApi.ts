@@ -1,10 +1,41 @@
 import { apiRequest } from "./api";
-import { StudentType } from "./studentApi";
+import { StudentDTO, studentConverter, StudentType } from "./studentApi";
 import { StudentGroupType } from "@/types/studentGroup";
 import { studentGroupApiMock } from "./mock/studentGroupApi";
 
 export interface StudentGroupFilters {
   studentId?: string;
+}
+
+// DTO types matching backend API format
+type StudentGroupDTO = {
+  externalId: string;
+  name: string;
+  students: StudentDTO[];
+};
+
+type StudentGroupRequestDTO = {
+  name: string;
+  studentIds: string[];
+};
+
+// Converters
+function studentGroupConverter(dto: StudentGroupDTO): StudentGroupType {
+  return {
+    id: dto.externalId,
+    name: dto.name,
+    students: dto.students.map(studentConverter),
+  };
+}
+
+function studentGroupRequestConverter(
+  name: string,
+  students: StudentType[],
+): StudentGroupRequestDTO {
+  return {
+    name,
+    studentIds: students.map((s) => s.id),
+  };
 }
 
 const USE_MOCK_API = process.env.EXPO_PUBLIC_USE_MOCK_API === "true";
@@ -19,19 +50,20 @@ const realApi = {
     const queryString = queryParams.toString();
     const url = `/student-group${queryString ? `?${queryString}` : ""}`;
 
-    const response = await apiRequest<StudentGroupType[]>(url);
-    return response;
+    const response = await apiRequest<StudentGroupDTO[]>(url);
+    return response.map(studentGroupConverter);
   },
 
   async createStudentGroup(
     name: string,
     students: StudentType[],
   ): Promise<StudentGroupType> {
-    const response = await apiRequest<StudentGroupType>("/student-group", {
+    const requestDto = studentGroupRequestConverter(name, students);
+    const response = await apiRequest<StudentGroupDTO>("/student-group", {
       method: "POST",
-      body: JSON.stringify({ name, students }),
+      body: JSON.stringify(requestDto),
     });
-    return response;
+    return studentGroupConverter(response);
   },
 
   async updateStudentGroup(
@@ -39,14 +71,15 @@ const realApi = {
     name: string,
     students: StudentType[],
   ): Promise<StudentGroupType> {
-    const response = await apiRequest<StudentGroupType>(
+    const requestDto = studentGroupRequestConverter(name, students);
+    const response = await apiRequest<StudentGroupDTO>(
       `/student-group/${id}`,
       {
         method: "PUT",
-        body: JSON.stringify({ name, students }),
+        body: JSON.stringify(requestDto),
       },
     );
-    return response;
+    return studentGroupConverter(response);
   },
 
   async deleteStudentGroup(id: string): Promise<boolean> {

@@ -21,9 +21,10 @@ import { getFileIcon, formatFileSize } from "@/utils/fileHelpers";
 
 type ResourceCardProps = {
   resource: ResourceType;
-  onDelete: (resourceId: string) => Promise<boolean>;
+  onDelete?: (resourceId: string) => Promise<boolean>;
   onDownload: (resourceId: string) => Promise<string | null>;
   isDeleting?: boolean;
+  viewMode?: "tutor" | "student";
 };
 
 const ResourceCard = ({
@@ -31,6 +32,7 @@ const ResourceCard = ({
   onDelete,
   onDownload,
   isDeleting = false,
+  viewMode = "tutor",
 }: ResourceCardProps) => {
   const [downloading, setDownloading] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -47,6 +49,7 @@ const ResourceCard = ({
   const errorColor = useThemeColor({}, "error", "500");
 
   const handleDelete = () => {
+    if (!onDelete) return;
     alert("Usuń Zasób", `Czy na pewno chcesz usunąć "${resource.name}"?`, [
       { text: "Anuluj", style: "cancel" },
       {
@@ -140,38 +143,44 @@ const ResourceCard = ({
           onPress={handleDownload}
           loading={downloading}
           disabled={downloading || isDeleting}
-          style={styles.actionButton}
+          style={viewMode === "student" ? styles.actionButtonFullWidth : styles.actionButton}
         />
-        <ThemedButton
-          title="Przypisz"
-          variant="outline"
-          size="small"
-          color="primary"
-          onPress={() => setShowAssignModal(true)}
-          disabled={isDeleting}
-          style={styles.actionButton}
-        />
-        <TouchableOpacity
-          onPress={() => setShowViewAssignmentsModal(true)}
-          disabled={isDeleting}
-          style={[styles.infoButton, isDeleting && styles.buttonDisabled]}
-        >
-          <MaterialIcons name="people" size={20} color={primaryColor} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleDelete}
-          disabled={isDeleting || downloading}
-          style={[
-            styles.deleteButton,
-            (isDeleting || downloading) && styles.buttonDisabled,
-          ]}
-        >
-          {isDeleting ? (
-            <ActivityIndicator size="small" color={errorColor} />
-          ) : (
-            <IconSymbol name="trash.fill" size={20} color={errorColor} />
-          )}
-        </TouchableOpacity>
+        {viewMode !== "student" && (
+          <ThemedButton
+            title="Przypisz"
+            variant="outline"
+            size="small"
+            color="primary"
+            onPress={() => setShowAssignModal(true)}
+            disabled={isDeleting}
+            style={styles.actionButton}
+          />
+        )}
+        {viewMode !== "student" && (
+          <TouchableOpacity
+            onPress={() => setShowViewAssignmentsModal(true)}
+            disabled={isDeleting}
+            style={[styles.infoButton, isDeleting && styles.buttonDisabled]}
+          >
+            <MaterialIcons name="people" size={20} color={primaryColor} />
+          </TouchableOpacity>
+        )}
+        {viewMode !== "student" && (
+          <TouchableOpacity
+            onPress={handleDelete}
+            disabled={isDeleting || downloading}
+            style={[
+              styles.deleteButton,
+              (isDeleting || downloading) && styles.buttonDisabled,
+            ]}
+          >
+            {isDeleting ? (
+              <ActivityIndicator size="small" color={errorColor} />
+            ) : (
+              <IconSymbol name="trash.fill" size={20} color={errorColor} />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
       <AssignResourceModal
@@ -246,6 +255,9 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     marginRight: 8,
+  },
+  actionButtonFullWidth: {
+    flex: 1,
   },
   infoButton: {
     padding: 8,

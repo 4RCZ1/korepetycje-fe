@@ -8,6 +8,8 @@ import {
   Linking,
 } from "react-native";
 
+import AssignResourceModal from "@/components/Assignments/AssignResourceModal";
+import ViewAssignmentsModal from "@/components/Assignments/ViewAssignmentsModal";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -31,6 +33,12 @@ const ResourceCard = ({
   isDeleting = false,
 }: ResourceCardProps) => {
   const [downloading, setDownloading] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showViewAssignmentsModal, setShowViewAssignmentsModal] =
+    useState(false);
+  const [refetchAssignments, setRefetchAssignments] = useState<
+    (() => Promise<void>) | null
+  >(null);
 
   // Colors
   const surfaceColor = useThemeColor({}, "surface");
@@ -134,12 +142,28 @@ const ResourceCard = ({
           disabled={downloading || isDeleting}
           style={styles.actionButton}
         />
+        <ThemedButton
+          title="Przypisz"
+          variant="outline"
+          size="small"
+          color="primary"
+          onPress={() => setShowAssignModal(true)}
+          disabled={isDeleting}
+          style={styles.actionButton}
+        />
+        <TouchableOpacity
+          onPress={() => setShowViewAssignmentsModal(true)}
+          disabled={isDeleting}
+          style={[styles.infoButton, isDeleting && styles.buttonDisabled]}
+        >
+          <MaterialIcons name="people" size={20} color={primaryColor} />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={handleDelete}
           disabled={isDeleting || downloading}
           style={[
             styles.deleteButton,
-            (isDeleting || downloading) && styles.deleteButtonDisabled,
+            (isDeleting || downloading) && styles.buttonDisabled,
           ]}
         >
           {isDeleting ? (
@@ -149,6 +173,27 @@ const ResourceCard = ({
           )}
         </TouchableOpacity>
       </View>
+
+      <AssignResourceModal
+        visible={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        onSuccess={async () => {
+          // Refetch assignments after successful creation
+          if (refetchAssignments) {
+            await refetchAssignments();
+          }
+        }}
+        preSelectedResources={[resource]}
+        mode="resourceToStudent"
+        title={`Przypisz: ${resource.name}`}
+      />
+
+      <ViewAssignmentsModal
+        visible={showViewAssignmentsModal}
+        onClose={() => setShowViewAssignmentsModal(false)}
+        viewMode={{ type: "resource", resource }}
+        onRefetch={(refetchFn) => setRefetchAssignments(() => refetchFn)}
+      />
     </ThemedView>
   );
 };
@@ -202,12 +247,18 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
+  infoButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#00000010",
+    marginRight: 8,
+  },
   deleteButton: {
     padding: 8,
     borderRadius: 8,
     backgroundColor: "#ff000015",
   },
-  deleteButtonDisabled: {
+  buttonDisabled: {
     opacity: 0.5,
   },
 });

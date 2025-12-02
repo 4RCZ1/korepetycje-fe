@@ -16,15 +16,15 @@ import ThemedButton from "@/components/ui/ThemedButton";
 import { useResourceGroups } from "@/hooks/useResourceGroups";
 import { useStudentGroups } from "@/hooks/useStudentGroups";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { StudentType } from "@/services/studentApi";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
 import { StudentGroupType } from "@/types/studentGroup";
-import { StudentType } from "@/services/studentApi";
 
 export default function GroupsScreen() {
   const [activeTab, setActiveTab] = useState<
     "resourceGroups" | "studentGroups"
   >("resourceGroups");
-  
+
   // Resource Groups State
   const [isGroupModalVisible, setIsGroupModalVisible] = useState(false);
   const [editingGroup, setEditingGroup] = useState<
@@ -32,7 +32,8 @@ export default function GroupsScreen() {
   >(undefined);
 
   // Student Groups State
-  const [isStudentGroupModalVisible, setIsStudentGroupModalVisible] = useState(false);
+  const [isStudentGroupModalVisible, setIsStudentGroupModalVisible] =
+    useState(false);
   const [editingStudentGroup, setEditingStudentGroup] = useState<
     StudentGroupType | undefined
   >(undefined);
@@ -100,7 +101,11 @@ export default function GroupsScreen() {
     selectedStudents: StudentType[],
   ) => {
     if (editingStudentGroup) {
-      return await updateStudentGroup(editingStudentGroup.id, name, selectedStudents);
+      return await updateStudentGroup(
+        editingStudentGroup.id,
+        name,
+        selectedStudents,
+      );
     } else {
       return await addStudentGroup(name, selectedStudents);
     }
@@ -116,8 +121,12 @@ export default function GroupsScreen() {
     setIsStudentGroupModalVisible(true);
   };
 
-  const isLoading = activeTab === "resourceGroups" ? loadingGroups : loadingStudentGroups;
-  const isEmpty = activeTab === "resourceGroups" ? groups.length === 0 : studentGroups.length === 0;
+  const isLoading =
+    activeTab === "resourceGroups" ? loadingGroups : loadingStudentGroups;
+  const isEmpty =
+    activeTab === "resourceGroups"
+      ? groups.length === 0
+      : studentGroups.length === 0;
 
   if (isLoading && isEmpty) {
     return (
@@ -148,7 +157,11 @@ export default function GroupsScreen() {
           variant="filled"
           size="medium"
           color="primary"
-          onPress={activeTab === "resourceGroups" ? openCreateGroupModal : openCreateStudentGroupModal}
+          onPress={
+            activeTab === "resourceGroups"
+              ? openCreateGroupModal
+              : openCreateStudentGroupModal
+          }
         />
       </View>
 
@@ -246,7 +259,7 @@ export default function GroupsScreen() {
           onRefresh={handleRefresh}
         />
       ) : (
-        <StudentGroupList 
+        <StudentGroupList
           groups={studentGroups}
           onDelete={deleteStudentGroup}
           onEdit={openEditStudentGroupModal}
@@ -268,7 +281,9 @@ export default function GroupsScreen() {
         onClose={() => setIsStudentGroupModalVisible(false)}
         onSubmit={handleStudentGroupSubmit}
         initialGroup={editingStudentGroup}
-        title={editingStudentGroup ? "Edytuj Grupę Uczniów" : "Nowa Grupa Uczniów"}
+        title={
+          editingStudentGroup ? "Edytuj Grupę Uczniów" : "Nowa Grupa Uczniów"
+        }
       />
     </ThemedView>
   );

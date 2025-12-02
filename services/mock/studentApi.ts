@@ -8,20 +8,29 @@ import { mockDatabase } from "./mockDatabase";
 
 export const studentApiMock = {
   async getStudents(): Promise<ApiResponse<StudentType[]>> {
+    console.log('[studentApiMock.getStudents]', JSON.stringify({}, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
-    return { data: [...mockDatabase.students], success: true };
+    const response = { data: [...mockDatabase.students], success: true };
+    console.log('[studentApiMock.getStudents] Response:', JSON.stringify(response, null, 2));
+    return response;
   },
 
   async getStudentById(id: string): Promise<ApiResponse<StudentType>> {
+    console.log('[studentApiMock.getStudentById]', JSON.stringify({ id }, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
     const student = mockDatabase.students.find((s) => s.id === id);
     if (!student) {
-      return { data: null, success: false, message: "Student not found" };
+      const response = { data: null, success: false, message: "Student not found" };
+      console.log('[studentApiMock.getStudentById] Response:', JSON.stringify(response, null, 2));
+      return response;
     }
-    return { data: student, success: true };
+    const response = { data: student, success: true };
+    console.log('[studentApiMock.getStudentById] Response:', JSON.stringify(response, null, 2));
+    return response;
   },
 
   async addStudent(studentData: StudentRequestType): Promise<boolean> {
+    console.log('[studentApiMock.addStudent]', JSON.stringify({ studentData }, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
     
     const newStudent: StudentType = {
@@ -40,6 +49,7 @@ export const studentApiMock = {
   },
 
   async deleteStudent(id: string): Promise<boolean> {
+    console.log('[studentApiMock.deleteStudent]', JSON.stringify({ id }, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
     const initialLength = mockDatabase.students.length;
     mockDatabase.students = mockDatabase.students.filter((s) => s.id !== id);
@@ -56,6 +66,7 @@ export const studentApiMock = {
     id: string,
     studentData: StudentUpdateRequestType,
   ): Promise<ApiResponse<boolean>> {
+    console.log('[studentApiMock.updateStudent]', JSON.stringify({ id, studentData }, null, 2));
     await new Promise((resolve) => setTimeout(resolve, 500));
     const index = mockDatabase.students.findIndex((s) => s.id === id);
     

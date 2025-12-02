@@ -1,6 +1,7 @@
+import { AssignmentRecord } from "@/services/assignmentApi";
 import { StudentType } from "@/services/studentApi";
-import { StudentGroupType } from "@/types/studentGroup";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
+import { StudentGroupType } from "@/types/studentGroup";
 
 // Initial Mock Data
 
@@ -50,7 +51,12 @@ const initialResources: ResourceType[] = [
     name: "Fizyka - Wzory.docx",
     uploadDate: new Date().toISOString(),
     fileSize: 1024 * 500, // 500 KB
-    fileType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    fileType:
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  },
+  {
+    id: "r3",
+    name: "Fizyka - Wzory 2.docx",
   },
 ];
 
@@ -70,10 +76,21 @@ const initialResourceGroups: ResourceGroupType[] = [
   },
 ];
 
+// Initial assignments: resource r1 directly assigned to student s1
+const initialAssignments: AssignmentRecord[] = [
+  {
+    id: "a1",
+    resourceId: "r1",
+    studentId: "s1",
+    createdAt: new Date().toISOString(),
+  },
+];
+
 // Central Mock Database
 export const mockDatabase = {
   students: [...initialStudents],
   studentGroups: [...initialStudentGroups],
   resourceGroups: [...initialResourceGroups],
   resources: [...initialResources],
+  assignments: [...initialAssignments],
 };

@@ -46,7 +46,9 @@ export interface StudentGroupStudentAssignment {
   assignmentTargets: StudentType[];
 }
 
-export type StudentAssignment = DirectStudentAssignment | StudentGroupStudentAssignment;
+export type StudentAssignment =
+  | DirectStudentAssignment
+  | StudentGroupStudentAssignment;
 
 export interface ResourceGroupStudentAssignment {
   type: AssignmentType.RESOURCE_GROUP;
@@ -54,7 +56,9 @@ export interface ResourceGroupStudentAssignment {
   assignedTo: StudentAssignment[];
 }
 
-export type ReverseAssignment = StudentAssignment | ResourceGroupStudentAssignment;
+export type ReverseAssignment =
+  | StudentAssignment
+  | ResourceGroupStudentAssignment;
 
 export interface ResourceWithAssignments extends ResourceType {
   assignedTo: ReverseAssignment[];

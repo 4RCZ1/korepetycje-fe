@@ -18,8 +18,8 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import ThemedButton from "@/components/ui/ThemedButton";
 import { useStudentApi } from "@/hooks/useStudentApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { StudentGroupType } from "@/types/studentGroup";
 import { StudentType } from "@/services/studentApi";
+import { StudentGroupType } from "@/types/studentGroup";
 
 type StudentGroupModalProps = {
   visible: boolean;

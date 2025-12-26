@@ -55,7 +55,7 @@ export default function RootLayout() {
     if (!isAuthenticated) {
       console.log("Redirecting to login, old pathname:", pathname);
       setTimeout(() => {
-        router.replace("/(auth)/login");
+        router.replace("/login");
       }, 100);
     }
   }, [isAuthenticated, pathname, loading, loaded, router, isMounted]);
@@ -70,14 +70,6 @@ export default function RootLayout() {
     <ErrorBoundary>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen
-            name="data-removal"
-            options={{
-              headerShown: true,
-              title: "Usuń Moje Dane",
-              presentation: "card",
-            }}
-          />
           {isAuthenticated && (
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           )}
@@ -87,7 +79,6 @@ export default function RootLayout() {
               name="(auth)"
               options={{
                 headerShown: false,
-                gestureEnabled: false, // Disable swipe to go back on auth screens
               }}
             />
           )}

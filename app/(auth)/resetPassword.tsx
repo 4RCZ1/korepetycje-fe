@@ -73,7 +73,7 @@ const PasswordScreen = () => {
       if (success) {
         alert("Sukces", "Hasło zostało zmienione pomyślnie");
         // Navigate to the main app after successful password change
-        router.replace("/(tabs)/");
+        router.replace("/schedule");
       } else {
         alert("Błąd", "Nie udało się zmienić hasła");
       }

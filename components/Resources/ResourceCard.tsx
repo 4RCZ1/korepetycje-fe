@@ -143,7 +143,11 @@ const ResourceCard = ({
           onPress={handleDownload}
           loading={downloading}
           disabled={downloading || isDeleting}
-          style={viewMode === "student" ? styles.actionButtonFullWidth : styles.actionButton}
+          style={
+            viewMode === "student"
+              ? styles.actionButtonFullWidth
+              : styles.actionButton
+          }
         />
         {viewMode !== "student" && (
           <ThemedButton

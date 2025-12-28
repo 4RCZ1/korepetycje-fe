@@ -7,6 +7,9 @@ export default function Index() {
   const { isAuthenticated } = useAuth();
 
   console.log("current pathname:", pathname);
+  if (!isAuthenticated) {
+    return <Redirect href="/login" />;
+  }
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/resetPassword") ||
@@ -14,8 +17,5 @@ export default function Index() {
     pathname === "/" // Temporary state during navigation
   ) {
     return <Redirect href="/schedule" />;
-  }
-  if (!isAuthenticated) {
-    return <Redirect href="/login" />;
   }
 }

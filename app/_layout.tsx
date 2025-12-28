@@ -4,7 +4,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { useRouter, Stack, usePathname, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useEffect, useRef } from "react";
@@ -16,7 +16,11 @@ import { NotificationService } from "@/services/notificationService";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const segments = useSegments();
+  const pathname = usePathname();
   const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -33,6 +37,34 @@ export default function RootLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    console.log("Current Segments:", segments);
+    console.log("Current Pathname:", pathname);
+  }, [segments, pathname]);
+
+  useEffect(() => {
+    console.log("current pathname:", pathname);
+    if (!isMounted.current || loading || !loaded) {
+      return;
+    }
+
+    if (
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/resetPassword") ||
+      pathname.startsWith("/data-removal") ||
+      pathname === "/" // Temporary state during navigation
+    ) {
+      return;
+    }
+    if (!isAuthenticated) {
+      console.log("Redirecting to login, old pathname:", pathname);
+      setTimeout(() => {
+        router.replace("/login");
+      }, 100);
+    }
+  }, [isAuthenticated, pathname, loading, loaded, isMounted]);
+
+  // Always render a navigator on first render so expo-router has a mounted navigator
   if (!loaded || loading) {
     return null;
   }

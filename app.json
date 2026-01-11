@@ -24,6 +24,14 @@
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
         "WAKE_LOCK",
+        "SCHEDULE_EXACT_ALARM",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "SCHEDULE_EXACT_ALARM",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
         "SCHEDULE_EXACT_ALARM"
       ],
       "package": "com.anonymous.korepetycje"
@@ -63,6 +71,12 @@
       "eas": {
         "projectId": "2deda725-d1e3-4b90-a4da-5597a17a041d"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/2deda725-d1e3-4b90-a4da-5597a17a041d"
     }
   }
 }

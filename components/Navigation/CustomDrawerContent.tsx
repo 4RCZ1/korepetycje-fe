@@ -108,6 +108,16 @@ export default function CustomDrawerContent(
               onPress={() => props.navigation.navigate("groups")}
             />
           )}
+
+          {isTutor() && (
+            <DrawerItem
+              label={"Faktury"}
+              icon={({ color }) => (
+                <IconSymbol size={28} name="doc.text" color={color} />
+              )}
+              onPress={() => props.navigation.navigate("invoice-report")}
+            />
+          )}
         </View>
       </DrawerContentScrollView>
       {/* Logout Section */}

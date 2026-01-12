@@ -1,7 +1,7 @@
 import { ResourceType, ResourceGroupType } from "@/types/resource";
 import { StudentGroupType } from "@/types/studentGroup";
 
-import { apiRequest } from "./api";
+import { apiRequest, ApiResponse } from "./api";
 import { assignmentApiMock } from "./mock/assignmentApi";
 import { StudentType } from "./studentApi";
 
@@ -117,40 +117,44 @@ const realApi = {
   async getResourceAssignments(
     resourceId: string,
   ): Promise<ResourceAssignmentsResponse> {
-    const response = await apiRequest<ResourceAssignmentsResponse>(
+    const response = await apiRequest<ApiResponse<ResourceAssignmentsResponse>>(
       `/assignment/resource/${resourceId}`,
     );
-    return response;
+    if (!response.data) throw new Error("No data received");
+    return response.data;
   },
 
   // Get assignments for a specific resource group
   async getResourceGroupAssignments(
     resourceGroupId: string,
   ): Promise<ResourceGroupAssignmentsResponse> {
-    const response = await apiRequest<ResourceGroupAssignmentsResponse>(
-      `/assignment/resource-group/${resourceGroupId}`,
-    );
-    return response;
+    const response = await apiRequest<
+      ApiResponse<ResourceGroupAssignmentsResponse>
+    >(`/assignment/resource-group/${resourceGroupId}`);
+    if (!response.data) throw new Error("No data received");
+    return response.data;
   },
 
   // Get assignments for a specific student
   async getStudentAssignments(
     studentId: string,
   ): Promise<StudentAssignmentsResponse> {
-    const response = await apiRequest<StudentAssignmentsResponse>(
+    const response = await apiRequest<ApiResponse<StudentAssignmentsResponse>>(
       `/assignment/student/${studentId}`,
     );
-    return response;
+    if (!response.data) throw new Error("No data received");
+    return response.data;
   },
 
   // Get assignments for a specific student group
   async getStudentGroupAssignments(
     studentGroupId: string,
   ): Promise<StudentGroupAssignmentsResponse> {
-    const response = await apiRequest<StudentGroupAssignmentsResponse>(
-      `/assignment/student-group/${studentGroupId}`,
-    );
-    return response;
+    const response = await apiRequest<
+      ApiResponse<StudentGroupAssignmentsResponse>
+    >(`/assignment/student-group/${studentGroupId}`);
+    if (!response.data) throw new Error("No data received");
+    return response.data;
   },
 };
 

@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-const storageUtil = {
+export default {
   setItem: async (k: string, v: string) => {
     if (Platform.OS === "web") {
       // web
@@ -31,4 +31,3 @@ const storageUtil = {
     }
   },
 };
-export default storageUtil;

@@ -4,27 +4,26 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, usePathname, useRouter } from "expo-router";
+import { useRouter, Stack, usePathname, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-
 import { useEffect, useRef } from "react";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "@/hooks/useAuth";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationService } from "@/services/notificationService";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const segments = useSegments();
+  const pathname = usePathname();
   const { isAuthenticated, loading } = useAuth();
-  const notifications = useNotifications();
+  const router = useRouter();
+
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const pathname = usePathname();
-  const router = useRouter();
   const isMounted = useRef(false);
 
   useEffect(() => {
@@ -37,6 +36,11 @@ export default function RootLayout() {
       isMounted.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    console.log("Current Segments:", segments);
+    console.log("Current Pathname:", pathname);
+  }, [segments, pathname]);
 
   useEffect(() => {
     console.log("current pathname:", pathname);
@@ -55,11 +59,12 @@ export default function RootLayout() {
     if (!isAuthenticated) {
       console.log("Redirecting to login, old pathname:", pathname);
       setTimeout(() => {
-        router.replace("/(auth)/login");
+        router.replace("/login");
       }, 100);
     }
-  }, [isAuthenticated, pathname, loading, loaded, router, isMounted]);
+  }, [isAuthenticated, pathname, loading, loaded, isMounted]);
 
+  // Always render a navigator on first render so expo-router has a mounted navigator
   if (!loaded || loading) {
     return null;
   }
@@ -70,14 +75,6 @@ export default function RootLayout() {
     <ErrorBoundary>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen
-            name="data-removal"
-            options={{
-              headerShown: true,
-              title: "Usuń Moje Dane",
-              presentation: "card",
-            }}
-          />
           {isAuthenticated && (
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           )}
@@ -87,7 +84,6 @@ export default function RootLayout() {
               name="(auth)"
               options={{
                 headerShown: false,
-                gestureEnabled: false, // Disable swipe to go back on auth screens
               }}
             />
           )}

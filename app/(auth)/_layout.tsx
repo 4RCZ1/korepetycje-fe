@@ -3,9 +3,10 @@ import React from "react";
 
 export default function AuthLayout() {
   return (
-    <Stack>
+    <Stack initialRouteName="login">
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="resetPassword" options={{ headerShown: false }} />
+      <Stack.Screen name="data-removal" options={{ headerShown: false }} />
     </Stack>
   );
 }

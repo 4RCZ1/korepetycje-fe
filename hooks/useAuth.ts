@@ -9,11 +9,12 @@ import {
   ResetPasswordRequest,
   User,
 } from "@/services/authApi";
-import { deleteItem, getItem, setItem } from "@/utils/storage";
+import storage from "@/utils/storage";
 
 // Storage keys
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
+const { setItem, getItem, deleteItem } = storage;
 
 export interface AuthState {
   user: User | null;

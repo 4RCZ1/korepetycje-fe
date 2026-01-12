@@ -12,9 +12,9 @@ export default function NotFoundScreen() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/(auth)/login");
+      router.replace("/login");
     } else {
-      router.replace("/(tabs)/schedule");
+      router.replace("/schedule");
     }
   }, [isAuthenticated, router]);
   return (
@@ -22,7 +22,7 @@ export default function NotFoundScreen() {
       <Stack.Screen options={{ title: "Oops!" }} />
       <ThemedView style={styles.container}>
         <ThemedText type="title">This screen does not exist.</ThemedText>
-        <Link href="/(tabs)/schedule" style={styles.link}>
+        <Link href="/schedule" style={styles.link}>
           <ThemedText type="link">Go to home screen!</ThemedText>
         </Link>
       </ThemedView>

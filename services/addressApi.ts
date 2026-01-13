@@ -12,7 +12,14 @@ export type AddressType = {
   data: string;
 };
 
-export function addressConverter(addressDTO: AddressDTO): AddressType {
+export function addressConverter(addressDTO: AddressDTO | null): AddressType {
+  if (addressDTO === null) {
+    return {
+      id: "",
+      name: "",
+      data: "",
+    };
+  }
   return {
     id: addressDTO.externalId,
     name: addressDTO.addressName,

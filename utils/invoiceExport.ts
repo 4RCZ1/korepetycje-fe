@@ -79,30 +79,29 @@ export async function exportInvoiceReport(
   format: "csv" | "txt" = "csv",
 ): Promise<boolean> {
   try {
-    // Check if sharing is available
     if (Platform.OS !== "web") {
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
-        alert("Export Not Available", "Sharing is not available on this device.");
+        alert(
+          "Export Not Available",
+          "Sharing is not available on this device.",
+        );
         return false;
       }
     }
 
     const { studentName, startDate, endDate } = params;
 
-    // Generate content based on format
     const content =
       format === "csv"
         ? generateInvoiceCSV(params)
         : generateInvoiceText(params);
 
-    // Generate filename
     const sanitizedName = studentName.replace(/\s+/g, "_");
     const dateStr = `${startDate.getFullYear()}${(startDate.getMonth() + 1).toString().padStart(2, "0")}`;
     const filename = `invoice_${sanitizedName}_${dateStr}.${format}`;
 
     if (Platform.OS === "web") {
-      // Web: Download file using browser API
       const blob = new Blob([content], {
         type: format === "csv" ? "text/csv" : "text/plain",
       });

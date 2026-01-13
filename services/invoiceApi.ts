@@ -1,9 +1,12 @@
 import { ApiClientError, apiRequest } from "@/services/api";
+import { invoiceApiMock } from "@/services/mock/invoiceApi";
 import {
   InvoiceReport,
   InvoiceReportParams,
   InvoiceReportResponse,
 } from "@/types/invoice";
+
+const USE_MOCK_API = process.env.EXPO_PUBLIC_USE_MOCK_API === "true";
 
 /**
  * Convert backend response to InvoiceReport with calculated total
@@ -82,13 +85,15 @@ function formatDateForApi(date: Date, isEndDate: boolean = false): string {
   return d.toISOString();
 }
 
-export const invoiceApi = {
+const realApi = {
   /**
    * Fetch invoice report from backend
    */
-  async getInvoiceReport(
-    params: InvoiceReportParams,
-  ): Promise<{ data: InvoiceReport | null; success: boolean; message?: string }> {
+  async getInvoiceReport(params: InvoiceReportParams): Promise<{
+    data: InvoiceReport | null;
+    success: boolean;
+    message?: string;
+  }> {
     // Validate date range
     const validationError = validateDateRange(params.startDate, params.endDate);
     if (validationError) {
@@ -118,3 +123,5 @@ export const invoiceApi = {
     }
   },
 };
+
+export const invoiceApi = USE_MOCK_API ? invoiceApiMock : realApi;

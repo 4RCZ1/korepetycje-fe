@@ -23,7 +23,7 @@ const InvoiceReportCard: React.FC<InvoiceReportCardProps> = ({
   startDate,
   endDate,
   style,
-  showExportButton = true,
+  showExportButton = false,
 }) => {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -79,7 +79,7 @@ const InvoiceReportCard: React.FC<InvoiceReportCardProps> = ({
       <View style={styles.hoursSection}>
         <View style={styles.hoursRow}>
           <ThemedText style={[styles.hoursLabel, { color: textColor }]}>
-            Individual lessons:
+            Lekcje Indywidualne:
           </ThemedText>
           <ThemedText style={[styles.hoursValue, { color: textColor }]}>
             {formatHours(report.individualHours)} h
@@ -88,7 +88,7 @@ const InvoiceReportCard: React.FC<InvoiceReportCardProps> = ({
 
         <View style={styles.hoursRow}>
           <ThemedText style={[styles.hoursLabel, { color: textColor }]}>
-            Group lessons:
+            Lekcje grupowe:
           </ThemedText>
           <ThemedText style={[styles.hoursValue, { color: textColor }]}>
             {formatHours(report.groupHours)} h
@@ -101,7 +101,7 @@ const InvoiceReportCard: React.FC<InvoiceReportCardProps> = ({
       {/* Total */}
       <View style={styles.totalSection}>
         <ThemedText style={[styles.totalLabel, { color: primaryColor }]}>
-          Total hours:
+          Suma godzin:
         </ThemedText>
         <ThemedText style={[styles.totalValue, { color: primaryColor }]}>
           {formatHours(report.totalHours)} h

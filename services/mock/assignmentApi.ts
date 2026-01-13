@@ -1,4 +1,5 @@
-import { StudentType } from "../studentApi";
+import { ResourceType } from "@/types/resource";
+
 import {
   AssignmentRecord,
   CreateAssignmentRequest,
@@ -7,8 +8,8 @@ import {
   StudentAssignmentsResponse,
   StudentGroupAssignmentsResponse,
 } from "../assignmentApi";
+import { StudentType } from "../studentApi";
 import { mockDatabase } from "./mockDatabase";
-import { ResourceType } from "@/types/resource";
 
 export const assignmentApiMock = {
   // Create assignments between resources/resource groups and students/student groups

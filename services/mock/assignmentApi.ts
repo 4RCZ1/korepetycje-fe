@@ -202,7 +202,7 @@ export const assignmentApiMock = {
     return response;
   },
 
-  // Get assignments for a specific resource group - returns flat list of students
+  // Get assignments for a specific resource group - returns direct assignments only
   async getResourceGroupAssignments(
     resourceGroupId: string,
   ): Promise<ResourceGroupAssignmentsResponse> {
@@ -212,17 +212,38 @@ export const assignmentApiMock = {
     );
     await new Promise((resolve) => setTimeout(resolve, 300));
 
+    const resourceGroup = mockDatabase.resourceGroups.find(
+      (rg) => rg.id === resourceGroupId,
+    );
+
+    if (!resourceGroup) {
+      return {
+        resourceGroupId,
+        resourceGroupName: "Unknown",
+        directStudents: [],
+        studentGroups: [],
+      };
+    }
+
     // Find all direct student assignments for this resource group
     const directStudentAssignments = mockDatabase.assignments.filter(
       (a) => a.resourceGroupId === resourceGroupId && a.studentId,
     );
 
-    // Get flat list of students
-    const assignedTo: StudentType[] = directStudentAssignments
+    // Get direct students
+    const directStudents: StudentType[] = directStudentAssignments
       .map((a) => mockDatabase.students.find((s) => s.id === a.studentId))
       .filter((s): s is StudentType => s !== undefined);
 
-    const response = { resourceGroupId, assignedTo };
+    // Find student group assignments (simplified - mock doesn't track this)
+    const studentGroups: any[] = [];
+
+    const response = {
+      resourceGroupId,
+      resourceGroupName: resourceGroup.name,
+      directStudents,
+      studentGroups,
+    };
     console.log(
       "[assignmentApiMock.getResourceGroupAssignments] Response:",
       JSON.stringify(response, null, 2),
@@ -230,7 +251,7 @@ export const assignmentApiMock = {
     return response;
   },
 
-  // Get assignments for a specific student - returns flat list of resources
+  // Get assignments for a specific student - returns hierarchical structure
   async getStudentAssignments(
     studentId: string,
   ): Promise<StudentAssignmentsResponse> {
@@ -240,17 +261,54 @@ export const assignmentApiMock = {
     );
     await new Promise((resolve) => setTimeout(resolve, 300));
 
+    const student = mockDatabase.students.find((s) => s.id === studentId);
+    if (!student) {
+      return {
+        studentId,
+        studentName: "Unknown",
+        studentSurname: "Unknown",
+        directResources: [],
+        resourceGroups: [],
+        studentGroups: [],
+      };
+    }
+
     // Direct resource assignments
     const directResourceAssignments = mockDatabase.assignments.filter(
       (a) => a.studentId === studentId && a.resourceId,
     );
-
-    // Get flat list of resources
-    const assignedTo: ResourceType[] = directResourceAssignments
+    const directResources: ResourceType[] = directResourceAssignments
       .map((a) => mockDatabase.resources.find((r) => r.id === a.resourceId))
       .filter((r): r is ResourceType => r !== undefined);
 
-    const response = { studentId, assignedTo };
+    // Direct resource group assignments
+    const directResourceGroupAssignments = mockDatabase.assignments.filter(
+      (a) => a.studentId === studentId && a.resourceGroupId,
+    );
+    const resourceGroups = directResourceGroupAssignments
+      .map((a) =>
+        mockDatabase.resourceGroups.find((rg) => rg.id === a.resourceGroupId),
+      )
+      .filter((rg): rg is ResourceGroupType => rg !== undefined)
+      .map((rg) => ({
+        id: rg.id,
+        name: rg.name,
+        resources: rg.resourceIds
+          .map((rid) => mockDatabase.resources.find((r) => r.id === rid))
+          .filter((r): r is ResourceType => r !== undefined),
+      }));
+
+    // Student group memberships (simplified - would need group membership data)
+    const studentGroups: any[] = []; // Mock doesn't track student group memberships
+
+    const response = {
+      studentId,
+      studentName: student.name,
+      studentSurname: student.surname,
+      directResources,
+      resourceGroups,
+      studentGroups,
+    };
     console.log(
       "[assignmentApiMock.getStudentAssignments] Response:",
       JSON.stringify(response, null, 2),
@@ -258,7 +316,7 @@ export const assignmentApiMock = {
     return response;
   },
 
-  // Get assignments for a specific student group - returns flat list of resources
+  // Get assignments for a specific student group - returns direct assignments only
   async getStudentGroupAssignments(
     studentGroupId: string,
   ): Promise<StudentGroupAssignmentsResponse> {
@@ -268,17 +326,52 @@ export const assignmentApiMock = {
     );
     await new Promise((resolve) => setTimeout(resolve, 300));
 
+    const studentGroup = mockDatabase.studentGroups.find(
+      (sg) => sg.id === studentGroupId,
+    );
+
+    if (!studentGroup) {
+      return {
+        studentGroupId,
+        studentGroupName: "Unknown",
+        directResources: [],
+        resourceGroups: [],
+      };
+    }
+
     // Direct resource assignments to this student group
     const directResourceAssignments = mockDatabase.assignments.filter(
       (a) => a.studentGroupId === studentGroupId && a.resourceId,
     );
 
-    // Get flat list of resources
-    const assignedTo: ResourceType[] = directResourceAssignments
+    const directResources: ResourceType[] = directResourceAssignments
       .map((a) => mockDatabase.resources.find((r) => r.id === a.resourceId))
       .filter((r): r is ResourceType => r !== undefined);
 
-    const response = { studentGroupId, assignedTo };
+    // Resource group assignments to this student group
+    const resourceGroupAssignments = mockDatabase.assignments.filter(
+      (a) => a.studentGroupId === studentGroupId && a.resourceGroupId,
+    );
+
+    const resourceGroups = resourceGroupAssignments
+      .map((a) =>
+        mockDatabase.resourceGroups.find((rg) => rg.id === a.resourceGroupId),
+      )
+      .filter((rg): rg is ResourceGroupType => rg !== undefined)
+      .map((rg) => ({
+        id: rg.id,
+        name: rg.name,
+        resources: rg.resourceIds
+          .map((rid) => mockDatabase.resources.find((r) => r.id === rid))
+          .filter((r): r is ResourceType => r !== undefined),
+      }));
+
+    const response = {
+      studentGroupId,
+      studentGroupName: studentGroup.name,
+      directResources,
+      resourceGroups,
+    };
     console.log(
       "[assignmentApiMock.getStudentGroupAssignments] Response:",
       JSON.stringify(response, null, 2),

@@ -146,13 +146,23 @@ export default function ViewAssignmentsModal({
       return resourceAssignments.assignedTo.length > 0;
     }
     if (viewMode.type === "resourceGroup" && resourceGroupAssignments) {
-      return resourceGroupAssignments.assignedTo.length > 0;
+      return (
+        resourceGroupAssignments.directStudents.length > 0 ||
+        resourceGroupAssignments.studentGroups.length > 0
+      );
     }
     if (viewMode.type === "student" && studentAssignments) {
-      return studentAssignments.assignedTo.length > 0;
+      return (
+        studentAssignments.directResources.length > 0 ||
+        studentAssignments.resourceGroups.length > 0 ||
+        studentAssignments.studentGroups.length > 0
+      );
     }
     if (viewMode.type === "studentGroup" && studentGroupAssignments) {
-      return studentGroupAssignments.assignedTo.length > 0;
+      return (
+        studentGroupAssignments.directResources.length > 0 ||
+        studentGroupAssignments.resourceGroups.length > 0
+      );
     }
     return false;
   };
@@ -181,86 +191,396 @@ export default function ViewAssignmentsModal({
   };
 
   const renderResourceGroupAssignments = () => {
-    if (!resourceGroupAssignments || !resourceGroupAssignments.assignedTo)
-      return null;
+    if (!resourceGroupAssignments) return null;
+
+    const hasAnyAssignments =
+      resourceGroupAssignments.directStudents.length > 0 ||
+      resourceGroupAssignments.studentGroups.length > 0;
+
+    if (!hasAnyAssignments) {
+      return (
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+            Przypisani uczniowie
+          </ThemedText>
+          <ThemedText style={{ color: textColor, fontStyle: "italic" }}>
+            Brak przypisań
+          </ThemedText>
+        </View>
+      );
+    }
 
     return (
       <View style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Przypisani uczniowie
-        </ThemedText>
-        {resourceGroupAssignments.assignedTo.map((student) => (
-          <View
-            key={student.id}
-            style={[styles.assignmentItem, { borderColor }]}
-          >
-            <MaterialIcons name="person" size={20} color={primaryColor} />
-            <ThemedText style={[styles.assignmentText, { color: textColor }]}>
-              {student.name} {student.surname}
+        {/* Direct Students */}
+        {resourceGroupAssignments.directStudents.length > 0 && (
+          <View style={{ marginBottom: 16 }}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Uczniowie przypisani bezpośrednio
             </ThemedText>
+            {resourceGroupAssignments.directStudents.map((student) => (
+              <View
+                key={student.id}
+                style={[styles.assignmentItem, { borderColor }]}
+              >
+                <MaterialIcons name="person" size={20} color={primaryColor} />
+                <ThemedText
+                  style={[styles.assignmentText, { color: textColor }]}
+                >
+                  {student.name} {student.surname}
+                </ThemedText>
+              </View>
+            ))}
           </View>
-        ))}
+        )}
+
+        {/* Student Groups */}
+        {resourceGroupAssignments.studentGroups.length > 0 && (
+          <View>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Grupy uczniów
+            </ThemedText>
+            {resourceGroupAssignments.studentGroups.map((sg) => (
+              <View key={sg.id} style={{ marginBottom: 12 }}>
+                <ThemedText
+                  style={{
+                    color: primaryColor,
+                    fontWeight: "600",
+                    marginBottom: 4,
+                  }}
+                >
+                  👥 {sg.name} ({sg.students.length} uczniów)
+                </ThemedText>
+                {sg.students.map((student) => (
+                  <View
+                    key={student.id}
+                    style={[
+                      styles.assignmentItem,
+                      { borderColor, marginLeft: 16 },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="person"
+                      size={18}
+                      color={primaryColor}
+                    />
+                    <ThemedText
+                      style={[styles.assignmentText, { color: textColor }]}
+                    >
+                      {student.name} {student.surname}
+                    </ThemedText>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   };
 
   const renderStudentAssignments = () => {
-    if (!studentAssignments || !studentAssignments.assignedTo) return null;
+    if (!studentAssignments) return null;
+
+    const hasAnyResources =
+      studentAssignments.directResources.length > 0 ||
+      studentAssignments.resourceGroups.length > 0 ||
+      studentAssignments.studentGroups.some(
+        (sg) => sg.directResources.length > 0 || sg.resourceGroups.length > 0,
+      );
+
+    if (!hasAnyResources) {
+      return (
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+            Przypisane zasoby
+          </ThemedText>
+          <ThemedText style={{ color: textColor, fontStyle: "italic" }}>
+            Brak przypisanych zasobów
+          </ThemedText>
+        </View>
+      );
+    }
 
     return (
       <View style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Przypisane zasoby
-        </ThemedText>
-        {studentAssignments.assignedTo.map((resource) => (
-          <View
-            key={resource.id}
-            style={[styles.assignmentItem, { borderColor }]}
-          >
-            <MaterialIcons
-              name={getFileIcon(resource.fileType, resource.name)}
-              size={20}
-              color={primaryColor}
-            />
-            <ThemedText
-              style={[styles.assignmentText, { color: textColor }]}
-              numberOfLines={1}
-            >
-              {resource.name}
+        {/* Direct Resources */}
+        {studentAssignments.directResources.length > 0 && (
+          <View style={{ marginBottom: 16 }}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Zasoby przypisane bezpośrednio
             </ThemedText>
+            {studentAssignments.directResources.map((resource) => (
+              <View
+                key={resource.id}
+                style={[styles.assignmentItem, { borderColor }]}
+              >
+                <MaterialIcons
+                  name={getFileIcon(resource.fileType, resource.name)}
+                  size={20}
+                  color={primaryColor}
+                />
+                <ThemedText
+                  style={[styles.assignmentText, { color: textColor }]}
+                  numberOfLines={1}
+                >
+                  {resource.name}
+                </ThemedText>
+              </View>
+            ))}
           </View>
-        ))}
+        )}
+
+        {/* Direct Resource Groups */}
+        {studentAssignments.resourceGroups.length > 0 && (
+          <View style={{ marginBottom: 16 }}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Grupy zasobów przypisane bezpośrednio
+            </ThemedText>
+            {studentAssignments.resourceGroups.map((rg) => (
+              <View key={rg.id} style={{ marginBottom: 12 }}>
+                <ThemedText
+                  style={{
+                    color: primaryColor,
+                    fontWeight: "600",
+                    marginBottom: 4,
+                  }}
+                >
+                  📦 {rg.name} ({rg.resources.length} plików)
+                </ThemedText>
+                {rg.resources.map((resource) => (
+                  <View
+                    key={resource.id}
+                    style={[
+                      styles.assignmentItem,
+                      { borderColor, marginLeft: 16 },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={getFileIcon(resource.fileType, resource.name)}
+                      size={18}
+                      color={primaryColor}
+                    />
+                    <ThemedText
+                      style={[styles.assignmentText, { color: textColor }]}
+                      numberOfLines={1}
+                    >
+                      {resource.name}
+                    </ThemedText>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Student Groups */}
+        {studentAssignments.studentGroups.length > 0 && (
+          <View>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Poprzez grupy uczniów
+            </ThemedText>
+            {studentAssignments.studentGroups.map((sg) => (
+              <View key={sg.id} style={{ marginBottom: 16 }}>
+                <ThemedText
+                  style={{
+                    color: primaryColor,
+                    fontWeight: "bold",
+                    marginBottom: 8,
+                  }}
+                >
+                  👥 {sg.name}
+                </ThemedText>
+
+                {/* Direct resources in this student group */}
+                {sg.directResources.length > 0 && (
+                  <View style={{ marginLeft: 16, marginBottom: 8 }}>
+                    <ThemedText
+                      style={{
+                        color: textColor,
+                        fontWeight: "600",
+                        fontSize: 12,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Zasoby bezpośrednie:
+                    </ThemedText>
+                    {sg.directResources.map((resource) => (
+                      <View
+                        key={resource.id}
+                        style={[styles.assignmentItem, { borderColor }]}
+                      >
+                        <MaterialIcons
+                          name={getFileIcon(resource.fileType, resource.name)}
+                          size={18}
+                          color={primaryColor}
+                        />
+                        <ThemedText
+                          style={[styles.assignmentText, { color: textColor }]}
+                          numberOfLines={1}
+                        >
+                          {resource.name}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* Resource groups in this student group */}
+                {sg.resourceGroups.length > 0 && (
+                  <View style={{ marginLeft: 16 }}>
+                    <ThemedText
+                      style={{
+                        color: textColor,
+                        fontWeight: "600",
+                        fontSize: 12,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Grupy zasobów:
+                    </ThemedText>
+                    {sg.resourceGroups.map((rg) => (
+                      <View key={rg.id} style={{ marginBottom: 8 }}>
+                        <ThemedText
+                          style={{
+                            color: primaryColor,
+                            fontWeight: "500",
+                            fontSize: 12,
+                            marginBottom: 4,
+                          }}
+                        >
+                          📦 {rg.name} ({rg.resources.length} plików)
+                        </ThemedText>
+                        {rg.resources.map((resource) => (
+                          <View
+                            key={resource.id}
+                            style={[
+                              styles.assignmentItem,
+                              { borderColor, marginLeft: 8 },
+                            ]}
+                          >
+                            <MaterialIcons
+                              name={getFileIcon(
+                                resource.fileType,
+                                resource.name,
+                              )}
+                              size={16}
+                              color={primaryColor}
+                            />
+                            <ThemedText
+                              style={[
+                                styles.assignmentText,
+                                { color: textColor, fontSize: 12 },
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {resource.name}
+                            </ThemedText>
+                          </View>
+                        ))}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   };
 
   const renderStudentGroupAssignments = () => {
-    if (!studentGroupAssignments || !studentGroupAssignments.assignedTo)
-      return null;
+    if (!studentGroupAssignments) return null;
+
+    const hasAnyAssignments =
+      studentGroupAssignments.directResources.length > 0 ||
+      studentGroupAssignments.resourceGroups.length > 0;
+
+    if (!hasAnyAssignments) {
+      return (
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+            Przypisane zasoby
+          </ThemedText>
+          <ThemedText style={{ color: textColor, fontStyle: "italic" }}>
+            Brak przypisanych zasobów
+          </ThemedText>
+        </View>
+      );
+    }
 
     return (
       <View style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Przypisane zasoby
-        </ThemedText>
-        {studentGroupAssignments.assignedTo.map((resource) => (
-          <View
-            key={resource.id}
-            style={[styles.assignmentItem, { borderColor }]}
-          >
-            <MaterialIcons
-              name={getFileIcon(resource.fileType, resource.name)}
-              size={20}
-              color={primaryColor}
-            />
-            <ThemedText
-              style={[styles.assignmentText, { color: textColor }]}
-              numberOfLines={1}
-            >
-              {resource.name}
+        {/* Direct Resources */}
+        {studentGroupAssignments.directResources.length > 0 && (
+          <View style={{ marginBottom: 16 }}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Zasoby przypisane bezpośrednio
             </ThemedText>
+            {studentGroupAssignments.directResources.map((resource) => (
+              <View
+                key={resource.id}
+                style={[styles.assignmentItem, { borderColor }]}
+              >
+                <MaterialIcons
+                  name={getFileIcon(resource.fileType, resource.name)}
+                  size={20}
+                  color={primaryColor}
+                />
+                <ThemedText
+                  style={[styles.assignmentText, { color: textColor }]}
+                  numberOfLines={1}
+                >
+                  {resource.name}
+                </ThemedText>
+              </View>
+            ))}
           </View>
-        ))}
+        )}
+
+        {/* Resource Groups */}
+        {studentGroupAssignments.resourceGroups.length > 0 && (
+          <View>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Grupy zasobów
+            </ThemedText>
+            {studentGroupAssignments.resourceGroups.map((rg) => (
+              <View key={rg.id} style={{ marginBottom: 12 }}>
+                <ThemedText
+                  style={{
+                    color: primaryColor,
+                    fontWeight: "600",
+                    marginBottom: 4,
+                  }}
+                >
+                  📦 {rg.name} ({rg.resources.length} plików)
+                </ThemedText>
+                {rg.resources.map((resource) => (
+                  <View
+                    key={resource.id}
+                    style={[
+                      styles.assignmentItem,
+                      { borderColor, marginLeft: 16 },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={getFileIcon(resource.fileType, resource.name)}
+                      size={18}
+                      color={primaryColor}
+                    />
+                    <ThemedText
+                      style={[styles.assignmentText, { color: textColor }]}
+                      numberOfLines={1}
+                    >
+                      {resource.name}
+                    </ThemedText>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   };

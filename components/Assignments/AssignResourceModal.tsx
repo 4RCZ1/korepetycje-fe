@@ -146,145 +146,33 @@ export default function AssignResourceModal({
       if (mode === "resourceToStudent") {
         // Load assignments for pre-selected resources/resource groups
         const assignedStudentIds = new Set<string>();
-        const assignedStudentGroupIds = new Set<string>();
+        // Note: New API doesn't return assignment source (group vs direct), so we can't infer student groups
+        // We can only know which individual students have access
 
         for (const resource of preSelectedResources) {
           const assignments = await getResourceAssignments(resource.id);
           if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((assignment) => {
-              if (
-                assignment.type === AssignmentType.DIRECT ||
-                assignment.type === AssignmentType.STUDENT_GROUP
-              ) {
-                // Both DirectStudentAssignment and StudentGroupStudentAssignment have assignmentTargets
-                assignment.assignmentTargets.forEach((s: StudentType) =>
-                  assignedStudentIds.add(s.id),
-                );
-                // For student group assignments, we need to track the group itself
-                // The name property contains the group identifier
-                if (assignment.type === AssignmentType.STUDENT_GROUP) {
-                  // We need to find the matching student group by name
-                  const matchingGroup = studentGroups?.find(
-                    (sg) => sg.name === assignment.name,
-                  );
-                  if (matchingGroup) {
-                    assignedStudentGroupIds.add(matchingGroup.id);
-                  }
-                }
-              }
+            assignments.assignedTo.forEach((student) => {
+              assignedStudentIds.add(student.id);
             });
           }
         }
 
-        for (const resourceGroup of preSelectedResourceGroups) {
-          const assignments = await getResourceGroupAssignments(
-            resourceGroup.id,
-          );
-          if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((assignment) => {
-              if (
-                assignment.type === AssignmentType.DIRECT ||
-                assignment.type === AssignmentType.STUDENT_GROUP
-              ) {
-                // Both DirectStudentAssignment and StudentGroupStudentAssignment have assignmentTargets
-                assignment.assignmentTargets.forEach((s: StudentType) =>
-                  assignedStudentIds.add(s.id),
-                );
-                // For student group assignments, track the group
-                if (assignment.type === AssignmentType.STUDENT_GROUP) {
-                  const matchingGroup = studentGroups?.find(
-                    (sg) => sg.name === assignment.name,
-                  );
-                  if (matchingGroup) {
-                    assignedStudentGroupIds.add(matchingGroup.id);
-                  }
-                }
-              }
-            });
-          }
-        }
+        // Note: checking assignments for ResourceGroups is not supported by the new API endpoint
+        // so we cannot pre-fill students who have access to the selected resource groups
 
         // Update selections with existing assignments
         setSelectedStudents(
           (prev) => new Set([...prev, ...assignedStudentIds]),
         );
-        setSelectedStudentGroups(
-          (prev) => new Set([...prev, ...assignedStudentGroupIds]),
-        );
-
+        
         // Store initial state
         setInitialStudents(assignedStudentIds);
-        setInitialStudentGroups(assignedStudentGroupIds);
+        
       } else {
         // mode === "studentToResource"
-        // Load assignments for pre-selected students/student groups
-        const assignedResourceIds = new Set<string>();
-        const assignedResourceGroupIds = new Set<string>();
-
-        for (const student of preSelectedStudents) {
-          const assignments = await getStudentAssignments(student.id);
-          if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((assignment) => {
-              if (
-                assignment.type === AssignmentType.DIRECT ||
-                assignment.type === AssignmentType.RESOURCE_GROUP
-              ) {
-                // Both DirectAssignment and ResourceGroupAssignment have assignmentTargets
-                assignment.assignmentTargets.forEach((r: ResourceType) =>
-                  assignedResourceIds.add(r.id),
-                );
-                // For resource group assignments, track the group
-                if (assignment.type === AssignmentType.RESOURCE_GROUP) {
-                  const matchingGroup = resourceGroups?.find(
-                    (rg) => rg.name === assignment.name,
-                  );
-                  if (matchingGroup) {
-                    assignedResourceGroupIds.add(matchingGroup.id);
-                  }
-                }
-              }
-              // Note: STUDENT_GROUP type doesn't apply here as we're looking at individual student assignments
-            });
-          }
-        }
-
-        for (const studentGroup of preSelectedStudentGroups) {
-          const assignments = await getStudentGroupAssignments(studentGroup.id);
-          if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((assignment) => {
-              if (
-                assignment.type === AssignmentType.DIRECT ||
-                assignment.type === AssignmentType.RESOURCE_GROUP
-              ) {
-                // Both DirectAssignment and ResourceGroupAssignment have assignmentTargets
-                assignment.assignmentTargets.forEach((r: ResourceType) =>
-                  assignedResourceIds.add(r.id),
-                );
-                // For resource group assignments, track the group
-                if (assignment.type === AssignmentType.RESOURCE_GROUP) {
-                  const matchingGroup = resourceGroups?.find(
-                    (rg) => rg.name === assignment.name,
-                  );
-                  if (matchingGroup) {
-                    assignedResourceGroupIds.add(matchingGroup.id);
-                  }
-                }
-              }
-            });
-          }
-        }
-
-        // Update selections with existing assignments
-        setSelectedResources(
-          (prev) => new Set([...prev, ...assignedResourceIds]),
-        );
-        setSelectedResourceGroups(
-          (prev) => new Set([...prev, ...assignedResourceGroupIds]),
-        );
-
-        // Store initial state
-        setInitialResources(assignedResourceIds);
-        setInitialResourceGroups(assignedResourceGroupIds);
+        // New API only supports getting assignments by Resource, not by Student
+        console.warn("Fetching assignments by Student is not supported by the current API.");
       }
     } finally {
       setLoadingAssignments(false);

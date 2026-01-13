@@ -29,6 +29,7 @@ const MAPPING = {
   "person.2": "group",
   xmark: "close",
   checkmark: "check",
+  "doc.text": "description",
 } as IconMapping;
 
 /**

@@ -64,6 +64,16 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Drawer.Screen
+          name="invoice-report"
+          options={{
+            drawerLabel: "Faktury",
+            title: "Faktury",
+            drawerIcon: ({ color }) => (
+              <IconSymbol size={28} name="doc.text" color={color} />
+            ),
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );

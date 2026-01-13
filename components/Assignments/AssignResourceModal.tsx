@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Modal,
   StyleSheet,
@@ -91,13 +91,27 @@ export default function AssignResourceModal({
   const [submitting, setSubmitting] = useState(false);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
 
-  // API hooks
-  const { resources, loading: loadingResources } = useResourceApi();
-  const { groups: resourceGroups, isLoading: loadingResourceGroups } =
-    useResourceGroups();
-  const { students, loading: loadingStudents } = useStudentApi();
-  const { groups: studentGroups, isLoading: loadingStudentGroups } =
-    useStudentGroups();
+  // API hooks - lazy loading enabled (fetchOnRender: false)
+  const {
+    resources,
+    loading: loadingResources,
+    refetch: refetchResources,
+  } = useResourceApi(false);
+  const {
+    groups: resourceGroups,
+    isLoading: loadingResourceGroups,
+    refreshGroups: refetchResourceGroups,
+  } = useResourceGroups(undefined, false);
+  const {
+    students,
+    loading: loadingStudents,
+    refetch: refetchStudents,
+  } = useStudentApi(false);
+  const {
+    groups: studentGroups,
+    isLoading: loadingStudentGroups,
+    refreshGroups: refetchStudentGroups,
+  } = useStudentGroups(undefined, false);
   const {
     createAssignments,
     deleteAssignmentsBulk,
@@ -113,34 +127,8 @@ export default function AssignResourceModal({
   const primaryColor = useThemeColor({}, "tint");
   const borderColor = useThemeColor({}, "border");
 
-  // Initialize selections when modal opens
-  useEffect(() => {
-    if (visible) {
-      setSelectedResources(new Set(preSelectedResources.map((r) => r.id)));
-      setSelectedResourceGroups(
-        new Set(preSelectedResourceGroups.map((rg) => rg.id)),
-      );
-      setSelectedStudents(new Set(preSelectedStudents.map((s) => s.id)));
-      setSelectedStudentGroups(
-        new Set(preSelectedStudentGroups.map((sg) => sg.id)),
-      );
-
-      // Set active tab based on mode
-      if (mode === "resourceToStudent") {
-        setActiveTab("students");
-      } else {
-        setActiveTab("resources");
-      }
-
-      // Load existing assignments
-      loadExistingAssignments();
-    }
-    // Only run when visible changes - the preSelected arrays should be stable
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, mode]);
-
   // Load existing assignments based on mode and pre-selected items
-  const loadExistingAssignments = async () => {
+  const loadExistingAssignments = useCallback(async () => {
     setLoadingAssignments(true);
     try {
       if (mode === "resourceToStudent") {
@@ -289,7 +277,67 @@ export default function AssignResourceModal({
     } finally {
       setLoadingAssignments(false);
     }
-  };
+  }, [
+    mode,
+    preSelectedResources,
+    preSelectedResourceGroups,
+    preSelectedStudents,
+    preSelectedStudentGroups,
+    studentGroups,
+    resourceGroups,
+    getResourceAssignments,
+    getResourceGroupAssignments,
+    getStudentAssignments,
+    getStudentGroupAssignments,
+  ]);
+
+  // Initialize selections and load data when modal opens
+  useEffect(() => {
+    if (!visible) return;
+
+    let cancelled = false;
+
+    const initModal = async () => {
+      // Reset selections
+      setSelectedResources(new Set(preSelectedResources.map((r) => r.id)));
+      setSelectedResourceGroups(
+        new Set(preSelectedResourceGroups.map((rg) => rg.id)),
+      );
+      setSelectedStudents(new Set(preSelectedStudents.map((s) => s.id)));
+      setSelectedStudentGroups(
+        new Set(preSelectedStudentGroups.map((sg) => sg.id)),
+      );
+
+      // Set active tab based on mode
+      if (mode === "resourceToStudent") {
+        setActiveTab("students");
+      } else {
+        setActiveTab("resources");
+      }
+
+      // Fetch all data in parallel
+      await Promise.all([
+        refetchResources(),
+        refetchResourceGroups(),
+        refetchStudents(),
+        refetchStudentGroups(),
+      ]);
+
+      // Load existing assignments after data is available
+      if (!cancelled) {
+        await loadExistingAssignments();
+      }
+    };
+
+    initModal();
+
+    return () => {
+      cancelled = true;
+    };
+    // loadExistingAssignments is intentionally omitted to avoid infinite loop
+    // (it recreates when studentGroups/resourceGroups update from fetching)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, mode]);
 
   const handleSubmit = async () => {
     setSubmitting(true);

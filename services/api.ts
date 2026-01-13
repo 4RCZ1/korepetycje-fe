@@ -1,3 +1,5 @@
+import { router } from "expo-router";
+
 // Configuration
 const API_CONFIG = {
   baseURL: process.env.EXPO_PUBLIC_BACKEND_BASE_URL + "/api",
@@ -72,7 +74,6 @@ export async function apiRequest<T>(
     ...(options.headers as Record<string, string>),
   };
 
-  // Add authorization header if token is available
   if (authToken) {
     headers["Authorization"] = `Bearer ${authToken}`;
   }
@@ -85,12 +86,17 @@ export async function apiRequest<T>(
 
   try {
     const response = await fetch(url, config);
+    console.log("response", response);
     clearTimeout(timeoutId);
 
-    // Handle HTTP errors
     if (!response.ok) {
       const textResponse = await response.text().catch(() => "");
       const errorData = await response.json().catch(() => ({}));
+
+      if (response.status === 400) {
+        router.replace("/login");
+      }
+
       throw new ApiClientError(
         errorData.message || textResponse || `HTTP Error: ${response.status}`,
         response.status,

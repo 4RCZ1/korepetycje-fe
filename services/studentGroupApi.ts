@@ -1,7 +1,8 @@
-import { apiRequest } from "./api";
-import { StudentDTO, studentConverter, StudentType } from "./studentApi";
 import { StudentGroupType } from "@/types/studentGroup";
+
+import { apiRequest } from "./api";
 import { studentGroupApiMock } from "./mock/studentGroupApi";
+import { StudentDTO, studentConverter, StudentType } from "./studentApi";
 
 export interface StudentGroupFilters {
   studentId?: string;
@@ -72,13 +73,10 @@ const realApi = {
     students: StudentType[],
   ): Promise<StudentGroupType> {
     const requestDto = studentGroupRequestConverter(name, students);
-    const response = await apiRequest<StudentGroupDTO>(
-      `/student-group/${id}`,
-      {
-        method: "PUT",
-        body: JSON.stringify(requestDto),
-      },
-    );
+    const response = await apiRequest<StudentGroupDTO>(`/student-group/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(requestDto),
+    });
     return studentGroupConverter(response);
   },
 

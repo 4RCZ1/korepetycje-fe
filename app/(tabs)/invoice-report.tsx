@@ -215,8 +215,8 @@ export default function InvoiceReportScreen() {
         {!report && !reportLoading && selectedStudentId && (
           <View style={styles.emptyState}>
             <ThemedText style={[styles.emptyText, { color: textColor + "80" }]}>
-              Wybierz zakres dat i kliknij &quot;Generuj raport&quot;, aby zobaczyć
-              podsumowanie godzin lekcji.
+              Wybierz zakres dat i kliknij &quot;Generuj raport&quot;, aby
+              zobaczyć podsumowanie godzin lekcji.
             </ThemedText>
           </View>
         )}

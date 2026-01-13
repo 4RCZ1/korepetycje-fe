@@ -106,7 +106,8 @@ const StudentInvoiceSection: React.FC<StudentInvoiceSectionProps> = ({
 
           {!report && !loading && (
             <ThemedText style={[styles.emptyText, { color: textColor + "80" }]}>
-              Select a date range and click &quot;Generate&quot; to view the report.
+              Select a date range and click &quot;Generate&quot; to view the
+              report.
             </ThemedText>
           )}
         </View>

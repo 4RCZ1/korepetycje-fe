@@ -22,7 +22,6 @@ import { useStudentApi } from "@/hooks/useStudentApi";
 import { useStudentGroups } from "@/hooks/useStudentGroups";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { StudentType } from "@/services/studentApi";
-import { AssignmentType } from "@/types/assignment";
 import { ResourceGroupType, ResourceType } from "@/types/resource";
 import { StudentGroupType } from "@/types/studentGroup";
 import { getFileIcon } from "@/utils/fileHelpers";
@@ -138,28 +137,25 @@ export default function AssignResourceModal({
 
         for (const resource of preSelectedResources) {
           const assignments = await getResourceAssignments(resource.id);
-          if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((assignment) => {
-              if (
-                assignment.type === AssignmentType.DIRECT ||
-                assignment.type === AssignmentType.STUDENT_GROUP
-              ) {
-                // Both DirectStudentAssignment and StudentGroupStudentAssignment have assignmentTargets
-                assignment.assignmentTargets.forEach((s: StudentType) =>
-                  assignedStudentIds.add(s.id),
-                );
-                // For student group assignments, we need to track the group itself
-                // The name property contains the group identifier
-                if (assignment.type === AssignmentType.STUDENT_GROUP) {
-                  // We need to find the matching student group by name
-                  const matchingGroup = studentGroups?.find(
-                    (sg) => sg.name === assignment.name,
-                  );
-                  if (matchingGroup) {
-                    assignedStudentGroupIds.add(matchingGroup.id);
-                  }
-                }
-              }
+          if (assignments) {
+            // Add direct students
+            assignments.directStudents.forEach((student) =>
+              assignedStudentIds.add(student.id),
+            );
+
+            // Add student groups
+            assignments.studentGroups.forEach((group) =>
+              assignedStudentGroupIds.add(group.id),
+            );
+
+            // Add students from resource groups (indirect assignments)
+            assignments.resourceGroups.forEach((rg) => {
+              rg.directStudents.forEach((student) =>
+                assignedStudentIds.add(student.id),
+              );
+              rg.studentGroups.forEach((group) =>
+                assignedStudentGroupIds.add(group.id),
+              );
             });
           }
         }
@@ -168,27 +164,16 @@ export default function AssignResourceModal({
           const assignments = await getResourceGroupAssignments(
             resourceGroup.id,
           );
-          if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((assignment) => {
-              if (
-                assignment.type === AssignmentType.DIRECT ||
-                assignment.type === AssignmentType.STUDENT_GROUP
-              ) {
-                // Both DirectStudentAssignment and StudentGroupStudentAssignment have assignmentTargets
-                assignment.assignmentTargets.forEach((s: StudentType) =>
-                  assignedStudentIds.add(s.id),
-                );
-                // For student group assignments, track the group
-                if (assignment.type === AssignmentType.STUDENT_GROUP) {
-                  const matchingGroup = studentGroups?.find(
-                    (sg) => sg.name === assignment.name,
-                  );
-                  if (matchingGroup) {
-                    assignedStudentGroupIds.add(matchingGroup.id);
-                  }
-                }
-              }
-            });
+          if (assignments) {
+            // Add direct students
+            assignments.directStudents.forEach((student) =>
+              assignedStudentIds.add(student.id),
+            );
+            
+            // Add student groups
+            assignments.studentGroups.forEach((group) =>
+              assignedStudentGroupIds.add(group.id),
+            );
           }
         }
 
@@ -211,27 +196,25 @@ export default function AssignResourceModal({
 
         for (const student of preSelectedStudents) {
           const assignments = await getStudentAssignments(student.id);
-          if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((assignment) => {
-              if (
-                assignment.type === AssignmentType.DIRECT ||
-                assignment.type === AssignmentType.RESOURCE_GROUP
-              ) {
-                // Both DirectAssignment and ResourceGroupAssignment have assignmentTargets
-                assignment.assignmentTargets.forEach((r: ResourceType) =>
-                  assignedResourceIds.add(r.id),
-                );
-                // For resource group assignments, track the group
-                if (assignment.type === AssignmentType.RESOURCE_GROUP) {
-                  const matchingGroup = resourceGroups?.find(
-                    (rg) => rg.name === assignment.name,
-                  );
-                  if (matchingGroup) {
-                    assignedResourceGroupIds.add(matchingGroup.id);
-                  }
-                }
-              }
-              // Note: STUDENT_GROUP type doesn't apply here as we're looking at individual student assignments
+          if (assignments) {
+            // Add direct resources
+            assignments.directResources.forEach((resource) =>
+              assignedResourceIds.add(resource.id),
+            );
+            
+            // Add resource groups
+            assignments.resourceGroups.forEach((group) =>
+              assignedResourceGroupIds.add(group.id),
+            );
+            
+            // Add resources from student groups (indirect assignments)
+            assignments.studentGroups.forEach((sg) => {
+              sg.directResources.forEach((resource) =>
+                assignedResourceIds.add(resource.id),
+              );
+              sg.resourceGroups.forEach((group) =>
+                assignedResourceGroupIds.add(group.id),
+              );
             });
           }
         }
@@ -239,26 +222,9 @@ export default function AssignResourceModal({
         for (const studentGroup of preSelectedStudentGroups) {
           const assignments = await getStudentGroupAssignments(studentGroup.id);
           if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((assignment) => {
-              if (
-                assignment.type === AssignmentType.DIRECT ||
-                assignment.type === AssignmentType.RESOURCE_GROUP
-              ) {
-                // Both DirectAssignment and ResourceGroupAssignment have assignmentTargets
-                assignment.assignmentTargets.forEach((r: ResourceType) =>
-                  assignedResourceIds.add(r.id),
-                );
-                // For resource group assignments, track the group
-                if (assignment.type === AssignmentType.RESOURCE_GROUP) {
-                  const matchingGroup = resourceGroups?.find(
-                    (rg) => rg.name === assignment.name,
-                  );
-                  if (matchingGroup) {
-                    assignedResourceGroupIds.add(matchingGroup.id);
-                  }
-                }
-              }
-            });
+            assignments.assignedTo.forEach((resource) =>
+              assignedResourceIds.add(resource.id),
+            );
           }
         }
 
@@ -283,8 +249,6 @@ export default function AssignResourceModal({
     preSelectedResourceGroups,
     preSelectedStudents,
     preSelectedStudentGroups,
-    studentGroups,
-    resourceGroups,
     getResourceAssignments,
     getResourceGroupAssignments,
     getStudentAssignments,
@@ -732,6 +696,7 @@ export default function AssignResourceModal({
                     </ThemedText>
                   ) : (
                     studentGroups.map((group) => {
+                      console.log("a grouppp", group);
                       const isSelected = selectedStudentGroups.has(group.id);
                       const isPreSelected = preSelectedStudentGroups.some(
                         (sg) => sg.id === group.id,

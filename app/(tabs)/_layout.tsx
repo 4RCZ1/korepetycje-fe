@@ -65,6 +65,16 @@ export default function TabLayout() {
           }}
         />
         <Drawer.Screen
+          name="addresses"
+          options={{
+            drawerLabel: "Adresy",
+            title: "Adresy",
+            drawerIcon: ({ color }) => (
+              <IconSymbol size={28} name="mappin" color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
           name="invoice-report"
           options={{
             drawerLabel: "Faktury",

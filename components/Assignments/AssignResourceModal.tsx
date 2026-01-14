@@ -221,9 +221,15 @@ export default function AssignResourceModal({
 
         for (const studentGroup of preSelectedStudentGroups) {
           const assignments = await getStudentGroupAssignments(studentGroup.id);
-          if (assignments && assignments.assignedTo) {
-            assignments.assignedTo.forEach((resource) =>
+          if (assignments) {
+            // Add direct resources
+            assignments.directResources.forEach((resource) =>
               assignedResourceIds.add(resource.id),
+            );
+            
+            // Add resource groups
+            assignments.resourceGroups.forEach((group) =>
+              assignedResourceGroupIds.add(group.id),
             );
           }
         }

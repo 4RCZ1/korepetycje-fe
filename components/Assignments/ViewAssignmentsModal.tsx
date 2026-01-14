@@ -167,7 +167,10 @@ export default function ViewAssignmentsModal({
       );
     }
     if (viewMode.type === "studentGroup" && studentGroupAssignments) {
-      return studentGroupAssignments.assignedTo.length > 0;
+      return (
+        studentGroupAssignments.directResources.length > 0 ||
+        studentGroupAssignments.resourceGroups.length > 0
+      );
     }
     return false;
   };
@@ -714,33 +717,94 @@ export default function ViewAssignmentsModal({
   };
 
   const renderStudentGroupAssignments = () => {
-    if (!studentGroupAssignments || !studentGroupAssignments.assignedTo)
-      return null;
+    if (!studentGroupAssignments) return null;
 
     return (
-      <View style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Przypisane zasoby
-        </ThemedText>
-        {studentGroupAssignments.assignedTo.map((resource) => (
-          <View
-            key={resource.id}
-            style={[styles.assignmentItem, { borderColor }]}
-          >
-            <MaterialIcons
-              name={getFileIcon(resource.fileType, resource.name)}
-              size={20}
-              color={primaryColor}
-            />
-            <ThemedText
-              style={[styles.assignmentText, { color: textColor }]}
-              numberOfLines={1}
-            >
-              {resource.name}
+      <>
+        {/* Combined section: Przypisane Zasoby */}
+        {(studentGroupAssignments.directResources.length > 0 ||
+          studentGroupAssignments.resourceGroups.length > 0) && (
+          <View style={styles.section}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Przypisane Zasoby
             </ThemedText>
+
+            {/* Direct resources */}
+            {studentGroupAssignments.directResources.map((resource) => (
+              <View
+                key={`direct-${resource.id}`}
+                style={[styles.assignmentItem, { borderColor }]}
+              >
+                <MaterialIcons
+                  name={getFileIcon(resource.fileType, resource.name)}
+                  size={20}
+                  color={primaryColor}
+                />
+                <ThemedText
+                  style={[styles.assignmentText, { color: textColor }]}
+                  numberOfLines={1}
+                >
+                  {resource.name}
+                </ThemedText>
+                <ThemedText
+                  style={[styles.sourceLabel, { color: textColor + "60" }]}
+                >
+                  (bezpośrednio)
+                </ThemedText>
+              </View>
+            ))}
+
+            {/* Resource groups with nested resources */}
+            {studentGroupAssignments.resourceGroups.map((group) => (
+              <View key={`group-${group.id}`} style={styles.groupSection}>
+                {/* Resource group header */}
+                <View style={[styles.assignmentItem, { borderColor }]}>
+                  <MaterialIcons name="folder" size={20} color={primaryColor} />
+                  <ThemedText
+                    style={[styles.assignmentText, { color: textColor }]}
+                  >
+                    {group.name}
+                  </ThemedText>
+                  <ThemedText
+                    style={[styles.sourceLabel, { color: textColor + "60" }]}
+                  >
+                    (grupa)
+                  </ThemedText>
+                </View>
+
+                {/* Nested resources from the group */}
+                {group.resources && group.resources.length > 0 && (
+                  <View style={styles.nestedContent}>
+                    {group.resources.map((resource) => (
+                      <View
+                        key={`group-${group.id}-resource-${resource.id}`}
+                        style={[styles.nestedItem, { borderColor }]}
+                      >
+                        <MaterialIcons
+                          name="subdirectory-arrow-right"
+                          size={16}
+                          color={primaryColor + "80"}
+                        />
+                        <MaterialIcons
+                          name={getFileIcon(resource.fileType, resource.name)}
+                          size={16}
+                          color={primaryColor}
+                        />
+                        <ThemedText
+                          style={[styles.nestedText, { color: textColor }]}
+                          numberOfLines={1}
+                        >
+                          {resource.name}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
+        )}
+      </>
     );
   };
 

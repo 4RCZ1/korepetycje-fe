@@ -111,6 +111,16 @@ export default function CustomDrawerContent(
 
           {isTutor() && (
             <DrawerItem
+              label={"Adresy"}
+              icon={({ color }) => (
+                <IconSymbol size={28} name="mappin" color={color} />
+              )}
+              onPress={() => props.navigation.navigate("addresses")}
+            />
+          )}
+
+          {isTutor() && (
+            <DrawerItem
               label={"Faktury"}
               icon={({ color }) => (
                 <IconSymbol size={28} name="doc.text" color={color} />

@@ -140,11 +140,21 @@ const AddLessonModal = ({
   };
 
   const toggleStudentSelection = (studentId: string) => {
-    setSelectedStudentIds((prev) =>
-      prev.includes(studentId)
+    setSelectedStudentIds((prev) => {
+      const newSelection = prev.includes(studentId)
         ? prev.filter((id) => id !== studentId)
-        : [...prev, studentId],
-    );
+        : [...prev, studentId];
+      
+      // If only one student is selected and address is empty, default to student's address
+      if (newSelection.length === 1 && !selectedAddressId) {
+        const selectedStudent = students.find((s) => s.id === newSelection[0]);
+        if (selectedStudent && selectedStudent.address.id) {
+          setSelectedAddressId(selectedStudent.address.id);
+        }
+      }
+      
+      return newSelection;
+    });
   };
   const validateForm = (): string | null => {
     if (!firstStartDateTime)

@@ -77,8 +77,11 @@ export interface StudentAssignmentsResponse {
 }
 
 export interface StudentGroupAssignmentsResponse {
-  studentGroupId: string;
-  assignedTo: ResourceType[];
+  id: string;
+  name: string;
+  directResources: ResourceType[];
+  resourceGroups: ResourceGroupType[];
+  students: StudentType[];
 }
 
 // Create assignment request

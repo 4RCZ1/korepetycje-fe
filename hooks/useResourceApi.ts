@@ -36,7 +36,6 @@ export function useResourceApi(fetchOnRender: boolean = true) {
     fetchResources();
   }, [fetchOnRender, fetchResources]);
 
-
   const refetch = useCallback(async () => {
     await fetchResources();
   }, [fetchResources]);

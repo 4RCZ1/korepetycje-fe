@@ -7,7 +7,10 @@ import {
 import { ResourceGroupType, ResourceType } from "@/types/resource";
 import alert from "@/utils/alert";
 
-export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
+export function useResourceGroups(
+  initialFilters?: ResourceGroupFilters,
+  fetchOnRender: boolean = true,
+) {
   const [groups, setGroups] = useState<ResourceGroupType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +40,9 @@ export function useResourceGroups(initialFilters?: ResourceGroupFilters) {
   );
 
   useEffect(() => {
+    if (!fetchOnRender) return;
     fetchGroups();
-  }, [fetchGroups]);
+  }, [fetchOnRender, fetchGroups]);
 
   const addGroup = async (name: string, resources: ResourceType[]) => {
     setIsLoading(true);

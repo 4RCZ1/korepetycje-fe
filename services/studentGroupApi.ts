@@ -11,6 +11,7 @@ export interface StudentGroupFilters {
 // DTO types matching backend API format
 type StudentGroupDTO = {
   externalId: string;
+  id: string;
   name: string;
   students: StudentDTO[];
 };
@@ -23,7 +24,7 @@ type StudentGroupRequestDTO = {
 // Converters
 function studentGroupConverter(dto: StudentGroupDTO): StudentGroupType {
   return {
-    id: dto.externalId,
+    id: dto.externalId || dto.id,
     name: dto.name,
     students: dto.students.map(studentConverter),
   };

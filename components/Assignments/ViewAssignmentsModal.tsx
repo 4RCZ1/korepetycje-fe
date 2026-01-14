@@ -143,13 +143,28 @@ export default function ViewAssignmentsModal({
 
   const hasAssignments = () => {
     if (viewMode.type === "resource" && resourceAssignments) {
-      return resourceAssignments.assignedTo.length > 0;
+      return (
+        resourceAssignments.directStudents.length > 0 ||
+        resourceAssignments.studentGroups.length > 0 ||
+        resourceAssignments.resourceGroups.some(
+          (rg) => rg.directStudents.length > 0 || rg.studentGroups.length > 0,
+        )
+      );
     }
     if (viewMode.type === "resourceGroup" && resourceGroupAssignments) {
-      return resourceGroupAssignments.assignedTo.length > 0;
+      return (
+        resourceGroupAssignments.directStudents.length > 0 ||
+        resourceGroupAssignments.studentGroups.length > 0
+      );
     }
     if (viewMode.type === "student" && studentAssignments) {
-      return studentAssignments.assignedTo.length > 0;
+      return (
+        studentAssignments.directResources.length > 0 ||
+        studentAssignments.resourceGroups.length > 0 ||
+        studentAssignments.studentGroups.some(
+          (sg) => sg.directResources.length > 0 || sg.resourceGroups.length > 0
+        )
+      );
     }
     if (viewMode.type === "studentGroup" && studentGroupAssignments) {
       return studentGroupAssignments.assignedTo.length > 0;
@@ -158,79 +173,543 @@ export default function ViewAssignmentsModal({
   };
 
   const renderResourceAssignments = () => {
-    if (!resourceAssignments || !resourceAssignments.assignedTo) return null;
+    if (!resourceAssignments) return null;
 
     return (
-      <View style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Przypisani uczniowie
-        </ThemedText>
-        {resourceAssignments.assignedTo.map((student) => (
-          <View
-            key={student.id}
-            style={[styles.assignmentItem, { borderColor }]}
-          >
-            <MaterialIcons name="person" size={20} color={primaryColor} />
-            <ThemedText style={[styles.assignmentText, { color: textColor }]}>
-              {student.name} {student.surname}
+      <>
+        {/* Combined section: Przypisani Uczniowie */}
+        {(resourceAssignments.directStudents.length > 0 ||
+          resourceAssignments.studentGroups.length > 0) && (
+          <View style={styles.section}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Przypisani Uczniowie
             </ThemedText>
+
+            {/* Direct students */}
+            {resourceAssignments.directStudents.map((student) => (
+              <View
+                key={`direct-${student.id}`}
+                style={[styles.assignmentItem, { borderColor }]}
+              >
+                <MaterialIcons name="person" size={20} color={primaryColor} />
+                <ThemedText
+                  style={[styles.assignmentText, { color: textColor }]}
+                >
+                  {student.name} {student.surname}
+                </ThemedText>
+                <ThemedText
+                  style={[styles.sourceLabel, { color: textColor + "60" }]}
+                >
+                  (bezpośrednio)
+                </ThemedText>
+              </View>
+            ))}
+
+            {/* Student groups with nested members */}
+            {resourceAssignments.studentGroups.map((group) => (
+              <View key={`group-${group.id}`} style={styles.groupSection}>
+                {/* Student group header */}
+                <View style={[styles.assignmentItem, { borderColor }]}>
+                  <MaterialIcons name="group" size={20} color={primaryColor} />
+                  <ThemedText
+                    style={[styles.assignmentText, { color: textColor }]}
+                  >
+                    {group.name}
+                  </ThemedText>
+                  <ThemedText
+                    style={[styles.sourceLabel, { color: textColor + "60" }]}
+                  >
+                    (grupa)
+                  </ThemedText>
+                </View>
+
+                {/* Nested students from the group */}
+                {group.students && group.students.length > 0 && (
+                  <View style={styles.nestedContent}>
+                    {group.students.map((student) => (
+                      <View
+                        key={`group-${group.id}-student-${student.id}`}
+                        style={[styles.nestedItem, { borderColor }]}
+                      >
+                        <MaterialIcons
+                          name="subdirectory-arrow-right"
+                          size={16}
+                          color={primaryColor + "80"}
+                        />
+                        <MaterialIcons
+                          name="person"
+                          size={16}
+                          color={primaryColor}
+                        />
+                        <ThemedText
+                          style={[styles.nestedText, { color: textColor }]}
+                        >
+                          {student.name} {student.surname}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
+        )}
+
+        {/* Resource groups containing this resource */}
+        {resourceAssignments.resourceGroups.length > 0 && (
+          <View style={styles.section}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Przez Grupy Zasobów
+            </ThemedText>
+            {resourceAssignments.resourceGroups.map((resourceGroup) => (
+              <View key={resourceGroup.id} style={styles.nestedSection}>
+                {/* Resource group header */}
+                <View
+                  style={[
+                    styles.assignmentItem,
+                    { borderColor, backgroundColor: primaryColor + "08" },
+                  ]}
+                >
+                  <MaterialIcons name="folder" size={20} color={primaryColor} />
+                  <ThemedText
+                    style={[styles.assignmentText, { color: textColor }]}
+                  >
+                    {resourceGroup.name}
+                  </ThemedText>
+                </View>
+
+                {/* Direct students assigned to this resource group */}
+                {resourceGroup.directStudents.length > 0 && (
+                  <View style={styles.nestedContent}>
+                    {resourceGroup.directStudents.map((student) => (
+                      <View
+                        key={`rg-${resourceGroup.id}-student-${student.id}`}
+                        style={[styles.nestedItem, { borderColor }]}
+                      >
+                        <MaterialIcons
+                          name="subdirectory-arrow-right"
+                          size={16}
+                          color={primaryColor + "80"}
+                        />
+                        <MaterialIcons
+                          name="person"
+                          size={16}
+                          color={primaryColor}
+                        />
+                        <ThemedText
+                          style={[styles.nestedText, { color: textColor }]}
+                        >
+                          {student.name} {student.surname}
+                        </ThemedText>
+                        <ThemedText
+                          style={[
+                            styles.sourceLabel,
+                            { color: textColor + "60" },
+                          ]}
+                        >
+                          (bezpośrednio)
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* Student groups assigned to this resource group */}
+                {resourceGroup.studentGroups.length > 0 && (
+                  <View style={styles.nestedContent}>
+                    {resourceGroup.studentGroups.map((group) => (
+                      <View
+                        key={`rg-${resourceGroup.id}-group-${group.id}`}
+                        style={styles.doublyNestedSection}
+                      >
+                        {/* Student group header */}
+                        <View style={[styles.nestedItem, { borderColor }]}>
+                          <MaterialIcons
+                            name="subdirectory-arrow-right"
+                            size={16}
+                            color={primaryColor + "80"}
+                          />
+                          <MaterialIcons
+                            name="group"
+                            size={16}
+                            color={primaryColor}
+                          />
+                          <ThemedText
+                            style={[styles.nestedText, { color: textColor }]}
+                          >
+                            {group.name}
+                          </ThemedText>
+                          <ThemedText
+                            style={[
+                              styles.sourceLabel,
+                              { color: textColor + "60" },
+                            ]}
+                          >
+                            (grupa)
+                          </ThemedText>
+                        </View>
+
+                        {/* Students from the group (double indent) */}
+                        {group.students && group.students.length > 0 && (
+                          <View style={styles.doublyNestedContent}>
+                            {group.students.map((student) => (
+                              <View
+                                key={`rg-${resourceGroup.id}-group-${group.id}-student-${student.id}`}
+                                style={[
+                                  styles.nestedItem,
+                                  { borderColor, marginLeft: 8 },
+                                ]}
+                              >
+                                <MaterialIcons
+                                  name="subdirectory-arrow-right"
+                                  size={14}
+                                  color={primaryColor + "60"}
+                                />
+                                <MaterialIcons
+                                  name="person"
+                                  size={14}
+                                  color={primaryColor}
+                                />
+                                <ThemedText
+                                  style={[
+                                    styles.doublyNestedText,
+                                    { color: textColor },
+                                  ]}
+                                >
+                                  {student.name} {student.surname}
+                                </ThemedText>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+      </>
     );
   };
 
   const renderResourceGroupAssignments = () => {
-    if (!resourceGroupAssignments || !resourceGroupAssignments.assignedTo)
-      return null;
+    if (!resourceGroupAssignments) return null;
 
     return (
-      <View style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Przypisani uczniowie
-        </ThemedText>
-        {resourceGroupAssignments.assignedTo.map((student) => (
-          <View
-            key={student.id}
-            style={[styles.assignmentItem, { borderColor }]}
-          >
-            <MaterialIcons name="person" size={20} color={primaryColor} />
-            <ThemedText style={[styles.assignmentText, { color: textColor }]}>
-              {student.name} {student.surname}
+      <>
+        {/* Combined section: Przypisani Uczniowie */}
+        {(resourceGroupAssignments.directStudents.length > 0 ||
+          resourceGroupAssignments.studentGroups.length > 0) && (
+          <View style={styles.section}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Przypisani Uczniowie
             </ThemedText>
+
+            {/* Direct students */}
+            {resourceGroupAssignments.directStudents.map((student) => (
+              <View
+                key={`direct-${student.id}`}
+                style={[styles.assignmentItem, { borderColor }]}
+              >
+                <MaterialIcons name="person" size={20} color={primaryColor} />
+                <ThemedText
+                  style={[styles.assignmentText, { color: textColor }]}
+                >
+                  {student.name} {student.surname}
+                </ThemedText>
+                <ThemedText
+                  style={[styles.sourceLabel, { color: textColor + "60" }]}
+                >
+                  (bezpośrednio)
+                </ThemedText>
+              </View>
+            ))}
+
+            {/* Student groups with nested members */}
+            {resourceGroupAssignments.studentGroups.map((group) => (
+              <View key={`group-${group.id}`} style={styles.groupSection}>
+                {/* Student group header */}
+                <View style={[styles.assignmentItem, { borderColor }]}>
+                  <MaterialIcons name="group" size={20} color={primaryColor} />
+                  <ThemedText
+                    style={[styles.assignmentText, { color: textColor }]}
+                  >
+                    {group.name}
+                  </ThemedText>
+                  <ThemedText
+                    style={[styles.sourceLabel, { color: textColor + "60" }]}
+                  >
+                    (grupa)
+                  </ThemedText>
+                </View>
+
+                {/* Nested students from the group */}
+                {group.students && group.students.length > 0 && (
+                  <View style={styles.nestedContent}>
+                    {group.students.map((student) => (
+                      <View
+                        key={`group-${group.id}-student-${student.id}`}
+                        style={[styles.nestedItem, { borderColor }]}
+                      >
+                        <MaterialIcons
+                          name="subdirectory-arrow-right"
+                          size={16}
+                          color={primaryColor + "80"}
+                        />
+                        <MaterialIcons
+                          name="person"
+                          size={16}
+                          color={primaryColor}
+                        />
+                        <ThemedText
+                          style={[styles.nestedText, { color: textColor }]}
+                        >
+                          {student.name} {student.surname}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
+        )}
+      </>
     );
   };
 
   const renderStudentAssignments = () => {
-    if (!studentAssignments || !studentAssignments.assignedTo) return null;
+    if (!studentAssignments) return null;
 
     return (
-      <View style={styles.section}>
-        <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-          Przypisane zasoby
-        </ThemedText>
-        {studentAssignments.assignedTo.map((resource) => (
-          <View
-            key={resource.id}
-            style={[styles.assignmentItem, { borderColor }]}
-          >
-            <MaterialIcons
-              name={getFileIcon(resource.fileType, resource.name)}
-              size={20}
-              color={primaryColor}
-            />
-            <ThemedText
-              style={[styles.assignmentText, { color: textColor }]}
-              numberOfLines={1}
-            >
-              {resource.name}
+      <>
+        {/* Combined section: Przypisane Zasoby */}
+        {(studentAssignments.directResources.length > 0 ||
+          studentAssignments.resourceGroups.length > 0) && (
+          <View style={styles.section}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Przypisane Zasoby
             </ThemedText>
+
+            {/* Direct resources */}
+            {studentAssignments.directResources.map((resource) => (
+              <View
+                key={`direct-${resource.id}`}
+                style={[styles.assignmentItem, { borderColor }]}
+              >
+                <MaterialIcons
+                  name={getFileIcon(resource.fileType, resource.name)}
+                  size={20}
+                  color={primaryColor}
+                />
+                <ThemedText
+                  style={[styles.assignmentText, { color: textColor }]}
+                  numberOfLines={1}
+                >
+                  {resource.name}
+                </ThemedText>
+                <ThemedText
+                  style={[styles.sourceLabel, { color: textColor + "60" }]}
+                >
+                  (bezpośrednio)
+                </ThemedText>
+              </View>
+            ))}
+
+            {/* Resource groups with nested resources */}
+            {studentAssignments.resourceGroups.map((group) => (
+              <View key={`group-${group.id}`} style={styles.groupSection}>
+                {/* Resource group header */}
+                <View style={[styles.assignmentItem, { borderColor }]}>
+                  <MaterialIcons name="folder" size={20} color={primaryColor} />
+                  <ThemedText
+                    style={[styles.assignmentText, { color: textColor }]}
+                  >
+                    {group.name}
+                  </ThemedText>
+                  <ThemedText
+                    style={[styles.sourceLabel, { color: textColor + "60" }]}
+                  >
+                    (grupa)
+                  </ThemedText>
+                </View>
+
+                {/* Nested resources from the group */}
+                {group.resources && group.resources.length > 0 && (
+                  <View style={styles.nestedContent}>
+                    {group.resources.map((resource) => (
+                      <View
+                        key={`group-${group.id}-resource-${resource.id}`}
+                        style={[styles.nestedItem, { borderColor }]}
+                      >
+                        <MaterialIcons
+                          name="subdirectory-arrow-right"
+                          size={16}
+                          color={primaryColor + "80"}
+                        />
+                        <MaterialIcons
+                          name={getFileIcon(resource.fileType, resource.name)}
+                          size={16}
+                          color={primaryColor}
+                        />
+                        <ThemedText
+                          style={[styles.nestedText, { color: textColor }]}
+                          numberOfLines={1}
+                        >
+                          {resource.name}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
+        )}
+
+        {/* Student groups containing this student */}
+        {studentAssignments.studentGroups.length > 0 && (
+          <View style={styles.section}>
+            <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+              Przez Grupy Uczniów
+            </ThemedText>
+            {studentAssignments.studentGroups.map((studentGroup) => (
+              <View key={studentGroup.id} style={styles.nestedSection}>
+                {/* Student group header */}
+                <View
+                  style={[
+                    styles.assignmentItem,
+                    { borderColor, backgroundColor: primaryColor + "08" },
+                  ]}
+                >
+                  <MaterialIcons name="group" size={20} color={primaryColor} />
+                  <ThemedText
+                    style={[styles.assignmentText, { color: textColor }]}
+                  >
+                    {studentGroup.name}
+                  </ThemedText>
+                </View>
+
+                {/* Direct resources assigned to this student group */}
+                {studentGroup.directResources.length > 0 && (
+                  <View style={styles.nestedContent}>
+                    {studentGroup.directResources.map((resource) => (
+                      <View
+                        key={`sg-${studentGroup.id}-resource-${resource.id}`}
+                        style={[styles.nestedItem, { borderColor }]}
+                      >
+                        <MaterialIcons
+                          name="subdirectory-arrow-right"
+                          size={16}
+                          color={primaryColor + "80"}
+                        />
+                        <MaterialIcons
+                          name={getFileIcon(resource.fileType, resource.name)}
+                          size={16}
+                          color={primaryColor}
+                        />
+                        <ThemedText
+                          style={[styles.nestedText, { color: textColor }]}
+                          numberOfLines={1}
+                        >
+                          {resource.name}
+                        </ThemedText>
+                        <ThemedText
+                          style={[
+                            styles.sourceLabel,
+                            { color: textColor + "60" },
+                          ]}
+                        >
+                          (bezpośrednio)
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* Resource groups assigned to this student group */}
+                {studentGroup.resourceGroups.length > 0 && (
+                  <View style={styles.nestedContent}>
+                    {studentGroup.resourceGroups.map((group) => (
+                      <View
+                        key={`sg-${studentGroup.id}-group-${group.id}`}
+                        style={styles.doublyNestedSection}
+                      >
+                        {/* Resource group header */}
+                        <View style={[styles.nestedItem, { borderColor }]}>
+                          <MaterialIcons
+                            name="subdirectory-arrow-right"
+                            size={16}
+                            color={primaryColor + "80"}
+                          />
+                          <MaterialIcons
+                            name="folder"
+                            size={16}
+                            color={primaryColor}
+                          />
+                          <ThemedText
+                            style={[styles.nestedText, { color: textColor }]}
+                          >
+                            {group.name}
+                          </ThemedText>
+                          <ThemedText
+                            style={[
+                              styles.sourceLabel,
+                              { color: textColor + "60" },
+                            ]}
+                          >
+                            (grupa)
+                          </ThemedText>
+                        </View>
+
+                        {/* Resources from the group (double indent) */}
+                        {group.resources && group.resources.length > 0 && (
+                          <View style={styles.doublyNestedContent}>
+                            {group.resources.map((resource) => (
+                              <View
+                                key={`sg-${studentGroup.id}-group-${group.id}-resource-${resource.id}`}
+                                style={[
+                                  styles.nestedItem,
+                                  { borderColor, marginLeft: 8 },
+                                ]}
+                              >
+                                <MaterialIcons
+                                  name="subdirectory-arrow-right"
+                                  size={14}
+                                  color={primaryColor + "60"}
+                                />
+                                <MaterialIcons
+                                  name={getFileIcon(
+                                    resource.fileType,
+                                    resource.name,
+                                  )}
+                                  size={14}
+                                  color={primaryColor}
+                                />
+                                <ThemedText
+                                  style={[
+                                    styles.doublyNestedText,
+                                    { color: textColor },
+                                  ]}
+                                  numberOfLines={1}
+                                >
+                                  {resource.name}
+                                </ThemedText>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+      </>
     );
   };
 
@@ -402,6 +881,50 @@ const styles = StyleSheet.create({
   assignmentText: {
     flex: 1,
     fontSize: 14,
+  },
+  sourceLabel: {
+    fontSize: 11,
+    fontStyle: "italic",
+    marginLeft: 4,
+  },
+  groupSection: {
+    marginBottom: 8,
+  },
+  nestedSection: {
+    marginBottom: 12,
+  },
+  nestedContent: {
+    marginLeft: 16,
+    marginTop: 6,
+  },
+  nestedLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  nestedItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    borderWidth: 1,
+    borderRadius: 6,
+    marginBottom: 4,
+    gap: 6,
+  },
+  nestedText: {
+    flex: 1,
+    fontSize: 13,
+  },
+  doublyNestedSection: {
+    marginBottom: 6,
+  },
+  doublyNestedContent: {
+    marginLeft: 8,
+    marginTop: 4,
+  },
+  doublyNestedText: {
+    flex: 1,
+    fontSize: 12,
   },
   footer: {
     flexDirection: "row",

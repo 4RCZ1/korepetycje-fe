@@ -5,7 +5,7 @@ import { ResourceType } from "@/types/resource";
 import { resourceApi } from "@/services/resourceApi";
 import alert from "@/utils/alert";
 
-export function useResourceApi() {
+export function useResourceApi(fetchOnRender: boolean = true) {
   const [resources, setResources] = useState<ResourceType[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -13,11 +13,6 @@ export function useResourceApi() {
   const [deletingResources, setDeletingResources] = useState<Set<string>>(
     new Set(),
   );
-
-  // Fetch resources on mount
-  useEffect(() => {
-    fetchResources();
-  }, []);
 
   const fetchResources = useCallback(async () => {
     setLoading(true);
@@ -34,6 +29,12 @@ export function useResourceApi() {
       setLoading(false);
     }
   }, []);
+
+  // Fetch resources on mount
+  useEffect(() => {
+    if (!fetchOnRender) return;
+    fetchResources();
+  }, [fetchOnRender, fetchResources]);
 
   const refetch = useCallback(async () => {
     await fetchResources();

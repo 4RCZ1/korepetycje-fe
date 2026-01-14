@@ -38,20 +38,42 @@ export interface AssignmentDetails {
   createdAt: string;
 }
 
-// Response types for viewing assignments - simplified flat lists for MVP
+// Response types for viewing assignments
 export interface ResourceAssignmentsResponse {
-  resourceId: string;
-  assignedTo: StudentType[];
+  id: string;
+  name: string;
+  directStudents: StudentType[];
+  studentGroups: StudentGroupType[];
+  resourceGroups: {
+    id: string;
+    name: string;
+    isSingle: boolean;
+    directStudents: StudentType[];
+    studentGroups: StudentGroupType[];
+  }[];
 }
 
 export interface ResourceGroupAssignmentsResponse {
-  resourceGroupId: string;
-  assignedTo: StudentType[];
+  id: string;
+  name: string;
+  resources: ResourceType[];
+  directStudents: StudentType[];
+  studentGroups: StudentGroupType[];
 }
 
 export interface StudentAssignmentsResponse {
   studentId: string;
-  assignedTo: ResourceType[];
+  name: string;
+  surname: string;
+  directResources: ResourceType[];
+  resourceGroups: ResourceGroupType[];
+  studentGroups: Array<{
+    id: string;
+    name: string;
+    isSingle: boolean;
+    directResources: ResourceType[];
+    resourceGroups: ResourceGroupType[];
+  }>;
 }
 
 export interface StudentGroupAssignmentsResponse {
@@ -118,7 +140,7 @@ const realApi = {
     resourceId: string,
   ): Promise<ResourceAssignmentsResponse> {
     const response = await apiRequest<ResourceAssignmentsResponse>(
-      `/assignment/resource/${resourceId}`,
+      `/students/resource/${resourceId}`,
     );
     return response;
   },

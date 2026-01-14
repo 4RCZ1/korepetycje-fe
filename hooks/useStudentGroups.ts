@@ -1,14 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 
+import { StudentType } from "@/services/studentApi";
 import {
   studentGroupApi,
   StudentGroupFilters,
 } from "@/services/studentGroupApi";
-import { StudentType } from "@/services/studentApi";
 import { StudentGroupType } from "@/types/studentGroup";
 import alert from "@/utils/alert";
 
-export function useStudentGroups(initialFilters?: StudentGroupFilters) {
+export function useStudentGroups(
+  initialFilters?: StudentGroupFilters,
+  fetchOnRender: boolean = true,
+) {
   const [groups, setGroups] = useState<StudentGroupType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +29,9 @@ export function useStudentGroups(initialFilters?: StudentGroupFilters) {
         setGroups(data);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Nie udało się załadować grup uczniów",
+          err instanceof Error
+            ? err.message
+            : "Nie udało się załadować grup uczniów",
         );
         alert("Błąd", "Nie udało się załadować grup uczniów");
       } finally {
@@ -37,8 +42,9 @@ export function useStudentGroups(initialFilters?: StudentGroupFilters) {
   );
 
   useEffect(() => {
+    if (!fetchOnRender) return;
     fetchGroups();
-  }, [fetchGroups]);
+  }, [fetchOnRender, fetchGroups]);
 
   const addGroup = async (name: string, students: StudentType[]) => {
     setIsLoading(true);

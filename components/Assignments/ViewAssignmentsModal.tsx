@@ -522,7 +522,8 @@ export default function ViewAssignmentsModal({
             {studentAssignments.resourceGroups.map((group) => (
               <View key={`group-${group.id}`} style={styles.groupSection}>
                 {/* Resource group header */}
-                <View style={[styles.assignmentItem, { borderColor }]}>                  <MaterialIcons name="folder" size={20} color={primaryColor} />
+                <View style={[styles.assignmentItem, { borderColor }]}>
+                  <MaterialIcons name="folder" size={20} color={primaryColor} />
                   <ThemedText
                     style={[styles.assignmentText, { color: textColor }]}
                   >

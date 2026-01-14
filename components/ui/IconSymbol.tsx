@@ -30,6 +30,7 @@ const MAPPING = {
   xmark: "close",
   checkmark: "check",
   "doc.text": "description",
+  "location.pin": "location-pin",
 } as IconMapping;
 
 /**

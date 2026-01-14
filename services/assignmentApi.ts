@@ -67,13 +67,13 @@ export interface StudentAssignmentsResponse {
   surname: string;
   directResources: ResourceType[];
   resourceGroups: ResourceGroupType[];
-  studentGroups: Array<{
+  studentGroups: {
     id: string;
     name: string;
     isSingle: boolean;
     directResources: ResourceType[];
     resourceGroups: ResourceGroupType[];
-  }>;
+  }[];
 }
 
 export interface StudentGroupAssignmentsResponse {

@@ -74,18 +74,13 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
+        <Stack screenOptions={{ headerShown: false }}>
           {isAuthenticated && (
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" />
           )}
           {isAuthenticated && <Stack.Screen name="+not-found" />}
           {!isAuthenticated && (
-            <Stack.Screen
-              name="(auth)"
-              options={{
-                headerShown: false,
-              }}
-            />
+            <Stack.Screen name="(auth)" />
           )}
         </Stack>
         <StatusBar style="auto" />

@@ -28,7 +28,7 @@ export default function TabLayout() {
           name="schedule"
           options={{
             drawerLabel: "Schedule",
-            title: "Schedule",
+            title: "Plan Lekcji",
             drawerIcon: ({ color }) => (
               <IconSymbol size={28} name="calendar" color={color} />
             ),
@@ -38,7 +38,7 @@ export default function TabLayout() {
           name="student"
           options={{
             drawerLabel: "Students",
-            title: "Students",
+            title: "Uczniowie",
             drawerIcon: ({ color }) => (
               <IconSymbol size={28} name="person" color={color} />
             ),
@@ -48,7 +48,7 @@ export default function TabLayout() {
           name="resources"
           options={{
             drawerLabel: "Resources",
-            title: "Resources",
+            title: "Zasoby",
             drawerIcon: ({ color }) => (
               <IconSymbol size={28} name="folder" color={color} />
             ),
@@ -58,7 +58,7 @@ export default function TabLayout() {
           name="groups"
           options={{
             drawerLabel: "Groups",
-            title: "Groups",
+            title: "Grupy",
             drawerIcon: ({ color }) => (
               <IconSymbol size={28} name="person.2" color={color} />
             ),
@@ -70,7 +70,7 @@ export default function TabLayout() {
             drawerLabel: "Adresy",
             title: "Adresy",
             drawerIcon: ({ color }) => (
-              <IconSymbol size={28} name="mappin" color={color} />
+              <IconSymbol size={28} name="location.pin" color={color} />
             ),
           }}
         />

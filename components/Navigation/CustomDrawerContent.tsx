@@ -64,8 +64,9 @@ export default function CustomDrawerContent(
           <DrawerItem
             label={"Plan Lekcji"}
             icon={({ color }) => (
-              <IconSymbol size={28} name="calendar" color={color} />
+              <IconSymbol size={28} name="calendar" color={textColor} />
             )}
+            labelStyle={{ color: textColor }}
             onPress={() => props.navigation.navigate("schedule")}
           />
 
@@ -73,8 +74,9 @@ export default function CustomDrawerContent(
             <DrawerItem
               label={"Uczniowie"}
               icon={({ color }) => (
-                <IconSymbol size={28} name="person" color={color} />
+                <IconSymbol size={28} name="person" color={textColor} />
               )}
+              labelStyle={{ color: textColor }}
               onPress={() => props.navigation.navigate("student")}
             />
           )}
@@ -83,8 +85,9 @@ export default function CustomDrawerContent(
             <DrawerItem
               label={"Zasoby"}
               icon={({ color }) => (
-                <IconSymbol size={28} name="folder" color={color} />
+                <IconSymbol size={28} name="folder" color={textColor} />
               )}
+              labelStyle={{ color: textColor }}
               onPress={() => props.navigation.navigate("resources")}
             />
           )}
@@ -93,8 +96,9 @@ export default function CustomDrawerContent(
             <DrawerItem
               label={"Moje Zasoby"}
               icon={({ color }) => (
-                <IconSymbol size={28} name="folder" color={color} />
+                <IconSymbol size={28} name="folder" color={textColor} />
               )}
+              labelStyle={{ color: textColor }}
               onPress={() => props.navigation.navigate("resources")}
             />
           )}
@@ -103,8 +107,9 @@ export default function CustomDrawerContent(
             <DrawerItem
               label={"Grupy"}
               icon={({ color }) => (
-                <IconSymbol size={28} name="person.2" color={color} />
+                <IconSymbol size={28} name="person.2" color={textColor} />
               )}
+              labelStyle={{ color: textColor }}
               onPress={() => props.navigation.navigate("groups")}
             />
           )}
@@ -113,8 +118,9 @@ export default function CustomDrawerContent(
             <DrawerItem
               label={"Adresy"}
               icon={({ color }) => (
-                <IconSymbol size={28} name="location.pin" color={color} />
+                <IconSymbol size={28} name="location.pin" color={textColor} />
               )}
+              labelStyle={{ color: textColor }}
               onPress={() => props.navigation.navigate("addresses")}
             />
           )}
@@ -123,8 +129,9 @@ export default function CustomDrawerContent(
             <DrawerItem
               label={"Faktury"}
               icon={({ color }) => (
-                <IconSymbol size={28} name="doc.text" color={color} />
+                <IconSymbol size={28} name="doc.text" color={textColor} />
               )}
+              labelStyle={{ color: textColor }}
               onPress={() => props.navigation.navigate("invoice-report")}
             />
           )}

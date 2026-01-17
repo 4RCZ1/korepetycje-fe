@@ -1,11 +1,13 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import React, { useState } from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Linking,
+  Platform,
 } from "react-native";
 
 import AssignResourceModal from "@/components/Assignments/AssignResourceModal";
@@ -71,16 +73,61 @@ const ResourceCard = ({
     setDownloading(true);
     try {
       const downloadUrl = await onDownload(resource.id);
-      if (downloadUrl) {
-        // Open the download URL in the browser
-        const supported = await Linking.canOpenURL(downloadUrl);
-        if (supported) {
-          await Linking.openURL(downloadUrl);
-        } else {
-          alert("Błąd", "Nie można otworzyć URL pobierania");
+      if (!downloadUrl) {
+        alert("Błąd", "Nie udało się pobrać URL pobierania");
+        return;
+      }
+
+      if (Platform.OS === "web") {
+        // For web, fetch the file as a blob and trigger download
+        try {
+          const response = await fetch(downloadUrl);
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = resource.name;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          // Clean up the blob URL
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Error fetching file for download:", error);
+          alert("Błąd", "Nie udało się pobrać pliku");
         }
       } else {
-        alert("Błąd", "Nie udało się pobrać URL pobierania");
+        // For mobile platforms, use FileSystem to download
+        try {
+          const fileUri = FileSystem.documentDirectory + resource.name;
+          const downloadResumable = FileSystem.createDownloadResumable(
+            downloadUrl,
+            fileUri,
+          );
+          
+          const result = await downloadResumable.downloadAsync();
+          
+          if (result && result.uri) {
+            // Check if sharing is available
+            const isAvailable = await Sharing.isAvailableAsync();
+            if (isAvailable) {
+              await Sharing.shareAsync(result.uri, {
+                mimeType: resource.fileType,
+                dialogTitle: "Zapisz plik",
+              });
+            } else {
+              alert("Sukces", `Plik został pobrany: ${result.uri}`);
+            }
+          } else {
+            alert("Błąd", "Nie udało się pobrać pliku");
+          }
+        } catch (error) {
+          console.error("Error downloading file on mobile:", error);
+          alert("Błąd", "Nie udało się pobrać pliku");
+        }
       }
     } catch (error) {
       console.error("Error downloading resource:", error);
